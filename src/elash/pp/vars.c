@@ -2,6 +2,7 @@
 #include <elash/pp/vars.h>
 
 #include <elash/defs/int-types.h>
+#include <elash/util/strhash.h>
 
 #include <stdlib.h>
 
@@ -15,15 +16,6 @@ static usize next_power_of_two(usize x) {
     usize power = 1;
     while (power < x) power <<= 1;
     return power;
-}
-
-ulong hash_string(ElStringView s) {
-    ulong hash = 5381;
-    for (const char* c = s.data; c < s.data+s.len; c++) {
-        hash = ((hash << 5) + hash) + *c;
-    }
-
-    return hash;
 }
 
 bool _el_pp_vars_resize(ElPpVars* vars, usize new_capacity) {
@@ -54,7 +46,7 @@ bool _el_pp_vars_resize(ElPpVars* vars, usize new_capacity) {
 }
 
 bool _el_pp_vars_ensure_capacity_for_new_var(ElPpVars* vars) {
-    double load = (double)(vars->num_entries + vars->num_tombstones) / vars->capacity;
+    double load = (double)(vars->num_entries + vars->num_tombstones) / (double)vars->capacity;
     if (load >= LOAD_FACTOR_GROW) {
         return _el_pp_vars_resize(vars, vars->capacity * 2);
     }
@@ -62,14 +54,14 @@ bool _el_pp_vars_ensure_capacity_for_new_var(ElPpVars* vars) {
 }
 
 void _el_pp_vars_maybe_shrink(ElPpVars* vars) {
-    double load = (double)vars->num_entries / vars->capacity;
+    double load = (double)vars->num_entries / (double)vars->capacity;
     if (vars->capacity > MIN_CAPACITY && load <= LOAD_FACTOR_SHRINK) {
         _el_pp_vars_resize(vars, vars->capacity / 2);
     }
 }
 
 Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool *found) {
-    usize index = hash_string(key) & (vars->capacity - 1);
+    usize index = el_hash_string(key) & (vars->capacity - 1);
     Entry* first_tombstone = NULL;
 
     for (;;) {

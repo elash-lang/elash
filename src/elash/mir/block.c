@@ -2,7 +2,7 @@
 #include <string.h>
 
 ElMirBlock* el_mir_new_block(ElDynArena* arena, ElMirInstr** instructions, usize instr_count) {
-    usize size = sizeof(ElMirBlock) + sizeof(ElMirInstr*) * instr_count;
+    usize size = sizeof(ElMirBlock) + (sizeof(ElMirInstr*) * instr_count);
     ElMirBlock* block = el_dynarena_alloc_zeroed(arena, size, alignof(ElMirBlock));
     if (block != NULL) {
         block->next = NULL;

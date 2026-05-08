@@ -1,17 +1,10 @@
 #include <elash/sema/scope.h>
+#include <elash/util/strhash.h>
 
 #include <stdlib.h>
 
 #define INITIAL_CAPACITY 16
 #define LOAD_FACTOR 0.75
-
-static ulong hash_name(ElStringView name) {
-    ulong hash = 5381;
-    for (usize i = 0; i < name.len; i++) {
-        hash = ((hash << 5) + hash) + (uchar)name.data[i];
-    }
-    return hash;
-}
 
 ElScope* el_sema_scope_new(ElScope* parent) {
     ElScope* scope = malloc(sizeof(ElScope));
@@ -60,11 +53,11 @@ static bool resize(ElScope* scope) {
 }
 
 bool el_sema_scope_insert(ElScope* scope, ElSymbol* symbol) {
-    if ((double)scope->count / scope->capacity >= LOAD_FACTOR) {
+    if ((double)scope->count / (double)scope->capacity >= LOAD_FACTOR) {
         if (!resize(scope)) return false;
     }
 
-    ulong hash = hash_name(symbol->name);
+    ulong hash = el_hash_string(symbol->name);
     usize index = hash % scope->capacity;
 
     while (scope->entries[index]) {
@@ -82,7 +75,7 @@ bool el_sema_scope_insert(ElScope* scope, ElSymbol* symbol) {
 ElSymbol* el_sema_scope_lookup_local(ElScope* scope, ElStringView name) {
     if (scope->count == 0) return NULL;
 
-    ulong hash = hash_name(name);
+    ulong hash = el_hash_string(name);
     usize index = hash % scope->capacity;
 
     while (scope->entries[index]) {

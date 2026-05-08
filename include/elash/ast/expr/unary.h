@@ -15,6 +15,6 @@ typedef struct ElAstUnaryExprNode {
     ElAstExprNode* operand;
 } ElAstUnaryExprNode;
 
-ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryOp type, ElAstExprNode* operand);
+ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryOp op, ElAstExprNode* operand);
 ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAstUnaryOp type, ElAstExprNode* operand);
 

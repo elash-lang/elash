@@ -182,8 +182,6 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
     return EL_TT_IDENT;
 }
 
-ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out);
-
 static inline ElLexerErrorCode _el_lexer_ret_tok_with_lexeme_auto(ElLexer* lexer, ElTokenType t, ElToken* out) {
     return 
         _el_lexer_ret_token_with_lexeme(lexer, t, el_make_lexeme_from_token_start(lexer), out);
@@ -259,11 +257,16 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     }
 }
 
+#define UTF8_MULTIBYTE_MARKER 0x80
+
 static ElLexerErrorCode lex_ident(ElLexer* lexer, ElLexerContext prev_ctx, ElToken* out) {
     while (isalnum(peek(lexer)) || peek(lexer) == '_') next(lexer);
 
-    if (lexer->flags & EL_LF_ALLOW_UTF8_IDENTS)
-        while ((unsigned char)peek(lexer) >= 0x80 && !isspace(peek(lexer))) next(lexer);
+    if (lexer->flags & EL_LF_ALLOW_UTF8_IDENTS) {
+        while ((unsigned char)peek(lexer) >= UTF8_MULTIBYTE_MARKER && !isspace(peek(lexer))) {
+            next(lexer);
+        }
+    }
 
     ElStringView lex = el_make_lexeme_from_token_start(lexer);
 
@@ -291,6 +294,8 @@ static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
     return _el_lexer_ret_tok_with_lexeme_auto(lexer, is_float ? EL_TT_FLOAT_LITERAL : EL_TT_INT_LITERAL, out);
 }
 
+// TODO: refactor this function
+// NOLINTNEXTLINE
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
     ElStringView content = el_srcdoc_content(lexer->doc);
 
@@ -385,13 +390,13 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                         .len = lexer->current_loc.offset - content_start_offset
                     };
                     return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_BLOCK_COMMENT, lexeme, out);
-                } else {
-                    ElStringView lexeme = {
-                        .data = content.data + content_start_offset,
-                        .len = content_end_offset - content_start_offset
-                    };
-                    return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_BLOCK_COMMENT, lexeme, out);
                 }
+
+                ElStringView lexeme = {
+                    .data = content.data + content_start_offset,
+                    .len = content_end_offset - content_start_offset
+                };
+                return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_BLOCK_COMMENT, lexeme, out);
             }
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DIV, out);
         }

@@ -64,6 +64,7 @@ bool el_tkbuf_reserve(ElTokenBuf* tkbuf, usize min_cap) {
         return true;
     }
 
+    // NOLINTNEXTLINE
     usize new_cap = tkbuf->cap == 0 ? (min_cap < 4 ? 4 : min_cap) : tkbuf->cap * 2;
     if (new_cap < min_cap) {
         new_cap = min_cap;

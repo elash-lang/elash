@@ -19,13 +19,13 @@ typedef struct ElDiagMetaEntry {
 } ElDiagMetaEntry;
 
 #define EL_DIAG_STRING(KEY, STR) \
-    ((ElDiagMetaEntry) { .key = KEY, .type = EL_DIAG_META_STRING, .as.string = STR })
+    ((ElDiagMetaEntry) { .key = (KEY), .type = EL_DIAG_META_STRING, .as.string = (STR) })
 
 #define EL_DIAG_INT(KEY, INT) \
-    ((ElDiagMetaEntry) { .key = KEY, .type = EL_DIAG_META_INTEGER, .as.integer = INT })
+    ((ElDiagMetaEntry) { .key = (KEY), .type = EL_DIAG_META_INTEGER, .as.integer = (INT) })
 
 #define EL_DIAG_CHAR(KEY, CHAR) \
-    ((ElDiagMetaEntry) { .key = KEY, .type = EL_DIAG_META_CHARACTER, .as.integer = CHAR })
+    ((ElDiagMetaEntry) { .key = (KEY), .type = EL_DIAG_META_CHARACTER, .as.integer = (CHAR) })
 
 typedef struct ElDiagMeta {
     const ElDiagMetaEntry* entries;

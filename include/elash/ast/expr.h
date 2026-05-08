@@ -32,6 +32,6 @@ typedef struct ElAstExprNode {
 
 // TODO: this sucks
 void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out);
-void el_ast_dump_print_indent(usize ident, FILE* out);
+void el_ast_dump_print_indent(usize indent, FILE* out);
 
 void el_ast_expr_list_append(ElAstExprNode** head, ElAstExprNode** tail, ElAstExprNode* expr);

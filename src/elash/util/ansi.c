@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809L // for fileno
 #include <elash/util/ansi.h>
 
+#define ANSI_BG_OFFSET 10
+
 #ifdef _WIN32
     #include <io.h>
     #define ISATTY _isatty
@@ -35,7 +37,7 @@ void el_ansi_apply_style(ElAnsiStyle style, FILE* out) {
         fprintf(out, ";%d", (int)style.fg_color);
     }
     if (style.bg_color != EL_ANSI_CLR_DEFAULT) {
-        fprintf(out, ";%d", (int)style.bg_color + 10);
+        fprintf(out, ";%d", (int)style.bg_color + ANSI_BG_OFFSET);
     }
 
     fprintf(out, "m");

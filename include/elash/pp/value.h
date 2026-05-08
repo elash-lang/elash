@@ -36,7 +36,7 @@ typedef struct ElPpValue {
 
 /// @brief Frees any dynamically allocated resources held by an ElPpValue.
 /// @param var A pointer to the ElPpValue whose resources are to be freed.
-void el_pp_value_free(ElPpValue* var);
+void el_pp_value_free(ElPpValue* val);
 /// @brief Moves the content of a source ElPpValue to a destination ElPpValue.
 /// @param src A pointer to the source ElPpValue, which will be invalidated for non-trivial types.
 /// @param dst A pointer to the destination ElPpValue.

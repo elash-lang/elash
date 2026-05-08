@@ -20,6 +20,7 @@ Checks: >
 
   -bugprone-easily-swappable-parameters,
   -bugprone-reserved-identifier,
+  -bugprone-multi-level-implicit-pointer-conversion,
 
   -portability-avoid-pragma-once,
   

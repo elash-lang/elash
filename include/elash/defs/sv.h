@@ -12,7 +12,7 @@ typedef struct ElStringView {
 } ElStringView;
 
 #define EL_SV_NULL ((ElStringView) { .data = NULL, .len = 0 })
-#define EL_SV(STRING_LITERAL) ((ElStringView) { .data = STRING_LITERAL, .len = sizeof(STRING_LITERAL) - 1 })
+#define EL_SV(STRING_LITERAL) ((ElStringView) { .data = (STRING_LITERAL), .len = sizeof(STRING_LITERAL) - 1 })
 
 #define EL_SV_FMT "%.*s"
 #define EL_SV_FARG(SV) \

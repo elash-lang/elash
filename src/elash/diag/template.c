@@ -6,7 +6,7 @@
 static bool _el_diag_render_meta_value(const ElDiagMetaEntry* entry, ElStringBuf* out) {
     switch (entry->type) {
     case EL_DIAG_META_INTEGER: {
-        char buf[32];
+        char buf[32]; // NOLINT
         int n = snprintf(buf, sizeof(buf), "%d", entry->as.integer);
     
         return el_strbuf_append(out, el_sv_from_data_and_len(buf, (usize)n));

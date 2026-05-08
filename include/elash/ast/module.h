@@ -15,5 +15,5 @@ ElAstModuleNode* el_ast_new_module(ElDynArena* arena, ElSourceSpan span);
 
 void el_ast_module_append(ElAstModuleNode* module, ElAstTopLevelNode* node);
 
-void el_ast_dump_module(ElAstModuleNode* node, usize indent, FILE* out);
+void el_ast_dump_module(ElAstModuleNode* mod, usize indent, FILE* out);
 

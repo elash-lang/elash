@@ -25,7 +25,7 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
         el_parser_advance(parser);
 
         int64_t val = 0;
-        if (!el_string_to_i64(tok.lexeme, &val)) {
+        if (!el_string_to_i64(tok.lexeme, 10, &val)) {
             return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = tok);
         }
         *out = el_ast_new_int_literal(parser->arena, tok.span, val);

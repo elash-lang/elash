@@ -4,7 +4,7 @@
 #include <elash/sema/symbol.h>
 #include <elash/util/dynarena.h>
 
-#include "stmt.h"
+#include "stmt/block.h"
 
 typedef enum ElHirTopLevelKind {
     EL_HIR_TOPLVL_FUNC_DEF,

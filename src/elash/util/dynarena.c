@@ -5,7 +5,7 @@
 
 typedef _ElDynArenaChunk Chunk;
 
-#define EL_DYNARENA_CHUNK_DEFAULT_SIZE (8 * 1024)
+#define EL_DYNARENA_CHUNK_DEFAULT_SIZE ((usize)8 * 1024)
 
 bool el_dynarena_init(ElDynArena* arena) {
     arena->head = NULL;
@@ -49,7 +49,7 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
         usize new_offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
 
         if (new_offset <= arena->current->size) {
-            void* ptr = (void*)aligned_addr;
+            void* ptr = (void*)aligned_addr; // NOLINT(performance-no-int-to-ptr)
             arena->offset = new_offset;
             return ptr;
         }
@@ -81,7 +81,7 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
     uintptr_t addr = (uintptr_t) (arena->current->data + arena->offset);
     uintptr_t aligned_addr = (addr + align - 1) & ~((uintptr_t) (align - 1));
     arena->offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
-    return (void*) aligned_addr;
+    return (void*)aligned_addr; // NOLINT(performance-no-int-to-ptr)
 }
 
 void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {

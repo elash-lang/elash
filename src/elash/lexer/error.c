@@ -106,6 +106,7 @@ usize el_lexer_result_format(ElLexerErrorDetails r, usize n, char buf[static n])
     usize len = el_lexer_result_to_string(r, &s);
     if (!s) return 0;
 
+    // NOLINTNEXTLINE
     usize to_copy = (len < n) ? len : (n > 0 ? n - 1 : 0);
     if (n > 0) {
         memcpy(buf, s, to_copy);
