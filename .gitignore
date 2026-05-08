@@ -6,5 +6,6 @@ out
 vgcore.*
 
 # IDEs configuration
+compile_commands.json
 compile_flags.txt
 .vscode/
