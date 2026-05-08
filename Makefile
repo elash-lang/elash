@@ -110,10 +110,6 @@ dirs:
 
 lint:
 	clang-tidy $(ALL_C_SRCS) -- $(CFLAGS)
-lint-autofix:
-	clang-tidy --fix $(ALL_C_SRCS) -- $(CFLAGS)
-lint-autofix-notes:
-	clang-tidy --fix-notes $(ALL_C_SRCS) -- $(CFAGS)
 
 $(LIBELASH_STATIC): $(LIBELASH_OBJ_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
