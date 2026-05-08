@@ -5,9 +5,7 @@
 #include <stddef.h>
 
 ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol) {
-    ElMirFunc* func = EL_DYNARENA_NEW_ZEROED(arena, ElMirFunc);
-    if (func == NULL) return NULL;
-
+    ElMirFunc* func = EL_DYNARENA_NEW(arena, ElMirFunc);
     func->symbol = symbol;
     func->first_block = NULL;
     func->last_block = NULL;
@@ -34,8 +32,6 @@ ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol) {
 }
 
 void el_mir_func_append_block(ElMirFunc* func, ElMirBlock* block) {
-    if (func == NULL || block == NULL) return;
-
     if (func->last_block != NULL) {
         func->last_block->next = block;
     } else {
