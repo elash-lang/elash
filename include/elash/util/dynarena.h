@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/defs/int-types.h>
+#include <elash/defs/attr.h>
 #include <elash/defs/sv.h>
 
 #include <stdbool.h>
@@ -23,8 +24,8 @@ bool el_dynarena_init(ElDynArena* arena);
 void el_dynarena_free(ElDynArena* arena);
 void el_dynarena_reset(ElDynArena* arena);
 
-void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align);
-void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align);
+EL_ATTR_MALLOC void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align);
+EL_ATTR_MALLOC void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align);
 
 ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv);
 
