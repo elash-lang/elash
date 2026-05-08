@@ -1,0 +1,23 @@
+Checks: >
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  readability-*,
+  portability-*,
+
+  -altera-*,
+  -llvm-*,
+  -cert-*,
+
+  -readability-identifier-length,
+  -readability-avoid-pragma-once,
+  -readability-enum-initial-value,
+  -readability-braces-around-statements,
+  -readability-implicit-bool-conversion,
+  -readability-use-concise-preprocessor-directives,
+
+  -bugprone-reserved-identifier,
+
+  -portability-avoid-pragma-once,
+  
+  -llvmlibc-restrict-system-libc-headers,

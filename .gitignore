@@ -2,6 +2,9 @@
 build
 out
 
+# Clang-tidy / Clangd cache
+.cache/
+
 # Debugging
 vgcore.*
 
