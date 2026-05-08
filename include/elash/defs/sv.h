@@ -15,7 +15,9 @@ typedef struct ElStringView {
 #define EL_SV(STRING_LITERAL) ((ElStringView) { .data = STRING_LITERAL, .len = sizeof(STRING_LITERAL) - 1 })
 
 #define EL_SV_FMT "%.*s"
-#define EL_SV_FARG(SV) ((int)((SV).len)), ((SV).data ? (SV).data : "(nil)")
+#define EL_SV_FARG(SV) \
+    ((int)((SV).data ? (SV).len : 5)), \
+    ((SV).data ? (SV).data : "(nil)")
 
 static inline ulong el_sv_print(ElStringView sv, FILE* out) {
     return fwrite(sv.data, 1, sv.len, out);
@@ -46,7 +48,7 @@ static inline bool el_sv_starts_with(ElStringView sv, ElStringView prefix) {
 
 static inline bool el_sv_ends_with(ElStringView sv, ElStringView suffix) {
     if (suffix.len > sv.len) return false;
-    if (suffix.len == sv.len) return memcmp(sv.data, suffix.data, sv.len);
+    if (suffix.len == sv.len) return memcmp(sv.data, suffix.data, sv.len) == 0;
 
     return memcmp(sv.data + (sv.len - suffix.len), suffix.data, suffix.len) == 0;
 }
