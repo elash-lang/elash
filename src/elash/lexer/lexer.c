@@ -86,12 +86,6 @@ ElLexerErrorCode el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLe
     return EL_LEXERR_SUCCESS;
 }
 
-ElLexerErrorCode el_lexer_destroy(ElLexer* lexer) {
-    memset(lexer, 0, sizeof(ElLexer)); // probably useless, but why not 
-
-    return EL_LEXERR_SUCCESS;
-}
-
 ElLexerErrorCode el_lexer_reset(ElLexer* lexer) {
     lexer->current_loc = EL_SOURCE_LOC_ZERO;
     lexer->token_start_loc = EL_SOURCE_LOC_ZERO;

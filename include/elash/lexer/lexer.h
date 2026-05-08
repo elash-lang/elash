@@ -44,7 +44,6 @@ typedef struct ElLexer {
 } ElLexer;
 
 ElLexerErrorCode el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags);
-ElLexerErrorCode el_lexer_destroy(ElLexer* lexer);
 
 ElLexerErrorCode el_lexer_reset(ElLexer* lexer);
 ElLexerErrorCode el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* doc);

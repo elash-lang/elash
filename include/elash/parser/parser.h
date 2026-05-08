@@ -20,7 +20,6 @@ typedef struct ElParser {
 } ElParser;
 
 void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena);
-void el_parser_destroy(ElParser* parser);
 
 ElParserErrorCode el_parser_advance(ElParser* parser);
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type);

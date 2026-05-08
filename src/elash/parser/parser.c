@@ -49,11 +49,6 @@ void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine
     memset(&parser->last_err_details, 0, sizeof(parser->last_err_details));
 }
 
-void el_parser_destroy(ElParser* parser) {
-    // nothing for now
-    (void) parser;
-}
-
 ElParserErrorCode el_parser_parse(ElParser* parser, ElAstModuleNode** out) {
     if (parser->current.type == EL_TT_UNKNOWN) {
         ElParserErrorCode err = el_parser_advance(parser);
