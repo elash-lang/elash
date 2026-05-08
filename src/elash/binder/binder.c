@@ -12,7 +12,7 @@
 static ElType* _el_binder_register_builtin_type(ElBinder* binder, ElStringView name, ElPrimitiveTypeKind kind) {
     ElType* type = el_sema_new_prim_type(binder->arena, kind);
     ElSymbol* sym = el_sema_new_type_symbol(binder->arena, name, type);
-    el_sema_scope_insert(binder->builtin_scope, sym);
+    (void) el_sema_scope_insert(binder->builtin_scope, sym);
     return type;
 }
 
@@ -73,6 +73,8 @@ ElType* _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node) {
         return sym->as.type.type;
     }
     }
+
+    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, node->kind);
 }
 
 ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
@@ -217,24 +219,46 @@ ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in
     switch (in->type) {
     case EL_AST_TOPLVL_FUNC_DEF: {
         ElAstFuncDefinition* def = &in->as.func_def;
-        ElScope* scope = _el_binder_push_scope(binder);
+        _el_binder_push_scope(binder);
 
         ElType* ret_type = _el_binder_bind_type(binder, def->ret_type);
-        if (ret_type == NULL) return NULL;
+        if (ret_type == NULL) {
+            _el_binder_pop_scope(binder);
+            return NULL;
+        }
 
         ElSymbol** params = EL_DYNARENA_NEW_ARR(binder->arena, ElSymbol*, def->params.count);
         usize i = 0;
         for (ElAstFuncParam* param = def->params.head; param != NULL; param = param->next) {
             ElType* type = _el_binder_bind_type(binder, param->type);
-            if (type == NULL) return NULL;
+            if (type == NULL) {
+                _el_binder_pop_scope(binder);
+                return NULL;
+            }
             
             ElSymbol* psym = el_sema_new_var_symbol(binder->arena, param->name->name, type);
-            el_sema_scope_insert(scope, psym);
+            if (!el_sema_scope_insert(binder->current_scope, psym)) {
+                el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
+                    param->span,
+                    "redeclaration of parameter '${name}'",
+                    EL_DIAG_STRING("name", param->name->name)
+                );
+            }
             params[i++] = psym;
         }
 
         ElSymbol* sym = el_sema_new_func_symbol(binder->arena, def->name->name, ret_type, params, def->params.count);
-        el_sema_scope_insert(binder->current_scope->parent, sym);
+        if (!el_sema_scope_insert(binder->current_scope->parent, sym)) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
+                def->name->span,
+                "redeclaration of symbol '${name}'",
+                EL_DIAG_STRING("name", def->name->name)
+            );
+            _el_binder_pop_scope(binder);
+            return NULL;
+        }
 
         ElHirBlockStmtNode block = _el_binder_bind_block(binder, def->block);
         ElHirTopLevelNode* func = el_hir_new_func_definition(binder->arena, sym, block);
@@ -250,7 +274,7 @@ ElHirModule* el_binder_bind_module(ElBinder* binder, ElAstModuleNode* in) {
     ElHirModule* mod = el_hir_new_module(binder->arena);
     for (ElAstTopLevelNode* node = in->head; node != NULL; node = node->next) {
         ElHirTopLevelNode* binded = el_binder_bind_toplvl(binder, node);
-        if (binded == NULL) return mod;
+        if (binded == NULL) continue;
 
         el_hir_module_append(mod, binded);
     }

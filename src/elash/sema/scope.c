@@ -51,7 +51,7 @@ static bool resize(ElScope* scope) {
     scope->count = 0;
     for (usize i = 0; i < old_capacity; i++) {
         if (old_entries[i]) {
-            el_sema_scope_insert(scope, old_entries[i]);
+            (void) el_sema_scope_insert(scope, old_entries[i]);
         }
     }
 
