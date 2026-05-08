@@ -96,7 +96,7 @@ MAIN_OBJ := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(MAIN_C_SRC))
 DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
         $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIBELASH_C_SRCS) $(LIBELC_C_SRCS))
 
-.PHONY: all dirs clean run tests sharedlib
+.PHONY: all dirs lint clean run tests sharedlib
 
 all: dirs $(ELC_BIN) $(LIBELASH_STATIC) $(LIBELASH_SHARED) $(LIBELC_STATIC) $(LIBELC_SHARED)
 
@@ -107,6 +107,13 @@ dirs:
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR))
 	@$(call CMD_MKDIR_P,$(OBJ_ROOT_DIR)/shared)
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR)/shared)
+
+lint:
+	clang-tidy $(ALL_C_SRCS) -- $(CFLAGS)
+lint-autofix:
+	clang-tidy --fix $(ALL_C_SRCS) -- $(CFLAGS)
+lint-autofix-notes:
+	clang-tidy --fix-notes $(ALL_C_SRCS) -- $(CFAGS)
 
 $(LIBELASH_STATIC): $(LIBELASH_OBJ_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
