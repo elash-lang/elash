@@ -96,9 +96,22 @@ MAIN_OBJ := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(MAIN_C_SRC))
 DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
         $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIBELASH_C_SRCS) $(LIBELC_C_SRCS))
 
-.PHONY: all dirs lint clean run tests sharedlib
+.PHONY: all dirs lint clean
+.PHONY: libelash libelash-shared libelash-static
+.PHONY: libelc libelc-shared libelc-static
+.PHONY: elc
 
-all: dirs $(ELC_BIN) $(LIBELASH_STATIC) $(LIBELASH_SHARED) $(LIBELC_STATIC) $(LIBELC_SHARED)
+all: dirs elc libelash libelc
+
+libelash-static: $(LIBELASH_STATIC)
+libelash-shared: $(LIBELASH_SHARED)
+libelash: libelash-static libelash-shared
+
+libelc-static: $(LIBELC_STATIC)
+libelc-shared: $(LIBELC_SHARED)
+libelc: libelc-static libelc-shared
+
+elc: $(ELC_BIN)
 
 dirs:
 	@$(call CMD_MKDIR_P,$(LIB_DIR))
@@ -140,11 +153,6 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 	@$(call CMD_MKDIR_P,$(dir $@))
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR)/shared/$(dir $<))
 	$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
-
-run: all
-	$(ELC_BIN)
-
-sharedlib: dirs $(LIBELASH_SHARED) $(LIBELC_SHARED)
 
 -include $(DEPS)
 
