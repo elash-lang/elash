@@ -25,7 +25,7 @@ typedef struct ElLowerer {
     ElMirInstrBuf ibuf;
 } ElLowerer;
 
-void el_lowerer_init(ElLowerer* lw);
+void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag);
 void el_lowerer_free(ElLowerer* lw);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir);

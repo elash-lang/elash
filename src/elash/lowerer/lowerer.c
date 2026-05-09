@@ -2,7 +2,11 @@
 
 // TODO: implementation
 
-void el_lowerer_init(ElLowerer* lw) {(void) lw;}
+void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag) {
+    lw->arena = arena;
+    lw->diag = diag;
+}
+
 void el_lowerer_free(ElLowerer* lw) {(void) lw;}
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {(void) lw, (void) hir; return NULL; }
