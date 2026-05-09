@@ -32,7 +32,15 @@ void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {(void) lw
 void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
     switch (hir->kind) {
     case EL_HIR_TOPLVL_FUNC_DEF: {
+        ElHirFuncDefinition* hir_func = &hir->as.func_def;
+        ElHirBlockStmtNode* hir_block = &hir_func->block;
+        
         ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_def.symbol);
+        lw->current_func = func;
+        el_mir_ibuf_clear(&lw->ibuf);
+        for (ElHirStmtNode* node = hir_block->stmts; node != NULL; node = node->next) {
+            el_lowerer_lower_stmt(lw, node);
+        }
         el_mir_module_add_func(lw->current_mod, func);
     }
     }
