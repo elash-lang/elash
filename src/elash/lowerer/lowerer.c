@@ -1,5 +1,8 @@
 #include <elash/lowerer/lowerer.h>
 
+#include <elash/util/assert.h>
+#include <elash/util/todo.h>
+
 #include <elash/mir/module.h>
 #include <elash/mir/func.h>
 #include <elash/mir/block.h>
@@ -27,11 +30,45 @@ void el_lowerer_free(ElLowerer* lw) {
     el_mir_ibuf_destroy(&lw->ibuf);
 }
 
+ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
+    EL_TODO("Implement symbol lowering");
+}
+
 // TODO: stub 
 ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
-    (void) hir;
-    ElType* int_type = el_sema_new_prim_type(lw->arena, EL_PRIMTYPE_INT);
-    return el_mir_new_const(lw->arena, int_type, (ElHirLiteral) { .as.int_ = 42 });
+    switch (hir->kind) {
+    case EL_HIR_EXPR_BINARY: {
+        ElHirBinExprNode* expr = &hir->as.binary;
+        ElMirValue* lhs = el_lowerer_lower_expr(lw, expr->left);
+        ElMirValue* rhs = el_lowerer_lower_expr(lw, expr->right);
+
+        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->next_reg_id++);
+        ElMirInstr* instr = el_mir_new_bin_instr(lw->arena, reg, expr->op, lhs, rhs);
+
+        el_mir_ibuf_push(&lw->ibuf, instr);
+        return reg;
+    }
+    case EL_HIR_EXPR_UNARY: {
+        ElHirUnaryExprNode* expr = &hir->as.unary;
+        ElMirValue* operand = el_lowerer_lower_expr(lw, expr->operand);
+
+        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->next_reg_id++);
+        ElMirInstr* instr = el_mir_new_unary_instr(lw->arena, reg, expr->op, operand);
+
+        el_mir_ibuf_push(&lw->ibuf, instr);
+        return reg;
+    }
+    case EL_HIR_EXPR_LITERAL: {
+        ElHirLiteral* lit = &hir->as.literal;
+        return el_mir_new_const(lw->arena, hir->type, *lit);
+    }
+    case EL_HIR_EXPR_CALL: {
+        EL_TODO("Implement function calls lowering");
+    }
+    case EL_HIR_EXPR_SYMBOL:
+        return el_lowerer_lower_symbol(lw, hir->as.symbol);
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
 }
 
 void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
