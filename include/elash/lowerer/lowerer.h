@@ -22,6 +22,7 @@ typedef struct ElLowerer {
     ElDiagEngine* diag;
 
     ElMirFunc* current_func;
+    ElMirModule* current_mod;
     ElMirInstrBuf ibuf;
 } ElLowerer;
 
