@@ -4,10 +4,10 @@
 
 - [x] Initialize repository
 - [x] Configure build system
-- [ ] Add LLVM C bindings as dependency
+- [x] Add LLVM C bindings as dependency
 - [x] Create compiler entry point
 - [x] Implement source file loader
-- [ ] Implement diagnostic system (line/column + spans)
+- [x] Implement diagnostic system (line/column + spans)
 - [ ] Setup automated tests
 
 

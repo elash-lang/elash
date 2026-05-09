@@ -4,7 +4,22 @@
 
 #include <elc/driver/driver.h>
 
+#include <llvm-c/Core.h>
+
+void test_llvm() {
+    LLVMContextRef context = LLVMContextCreate();
+    LLVMModuleRef module = LLVMModuleCreateWithNameInContext("hello-from-llvm", context);
+ 
+    ElStringView name;
+    name.data = LLVMGetModuleIdentifier(module, &name.len);
+    fprintf(stderr, "Created LLVM module: "EL_SV_FMT"\n", EL_SV_FARG(name));
+
+    LLVMContextDispose(context);
+}
+
 int main(int argc, const char* const* argv) {
+    test_llvm();
+
     if (argc < 2) {
         fprintf(stderr, "usage: %s source-code.ela\n", argv[0]);
         return 1;

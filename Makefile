@@ -64,6 +64,21 @@ else
 	$(error Unknown BUILD=$(BUILD))
 endif
 
+# LLVM Configuration
+LLVM_CONFIG ?= llvm-config
+HAS_LLVM    := $(shell $(LLVM_CONFIG) --version > /dev/null 2>&1 && echo yes || echo no)
+
+ifeq ($(HAS_LLVM),yes)
+	LLVM_CFLAGS  := $(shell $(LLVM_CONFIG) --cflags)
+	LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
+	ifeq ($(PLATFORM),posix)
+		LLVM_LDFLAGS += -lstdc++
+	endif
+else
+	LLVM_CFLAGS  :=
+	LLVM_LDFLAGS :=
+endif
+
 ifeq ($(PLATFORM),windows)
 	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
 	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
@@ -93,10 +108,15 @@ LIBELC_OBJ_SHARED   := $(patsubst %.c,$(OBJ_ROOT_DIR)/shared/%.o,$(LIBELC_C_SRCS
 
 MAIN_OBJ := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(MAIN_C_SRC))
 
+# libelc and elc depend on LLVM
+$(LIBELC_OBJ_STATIC) $(LIBELC_OBJ_SHARED) $(MAIN_OBJ): CFLAGS += $(LLVM_CFLAGS)
+$(LIBELC_SHARED): LDFLAGS += $(LLVM_LDFLAGS)
+$(ELC_BIN): LDFLAGS += $(LLVM_LDFLAGS)
+
 DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
         $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIBELASH_C_SRCS) $(LIBELC_C_SRCS))
 
-.PHONY: all dirs lint clean
+.PHONY: all dirs lint clean check-llvm
 .PHONY: libelash libelash-shared libelash-static
 .PHONY: libelc libelc-shared libelc-static
 .PHONY: elc
@@ -107,11 +127,16 @@ libelash-static: $(LIBELASH_STATIC)
 libelash-shared: $(LIBELASH_SHARED)
 libelash: libelash-static libelash-shared
 
-libelc-static: $(LIBELC_STATIC)
-libelc-shared: $(LIBELC_SHARED)
+libelc-static: check-llvm $(LIBELC_STATIC)
+libelc-shared: check-llvm $(LIBELC_SHARED)
 libelc: libelc-static libelc-shared
 
-elc: $(ELC_BIN)
+elc: check-llvm $(ELC_BIN)
+
+check-llvm:
+ifneq ($(HAS_LLVM),yes)
+	$(error LLVM not found. Please install LLVM and ensure $(LLVM_CONFIG) is in your PATH)
+endif
 
 dirs:
 	@$(call CMD_MKDIR_P,$(LIB_DIR))
