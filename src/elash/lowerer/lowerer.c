@@ -17,17 +17,44 @@
 
 #include <stddef.h>
 
-// TODO: implementation
-
 void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag) {
     lw->arena = arena;
     lw->diag = diag;
+    el_mir_ibuf_init(&lw->ibuf);
 }
 
-void el_lowerer_free(ElLowerer* lw) {(void) lw;}
+void el_lowerer_free(ElLowerer* lw) {
+    el_mir_ibuf_destroy(&lw->ibuf);
+}
 
-ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {(void) lw, (void) hir; return NULL; }
-void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {(void) lw, (void) hir;}
+// TODO: stub 
+ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
+    (void) hir;
+    ElType* int_type = el_sema_new_prim_type(lw->arena, EL_PRIMTYPE_INT);
+    return el_mir_new_const(lw->arena, int_type, (ElHirLiteral) { .as.int_ = 42 });
+}
+
+void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
+    switch (hir->kind) {
+    case EL_HIR_STMT_EXPR:
+        el_lowerer_lower_expr(lw, hir->as.expr);
+        break;
+    case EL_HIR_STMT_RETURN: {
+        ElMirValue* ret_val = NULL;
+        if (hir->as.return_.value) {
+            ret_val = el_lowerer_lower_expr(lw, hir->as.return_.value);
+        }
+        ElMirInstr* ret_instr = el_mir_new_ret_instr(lw->arena, ret_val);
+        el_mir_ibuf_push(&lw->ibuf, ret_instr);
+        break;
+    }
+    case EL_HIR_STMT_BLOCK:
+        for (ElHirStmtNode* node = hir->as.block.stmts; node != NULL; node = node->next) {
+            el_lowerer_lower_stmt(lw, node);
+        }
+        break;
+    }
+}
 
 void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
     switch (hir->kind) {
@@ -41,12 +68,15 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
         for (ElHirStmtNode* node = hir_block->stmts; node != NULL; node = node->next) {
             el_lowerer_lower_stmt(lw, node);
         }
+
+        ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, func->next_block_id++, &lw->ibuf);
+        el_mir_func_append_block(func, block);
+
         el_mir_module_add_func(lw->current_mod, func);
     }
     }
 }
 
-// TODO: stub
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) { 
     lw->current_mod = el_mir_new_module(lw->arena);
     for (ElHirTopLevelNode* node = hir->head; node != NULL; node = node->next) {
