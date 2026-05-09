@@ -5,6 +5,7 @@
 #include <elc/driver/stages/pp-stage.h>
 #include <elc/driver/stages/parser-stage.h>
 #include <elc/driver/stages/binder-stage.h>
+#include <elc/driver/stages/lowerer-stage.h>
 
 #include <elc/driver/observers/dump-ast.h>
 #include <elc/driver/observers/dump-hir.h>
@@ -26,6 +27,7 @@ bool elc_driver_register_stages(ElcDriver* driver) {
     elc_pipeline_add_stage(&driver->pipeline, elc_make_pp_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_parser_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_binder_stage());
+    elc_pipeline_add_stage(&driver->pipeline, elc_make_lowerer_stage());
     return true;
 }
 
@@ -44,7 +46,7 @@ void elc_driver_provide_source(ElcDriver* driver, ElSourceDocument* source) {
 
 bool elc_driver_run(ElcDriver* driver) {
     ElcArtifact out;
-    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_HIR, &out)) {
+    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_MIR, &out)) {
         return false;
     }
 
