@@ -9,6 +9,7 @@
 
 #include <elc/driver/observers/dump-ast.h>
 #include <elc/driver/observers/dump-hir.h>
+#include <elc/driver/observers/dump-mir.h>
 
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
@@ -34,6 +35,7 @@ bool elc_driver_register_stages(ElcDriver* driver) {
 bool elc_driver_register_observers(ElcDriver* driver) {
     elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_ast_observer());
     elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_hir_observer());
+    elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_mir_observer());
     return true;
 }
 
