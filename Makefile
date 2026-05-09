@@ -82,9 +82,11 @@ endif
 ifeq ($(PLATFORM),windows)
 	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
 	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	FIXPATH     = $(subst /,\,$(1))
 else ifeq ($(PLATFORM),posix)
 	CMD_MKDIR_P = mkdir -p "$(1)"
 	CMD_RM_RF = rm -rf "$(1)"
+	FIXPATH     = $(1)
 endif
 
 rwildcard = \
@@ -180,6 +182,8 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 	$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
 
 -include $(DEPS)
+
+include tests/build.mk
 
 clean:
 	@$(call CMD_RM_RF,build)
