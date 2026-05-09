@@ -48,8 +48,8 @@
 - [x] Implement blocks
 - [ ] Implement control flow statements
 - [x] Implement return statements
-- [ ] Implement top-level/module parsing
-- [ ] Attach source spans to AST nodes
+- [x] Implement top-level/module parsing
+- [x] Attach source spans to AST nodes
 - [ ] Implement error recovery
 - [ ] Add parser test suite
 
@@ -57,12 +57,12 @@
 ## 4. Semantic Analysis & ELHIR Generation (Binder)
 
 - [x] Implement symbol table (scope)
-- [ ] Implement scope handling
+- [x] Implement scope handling
 - [ ] Implement built-in functions
-- [ ] Perform name resolution
-- [ ] Detect duplicate declarations
-- [ ] Detect undefined identifiers
-- [ ] Define internal type representation
+- [x] Perform name resolution
+- [x] Detect duplicate declarations
+- [x] Detect undefined identifiers
+- [x] Define internal type representation
 - [ ] Implement expression type checking
 - [ ] Validate function calls
 - [ ] Validate return types
@@ -73,7 +73,7 @@
 
 ## 5. ELHIR -> ELMIR Lowering
 
-- [ ] Define ELMIR (Elash Mid-level Intermediate Representation) structure
+- [x] Define ELMIR (Elash Mid-level Intermediate Representation) structure
 - [ ] Implement Control Flow Graph (CFG) construction
 - [ ] Lower structured control flow (if, loops) into basic blocks and jumps
 - [ ] Flatten nested expressions into linear ELMIR instructions
