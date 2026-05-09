@@ -16,7 +16,10 @@
 
 #include <elash/sema/type/prim.h>
 #include <elash/sema/symbol/func.h>
+#include <elash/sema/symbol/var.h>
 #include <elash/sema/expr/bin-op.h>
+
+#include <elash/mir/value/global.h>
 
 #include <stddef.h>
 
@@ -31,7 +34,26 @@ void el_lowerer_free(ElLowerer* lw) {
 }
 
 ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
-    EL_TODO("Implement symbol lowering");
+    switch (sym->kind) {
+    case EL_SYM_VAR: {
+        if (lw->current_func != NULL) {
+            ElFuncSymbol* func_sym = &lw->current_func->symbol->as.func;
+            for (uint32_t i = 0; i < func_sym->param_count; i++) {
+                if (func_sym->params[i] == sym) {
+                    return lw->current_func->args[i];
+                }
+            }
+        }
+
+        EL_TODO("Variables not supported yet");
+    }
+    case EL_SYM_FUNC:
+        return el_mir_new_global(lw->arena, sym->as.func.type, sym);
+    case EL_SYM_TYPE:
+        EL_UNREACHABLE("Type symbol in expression context (this should be caught during semantic analysis)");
+        break;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElSymbolKind, sym->kind);
 }
 
 // TODO: stub 
