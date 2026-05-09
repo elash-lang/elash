@@ -17,6 +17,7 @@ struct ElMirFunc {
     uint32_t arg_count;
     
     uint32_t next_reg_id;
+    uint32_t next_block_id;
 };
 
 ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol);

@@ -6,10 +6,13 @@
 
 ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol) {
     ElMirFunc* func = EL_DYNARENA_NEW(arena, ElMirFunc);
-    func->symbol = symbol;
-    func->first_block = NULL;
-    func->last_block = NULL;
-    func->next_reg_id = 0;
+    *func = (ElMirFunc) {
+        .symbol = symbol,
+        .first_block = NULL,
+        .last_block = NULL,
+        .next_reg_id = 0,
+        .next_block_id = 0,
+    };
 
     if (symbol->kind == EL_SYM_FUNC) {
         func->arg_count = symbol->as.func.param_count;

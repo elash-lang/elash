@@ -50,7 +50,7 @@ ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
     el_mir_ibuf_push(&ibuf, el_mir_new_bin_instr(lw->arena, res, EL_SEMA_BIN_OP_ADD, c37, c10));
     el_mir_ibuf_push(&ibuf, el_mir_new_ret_instr(lw->arena, res));
  
-    ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, &ibuf);
+    ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, main_func->next_block_id++, &ibuf);
     el_mir_func_append_block(main_func, block);
     el_mir_module_add_func(mod, main_func);
     el_mir_ibuf_destroy(&ibuf);
