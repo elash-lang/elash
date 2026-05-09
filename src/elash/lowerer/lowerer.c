@@ -85,7 +85,18 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
         return el_mir_new_const(lw->arena, hir->type, *lit);
     }
     case EL_HIR_EXPR_CALL: {
-        EL_TODO("Implement function calls lowering");
+        ElHirCallExprNode* call = &hir->as.call;
+
+        ElMirValue* callee = el_lowerer_lower_expr(lw, call->callee);
+        ElMirValue** args = EL_DYNARENA_NEW_ARR(lw->arena, ElMirValue*, call->arg_count);
+        for (usize i = 0; i < call->arg_count; ++i) {
+            args[i] = el_lowerer_lower_expr(lw, call->args[i]);
+        }
+
+        ElMirValue* result = el_mir_new_reg(lw->arena, hir->type, lw->current_func->next_reg_id++);
+        ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
+        el_mir_ibuf_push(&lw->ibuf, instr);
+        return result;
     }
     case EL_HIR_EXPR_SYMBOL:
         return el_lowerer_lower_symbol(lw, hir->as.symbol);
