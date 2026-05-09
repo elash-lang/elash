@@ -76,8 +76,8 @@
 - [x] Define ELMIR (Elash Mid-level Intermediate Representation) structure
 - [ ] Implement Control Flow Graph (CFG) construction
 - [ ] Lower structured control flow (if, loops) into basic blocks and jumps
-- [ ] Flatten nested expressions into linear ELMIR instructions
-- [ ] Implement temporary variable generation
+- [x] Flatten nested expressions into linear ELMIR instructions
+- [x] Implement temporary variable generation
 - [ ] Perform early ELMIR optimizations (constant folding, dead code elimination)
 
 
