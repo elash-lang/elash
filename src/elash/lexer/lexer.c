@@ -197,31 +197,32 @@ ElLexerErrorCode _el_lexer_lex_op2(ElLexer* lexer, char expect, ElTokenType sing
         _el_lexer_ret_tok_with_lexeme_auto(lexer, single, out);
 }
 
-ElLexerErrorCode _el_lexer_lex_op3(
-    ElLexer* lexer, char first, char second,
-    ElTokenType single, ElTokenType dbl, ElTokenType thrd, ElToken* out
-) {
-    if (peek(lexer) == first) {
-        next(lexer);
-        if (peek(lexer) == second) {
-            next(lexer);
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, thrd, out);
-        }
-        return _el_lexer_ret_tok_with_lexeme_auto(lexer, dbl, out);
-    }
-    return _el_lexer_ret_tok_with_lexeme_auto(lexer, single, out);
-}
-
 static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     switch (c) {
     case '+':
-        return _el_lexer_lex_op3(lexer, '+', '=', EL_TT_PLUS, EL_TT_INC, EL_TT_ADD_ASSIGN, out);
+        if (peek(lexer) == '+') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_INC, out);
+        }
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ADD_ASSIGN, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_PLUS, out);
     case '-':
+        if (peek(lexer) == '-') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DEC, out);
+        }
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SUB_ASSIGN, out);
+        }
         if (peek(lexer) == '>') {
             next(lexer);
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ARROW, out);
         }
-        return _el_lexer_lex_op3(lexer, '-', '=', EL_TT_MINUS, EL_TT_DEC, EL_TT_SUB_ASSIGN, out);
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_MINUS, out);
 
     case '*': return _el_lexer_lex_op2(lexer, '=', EL_TT_STAR, EL_TT_MUL_ASSIGN, out);
     case '%': return _el_lexer_lex_op2(lexer, '=', EL_TT_PERCENT, EL_TT_MOD_ASSIGN, out);
@@ -230,12 +231,59 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
 
     case ':': return _el_lexer_lex_op2(lexer, ':', EL_TT_COLON, EL_TT_DOUBLECOLON, out);
 
-    case '&': return _el_lexer_lex_op3(lexer, '&', '=', EL_TT_BITWISE_AND, EL_TT_LOGICAL_AND, EL_TT_BITWISE_AND_ASSIGN, out);
-    case '|': return _el_lexer_lex_op3(lexer, '|', '=', EL_TT_BITWISE_OR, EL_TT_LOGICAL_OR, EL_TT_BITWISE_OR_ASSIGN, out);
+    case '&':
+        if (peek(lexer) == '&') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_AND, out);
+        }
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_AND_ASSIGN, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_AND, out);
+
+    case '|':
+        if (peek(lexer) == '|') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_OR, out);
+        }
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_OR_ASSIGN, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_OR, out);
+
     case '^': return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_XOR, EL_TT_BITWISE_XOR_ASSIGN, out);
 
-    case '<': return _el_lexer_lex_op3(lexer, '<', '=', EL_TT_LT, EL_TT_SHL, EL_TT_SHL_ASSIGN, out);
-    case '>': return _el_lexer_lex_op3(lexer, '>', '=', EL_TT_GT, EL_TT_SHR, EL_TT_SHR_ASSIGN, out);
+    case '<':
+        if (peek(lexer) == '<') {
+            next(lexer);
+            if (peek(lexer) == '=') {
+                next(lexer);
+                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHL_ASSIGN, out);
+            }
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHL, out);
+        }
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LTE, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LT, out);
+
+    case '>':
+        if (peek(lexer) == '>') {
+            next(lexer);
+            if (peek(lexer) == '=') {
+                next(lexer);
+                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHR_ASSIGN, out);
+            }
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHR, out);
+        }
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_GTE, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_GT, out);
 
     case '(': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LPAREN, out);
     case ')': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_RPAREN, out);
@@ -244,7 +292,13 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     case '{': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LBRACE, out);
     case '}': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_RBRACE, out);
     case ';': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SEMICOLON, out);
-    case '.': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DOT, out);
+    case '.':
+        if (peek(lexer) == '.' && peek_next(lexer) == '.') {
+            next(lexer);
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ELLIPSIS, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DOT, out);
     case ',': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_COMMA, out);
     case '~': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_NOT, out);
 
@@ -398,6 +452,10 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 };
                 return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_BLOCK_COMMENT, lexeme, out);
             }
+            if (peek(lexer) == '=') {
+                next(lexer);
+                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DIV_ASSIGN, out);
+            }
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DIV, out);
         }
 
@@ -517,3 +575,4 @@ ElTokenStream el_lexer_as_token_stream(ElLexer* lexer) {
         .ctx = lexer,
     };
 }
+
