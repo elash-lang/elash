@@ -1,0 +1,34 @@
+#pragma once
+
+#include <elash/sema/symbol.h>
+#include <elash/sema/scope.h>
+
+#include <elash/hir/tree/module.h>
+#include <elash/hir/tree/toplevel.h>
+#include <elash/hir/tree/stmt.h>
+#include <elash/hir/tree/expr.h>
+
+#include <elash/mir/module.h>
+#include <elash/mir/instr.h>
+#include <elash/mir/value.h>
+#include <elash/mir/block.h>
+#include <elash/mir/func.h>
+
+#include <elash/util/dynarena.h>
+#include <elash/diag/engine.h>
+
+typedef struct ElLowerer {
+    ElDynArena* arena;
+    ElDiagEngine* diag;
+
+    ElMirFunc* current_func;
+    ElMirInstrBuf ibuf;
+} ElLowerer;
+
+void el_lowerer_init(ElLowerer* lw);
+void el_lowerer_free(ElLowerer* lw);
+
+ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir);
+void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir);
+void         el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir);
+ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
