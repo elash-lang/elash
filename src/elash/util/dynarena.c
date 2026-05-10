@@ -102,3 +102,14 @@ ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv) {
     memcpy(data, sv.data, sv.len);
     return el_sv_from_data_and_len(data, sv.len);
 }
+
+char* el_dynarena_make_cstr(ElDynArena* arena, ElStringView sv) {
+    if (el_sv_is_null(sv) || sv.len == 0) return NULL;
+    
+    char* buf = el_dynarena_alloc(arena, sv.len + 1, 1);
+    if (!buf) return NULL;
+
+    memcpy(buf, sv.data, sv.len);
+    buf[sv.len] = '\0';
+    return buf;
+}

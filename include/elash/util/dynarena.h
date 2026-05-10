@@ -28,6 +28,7 @@ EL_ATTR_MALLOC void* el_dynarena_alloc(ElDynArena* arena, usize size, usize alig
 EL_ATTR_MALLOC void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align);
 
 ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv);
+char* el_dynarena_make_cstr(ElDynArena* arena, ElStringView sv);
 
 #define EL_DYNARENA_NEW(ARENA, TYPE) \
     (TYPE*)(el_dynarena_alloc((ARENA), sizeof(TYPE), alignof(TYPE)))
