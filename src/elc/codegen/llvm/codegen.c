@@ -44,6 +44,18 @@ static void elc_llvm_lir_free_buffer(const ElcLirHandle* handle, ElcCodegenBuffe
     }
 }
 
+ElcLirHandle elc_llvm_make_lir_handle(LirHandleData* data) {
+    return (ElcLirHandle) {
+        .ir_name = EL_SV("llvm-ir"),
+        .data = data,
+        .dump = elc_llvm_lir_dump,
+        .emit_asm = NULL, // TODO: emitting assembly support
+        .emit_obj = elc_llvm_lir_emit_obj,
+        .free = elc_llvm_lir_free,
+        .free_buffer = elc_llvm_lir_free_buffer,
+    };
+}
+
 static ElcCodegenResult elc_llvm_compile(
     ElcCodegenBackend* self,
     const ElMirModule* input,
@@ -55,15 +67,7 @@ static ElcCodegenResult elc_llvm_compile(
     LirHandleData* lir_data = malloc(sizeof(LirHandleData));
     lir_data->module = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
    
-    *output = (ElcLirHandle) {
-        .ir_name = EL_SV("llvm-ir"),
-        .data = lir_data,
-        .dump = elc_llvm_lir_dump,
-        .emit_asm = NULL, // TODO: emitting assembly support
-        .emit_obj = elc_llvm_lir_emit_obj,
-        .free = elc_llvm_lir_free,
-        .free_buffer = elc_llvm_lir_free_buffer,
-    };
+    *output = elc_llvm_make_lir_handle(lir_data);
     return ELC_CODEGEN_OK;
 }
 
