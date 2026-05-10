@@ -1,5 +1,5 @@
 #include <elc/driver/stages/codegen-stage.h>
-#include <elc/codegen/llvm/codegen.h>
+#include <elc/codegen/builtin/llvm-backend.h>
 
 #include <elash/util/todo.h>
 

@@ -1,4 +1,4 @@
-#include <elc/codegen/llvm/codegen.h>
+#include <elc/codegen/builtin/llvm-backend.h>
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
