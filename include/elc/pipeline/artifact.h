@@ -31,7 +31,7 @@ typedef struct ElcArtifact {
         ElAstModuleNode*    ast;
         ElHirModule*        hir;
         ElMirModule*        mir;
-        ElcLirHandle*       lir;
+        ElcLirHandle        lir;
         ElcCodegenBuffer    asm;
         ElcCodegenBuffer    obj;
     } as;
