@@ -1,5 +1,7 @@
 #include <elc/codegen/builtin/llvm-backend.h>
 
+#include <elash/util/dynarena.h>
+
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/TargetMachine.h>
@@ -8,6 +10,7 @@
 
 typedef struct {
     LLVMContextRef context;
+    ElDynArena* arena;
 } BackendContext;
 
 typedef struct {
@@ -79,9 +82,10 @@ static void elc_llvm_cleanup(ElcCodegenBackend* self) {
     free(ctx);
 }
 
-ElcCodegenBackend elc_make_llvm_codegen() {
+ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     BackendContext* ctx = malloc(sizeof(BackendContext));
     ctx->context = LLVMContextCreate();
+    ctx->arena = arena;
     
     return (ElcCodegenBackend) {
         .name = EL_SV("llvm"),

@@ -7,7 +7,7 @@ bool elc_codegen_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, cons
     (void) stage, (void) ctx;
 
     // TODO: support multiple backends
-    ElcCodegenBackend backend = elc_make_llvm_codegen();
+    ElcCodegenBackend backend = elc_make_llvm_codegen(ctx->arena);
 
     ElcLirHandle handle = {0};
 
