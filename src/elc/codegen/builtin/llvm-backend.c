@@ -108,7 +108,6 @@ static void elc_llvm_cleanup(ElcCodegenBackend* self) {
     BackendContext* ctx = self->ctx;
     LLVMDisposeBuilder(ctx->builder);
     LLVMContextDispose(ctx->context);
-    free(ctx);
 }
 
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
