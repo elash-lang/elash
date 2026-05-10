@@ -9,6 +9,7 @@
 #include <llvm-c/TargetMachine.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
     LLVMContextRef context;
@@ -34,23 +35,92 @@ static void elc_llvm_lir_dump(const ElcLirHandle* handle, FILE* out) {
     LLVMDisposeMessage(ir);
 }
 
-static ElcCodegenBuffer elc_llvm_lir_emit_obj(const ElcLirHandle* handle) {
-    (void) handle;
-    ElcCodegenBuffer buffer;
-    buffer.size = 0;
-    buffer.data = NULL;
+static LLVMTargetMachineRef elc_llvm_create_target_machine(char** out_triple) {
+    char* triple = LLVMGetDefaultTargetTriple();
+    LLVMTargetRef target;
+    char* error = NULL;
+    if (LLVMGetTargetFromTriple(triple, &target, &error)) {
+        LLVMDisposeMessage(error);
+        LLVMDisposeMessage(triple);
+        return NULL;
+    }
+
+    LLVMTargetMachineRef machine = LLVMCreateTargetMachine(
+        target, triple, "generic", "", 
+        LLVMCodeGenLevelDefault, LLVMRelocDefault, LLVMCodeModelDefault
+    );
+
+    if (out_triple) {
+        *out_triple = triple;
+    } else {
+        LLVMDisposeMessage(triple);
+    }
+
+    return machine;
+}
+
+static void elc_llvm_setup_module_layout(LLVMModuleRef module, LLVMTargetMachineRef machine, const char* triple) {
+    LLVMSetTarget(module, triple);
+    LLVMTargetDataRef target_data = LLVMCreateTargetDataLayout(machine);
+    char* layout_str = LLVMCopyStringRepOfTargetData(target_data);
+    LLVMSetDataLayout(module, layout_str);
+    LLVMDisposeMessage(layout_str);
+    LLVMDisposeTargetData(target_data);
+}
+
+static ElcCodegenBuffer elc_llvm_lir_emit_to_buffer(const ElcLirHandle* handle, LLVMCodeGenFileType file_type) {
+    LirHandleData* data = handle->data;
+    char* triple = NULL;
+    LLVMTargetMachineRef machine = elc_llvm_create_target_machine(&triple);
+    if (!machine) EL_TODO("Handle error");
+
+    elc_llvm_setup_module_layout(data->module, machine, triple);
+
+    LLVMMemoryBufferRef buffer_ref;
+    char* error = NULL;
+    if (LLVMTargetMachineEmitToMemoryBuffer(machine, data->module, file_type, &error, &buffer_ref)) {
+        EL_TODO("Handle error");
+    }
+
+    ElcCodegenBuffer buffer = {
+        .size = LLVMGetBufferSize(buffer_ref),
+        .data = malloc(LLVMGetBufferSize(buffer_ref))
+    };
+
+    if (buffer.data) {
+        memcpy(buffer.data, LLVMGetBufferStart(buffer_ref), buffer.size);
+    } else {
+        buffer.size = 0;
+    }
+
+    LLVMDisposeMemoryBuffer(buffer_ref);
+    LLVMDisposeTargetMachine(machine);
+    LLVMDisposeMessage(triple);
+
     return buffer;
+}
+
+ElcCodegenBuffer elc_llvm_lir_emit_obj(const ElcLirHandle* handle) {
+    return elc_llvm_lir_emit_to_buffer(handle, LLVMObjectFile);
+}
+ElcCodegenBuffer elc_llvm_lir_emit_asm(const ElcLirHandle* handle) {
+    return elc_llvm_lir_emit_to_buffer(handle, LLVMAssemblyFile);
+}
+
+void elc_llvm_lir_free_buffer(const ElcLirHandle* handle, ElcCodegenBuffer buffer) {
+    (void) handle;
+    free(buffer.data);
 }
 
 ElcLirHandle elc_llvm_make_lir_handle(LirHandleData* data) {
     return (ElcLirHandle) {
-        .ir_name = EL_SV("llvm-ir"),
-        .data = data,
-        .dump = elc_llvm_lir_dump,
-        .emit_asm = NULL, // TODO: emitting assembly support
-        .emit_obj = elc_llvm_lir_emit_obj,
-        .free = elc_llvm_lir_free,
-        .free_buffer = NULL,
+        .ir_name     = EL_SV("llvm-ir"),
+        .data        = data,
+        .dump        = elc_llvm_lir_dump,
+        .emit_asm    = elc_llvm_lir_emit_asm,
+        .emit_obj    = elc_llvm_lir_emit_obj,
+        .free        = elc_llvm_lir_free,
+        .free_buffer = elc_llvm_lir_free_buffer,
     };
 }
 
@@ -177,6 +247,9 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     ctx->builder = LLVMCreateBuilderInContext(ctx->context);
     ctx->arena = arena;
     
+    LLVMInitializeNativeTarget();
+    LLVMInitializeNativeAsmPrinter();
+
     return (ElcCodegenBackend) {
         .name = EL_SV("llvm"),
         .version = EL_SEM_VER(0, 1, 0),
