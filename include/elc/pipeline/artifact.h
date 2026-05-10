@@ -6,6 +6,8 @@
 #include <elash/hir/tree/module.h>
 #include <elash/mir/module.h>
 
+#include <elc/codegen/lir.h>
+
 typedef enum ElcArtifactKind {
     ELC_ART_NONE,
     ELC_ART_SOURCE_TEXT,    // ElSourceDocument
@@ -14,6 +16,10 @@ typedef enum ElcArtifactKind {
     ELC_ART_AST,            // ElAstModuleNode
     ELC_ART_HIR,            // ElHirModule
     ELC_ART_MIR,            // ElMirModule
+    ELC_ART_LIR,            // ElcLirHandle
+    ELC_ART_ASM,            // ElcCodegenBuffer
+    ELC_ART_OBJ,            // ElcCodegenBuffer
+
     ELC_ART_MAX
 } ElcArtifactKind;
 
@@ -25,5 +31,8 @@ typedef struct ElcArtifact {
         ElAstModuleNode*    ast;
         ElHirModule*        hir;
         ElMirModule*        mir;
+        ElcLirHandle*       lir;
+        ElcCodegenBuffer    asm;
+        ElcCodegenBuffer    obj;
     } as;
 } ElcArtifact;
