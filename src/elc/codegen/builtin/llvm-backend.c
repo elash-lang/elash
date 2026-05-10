@@ -1,6 +1,7 @@
 #include <elc/codegen/builtin/llvm-backend.h>
 
 #include <elash/util/dynarena.h>
+#include <elash/util/todo.h>
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
@@ -59,21 +60,56 @@ ElcLirHandle elc_llvm_make_lir_handle(LirHandleData* data) {
     };
 }
 
+LLVMTypeRef elc_llvm_map_type(BackendContext* ctx, ElType* type) {
+    switch (type->kind) {
+    case EL_TYPE_PRIM:
+        switch (type->as.prim.kind) {
+        case EL_PRIMTYPE_INT:
+        case EL_PRIMTYPE_UINT:
+            return LLVMInt32TypeInContext(ctx->context);
+        case EL_PRIMTYPE_CHAR:
+            return LLVMInt8TypeInContext(ctx->context);
+        }
+        break;
+    case EL_TYPE_FUNC: {
+        LLVMTypeRef ret_type = elc_llvm_map_type(ctx, type->as.func.ret_type);
+        LLVMTypeRef* param_types = malloc(sizeof(LLVMTypeRef) * type->as.func.param_count);
+        for (usize i = 0; i < type->as.func.param_count; ++i) {
+            param_types[i] = elc_llvm_map_type(ctx, type->as.func.params[i]);
+        }
+        LLVMTypeRef func_type = LLVMFunctionType(
+            ret_type, param_types, type->as.func.param_count, /*IsVarArg=*/false
+        );
+        free(param_types);
+        return func_type;
+    }
+    case EL_TYPE_PTR:
+        return LLVMPointerTypeInContext(ctx->context, 0);
+    }
+
+    EL_TODO("Unreachable or unhandled type");
+}
+
 static ElcCodegenResult elc_llvm_compile(
     ElcCodegenBackend* self,
     const ElMirModule* input,
     ElcLirHandle* output
 ) {
-    (void) input;
-    BackendContext* ctx = (BackendContext*)self->ctx;
-    
+    BackendContext* ctx = self->ctx;
+
     LirHandleData* lir_data = malloc(sizeof(LirHandleData));
     lir_data->module = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
-   
+
+    for (ElMirFunc* func = input->first_func; func != NULL; func = func->next) {
+        LLVMTypeRef func_type = elc_llvm_map_type(ctx, func->symbol->as.func.type);
+
+        char* name = el_dynarena_make_cstr(ctx->arena, func->symbol->name);
+        LLVMAddFunction(lir_data->module, name, func_type);
+    }
+
     *output = elc_llvm_make_lir_handle(lir_data);
     return ELC_CODEGEN_OK;
 }
-
 static void elc_llvm_cleanup(ElcCodegenBackend* self) {
     BackendContext* ctx = self->ctx;
     if (ctx->context) {
