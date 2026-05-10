@@ -8,7 +8,7 @@
 - [x] Create compiler entry point
 - [x] Implement source file loader
 - [x] Implement diagnostic system (line/column + spans)
-- [ ] Setup automated tests
+- [x] Setup automated tests
 
 
 ## 1. Lexer
@@ -20,7 +20,7 @@
 - [x] Implement operator parsing (single and multi-character)
 - [x] Implement comment handling
 - [x] Attach position metadata to tokens
-- [ ] Add lexer test suite
+- [x] Add lexer test suite
 
 ## 2. Preprocessor
 
@@ -84,9 +84,9 @@
 ## 6. ELMIR -> LLVM IR Lowering
 
 - [ ] Initialize LLVM context, module, and IR builder
-- [ ] Define mapping from language types to LLVM types
-- [ ] Lower primitive types
-- [ ] Lower function signatures
+- [x] Define mapping from language types to LLVM types
+- [x] Lower primitive types
+- [x] Lower function signatures
 - [ ] Create LLVM function definitions
 - [ ] Map ELMIR basic blocks to LLVM basic blocks
 - [ ] Lower local variables and temporaries using alloca in entry block
