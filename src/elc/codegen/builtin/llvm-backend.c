@@ -11,6 +11,7 @@
 
 typedef struct {
     LLVMContextRef context;
+    LLVMBuilderRef builder;
     ElDynArena* arena;
 } BackendContext;
 
@@ -105,15 +106,15 @@ static ElcCodegenResult elc_llvm_compile(
 
 static void elc_llvm_cleanup(ElcCodegenBackend* self) {
     BackendContext* ctx = self->ctx;
-    if (ctx->context) {
-        LLVMContextDispose(ctx->context);
-    }
+    LLVMDisposeBuilder(ctx->builder);
+    LLVMContextDispose(ctx->context);
     free(ctx);
 }
 
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     BackendContext* ctx = EL_DYNARENA_NEW(arena, BackendContext);
     ctx->context = LLVMContextCreate();
+    ctx->builder = LLVMCreateBuilderInContext(ctx->context);
     ctx->arena = arena;
     
     return (ElcCodegenBackend) {

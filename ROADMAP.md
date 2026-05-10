@@ -83,7 +83,7 @@
 
 ## 6. ELMIR -> LLVM IR Lowering
 
-- [ ] Initialize LLVM context, module, and IR builder
+- [x] Initialize LLVM context, module, and IR builder
 - [x] Define mapping from language types to LLVM types
 - [x] Lower primitive types
 - [x] Lower function signatures
