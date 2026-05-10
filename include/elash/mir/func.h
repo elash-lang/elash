@@ -8,16 +8,16 @@
 typedef struct ElMirFunc ElMirFunc;
 struct ElMirFunc {
     ElMirFunc* next;
-    
+
     ElSymbol* symbol;
     ElMirBlock* first_block;
     ElMirBlock* last_block;
-    
+
     ElMirValue** args;
     uint32_t arg_count;
-    
-    uint32_t next_reg_id;
-    uint32_t next_block_id;
+
+    uint32_t reg_count;
+    uint32_t block_count;
 };
 
 ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol);

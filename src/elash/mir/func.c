@@ -10,8 +10,8 @@ ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol) {
         .symbol = symbol,
         .first_block = NULL,
         .last_block = NULL,
-        .next_reg_id = 0,
-        .next_block_id = 0,
+        .reg_count = 0,
+        .block_count = 0,
     };
 
     if (symbol->kind == EL_SYM_FUNC) {
@@ -40,7 +40,7 @@ void el_mir_func_append_block(ElMirFunc* func, ElMirBlock* block) {
     } else {
         func->first_block = block;
     }
-    
+
     func->last_block = block;
     block->next = NULL;
 }

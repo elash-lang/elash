@@ -56,7 +56,7 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
     EL_UNREACHABLE_ENUM_VAL(ElSymbolKind, sym->kind);
 }
 
-// TODO: stub 
+// TODO: stub
 ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_BINARY: {
@@ -64,7 +64,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
         ElMirValue* lhs = el_lowerer_lower_expr(lw, expr->left);
         ElMirValue* rhs = el_lowerer_lower_expr(lw, expr->right);
 
-        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->next_reg_id++);
+        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
         ElMirInstr* instr = el_mir_new_bin_instr(lw->arena, reg, expr->op, lhs, rhs);
 
         el_mir_ibuf_push(&lw->ibuf, instr);
@@ -74,7 +74,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
         ElHirUnaryExprNode* expr = &hir->as.unary;
         ElMirValue* operand = el_lowerer_lower_expr(lw, expr->operand);
 
-        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->next_reg_id++);
+        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
         ElMirInstr* instr = el_mir_new_unary_instr(lw->arena, reg, expr->op, operand);
 
         el_mir_ibuf_push(&lw->ibuf, instr);
@@ -93,7 +93,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
             args[i] = el_lowerer_lower_expr(lw, call->args[i]);
         }
 
-        ElMirValue* result = el_mir_new_reg(lw->arena, hir->type, lw->current_func->next_reg_id++);
+        ElMirValue* result = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
         ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
         el_mir_ibuf_push(&lw->ibuf, instr);
         return result;
@@ -131,7 +131,7 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
     case EL_HIR_TOPLVL_FUNC_DEF: {
         ElHirFuncDefinition* hir_func = &hir->as.func_def;
         ElHirBlockStmtNode* hir_block = &hir_func->block;
-        
+
         ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_def.symbol);
         lw->current_func = func;
         el_mir_ibuf_clear(&lw->ibuf);
@@ -139,7 +139,7 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
             el_lowerer_lower_stmt(lw, node);
         }
 
-        ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, func->next_block_id++, &lw->ibuf);
+        ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, func->block_count++, &lw->ibuf);
         el_mir_func_append_block(func, block);
 
         el_mir_module_add_func(lw->current_mod, func);
@@ -147,11 +147,11 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
     }
 }
 
-ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) { 
+ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
     lw->current_mod = el_mir_new_module(lw->arena);
     for (ElHirTopLevelNode* node = hir->head; node != NULL; node = node->next) {
         el_lowerer_lower_toplvl(lw, node);
     }
-   
+
     return lw->current_mod;
 }
