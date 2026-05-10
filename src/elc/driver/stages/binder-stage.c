@@ -5,10 +5,12 @@
 bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
-    ElBinder* binder = EL_DYNARENA_NEW(ctx->arena, ElBinder);
-    el_binder_init(binder, ctx->arena, ctx->diag);
+    ElBinder binder;
+    el_binder_init(&binder, ctx->arena, ctx->diag);
 
-    ElHirModule* mod = el_binder_bind_module(binder, input->as.ast);
+    ElHirModule* mod = el_binder_bind_module(&binder, input->as.ast);
+
+    el_binder_free(&binder);
 
     output->as.hir = mod;
     return true;

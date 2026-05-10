@@ -5,10 +5,12 @@
 bool elc_lowerer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
-    ElLowerer* lowerer = EL_DYNARENA_NEW(ctx->arena, ElLowerer);
-    el_lowerer_init(lowerer, ctx->arena, ctx->diag);
+    ElLowerer lowerer;
+    el_lowerer_init(&lowerer, ctx->arena, ctx->diag);
 
-    ElMirModule* mod = el_lowerer_lower_module(lowerer, input->as.hir);
+    ElMirModule* mod = el_lowerer_lower_module(&lowerer, input->as.hir);
+
+    el_lowerer_free(&lowerer);
 
     output->as.mir = mod;
     return true;
