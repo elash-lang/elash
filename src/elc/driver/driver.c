@@ -7,6 +7,7 @@
 #include <elc/driver/stages/binder-stage.h>
 #include <elc/driver/stages/lowerer-stage.h>
 #include <elc/driver/stages/codegen-stage.h>
+#include <elc/driver/stages/emit-obj-stage.h>
 
 #include <elc/driver/observers/dump-ast.h>
 #include <elc/driver/observers/dump-hir.h>
@@ -32,6 +33,7 @@ bool elc_driver_register_stages(ElcDriver* driver) {
     elc_pipeline_add_stage(&driver->pipeline, elc_make_binder_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_lowerer_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_codegen_stage());
+    elc_pipeline_add_stage(&driver->pipeline, elc_make_emit_obj_stage());
     return true;
 }
 
@@ -52,9 +54,13 @@ void elc_driver_provide_source(ElcDriver* driver, ElSourceDocument* source) {
 
 bool elc_driver_run(ElcDriver* driver) {
     ElcArtifact out;
-    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_LIR, &out)) {
+    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_OBJ, &out)) {
         return false;
     }
+
+    FILE* obj_file = fopen("code.o", "wb");
+    fwrite(out.as.obj.data, out.as.obj.size, 1, obj_file);
+    fclose(obj_file);
 
     return true;
 }
