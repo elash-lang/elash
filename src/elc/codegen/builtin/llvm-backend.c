@@ -23,7 +23,6 @@ static void elc_llvm_lir_free(ElcLirHandle* handle) {
     if (data->module) {
         LLVMDisposeModule(data->module);
     }
-    free(data);
 }
 
 static void elc_llvm_lir_dump(const ElcLirHandle* handle, FILE* out) {
@@ -41,13 +40,6 @@ static ElcCodegenBuffer elc_llvm_lir_emit_obj(const ElcLirHandle* handle) {
     return buffer;
 }
 
-static void elc_llvm_lir_free_buffer(const ElcLirHandle* handle, ElcCodegenBuffer buffer) {
-    (void) handle;
-    if (buffer.data) {
-        free(buffer.data);
-    }
-}
-
 ElcLirHandle elc_llvm_make_lir_handle(LirHandleData* data) {
     return (ElcLirHandle) {
         .ir_name = EL_SV("llvm-ir"),
@@ -56,7 +48,7 @@ ElcLirHandle elc_llvm_make_lir_handle(LirHandleData* data) {
         .emit_asm = NULL, // TODO: emitting assembly support
         .emit_obj = elc_llvm_lir_emit_obj,
         .free = elc_llvm_lir_free,
-        .free_buffer = elc_llvm_lir_free_buffer,
+        .free_buffer = NULL,
     };
 }
 
@@ -97,7 +89,7 @@ static ElcCodegenResult elc_llvm_compile(
 ) {
     BackendContext* ctx = self->ctx;
 
-    LirHandleData* lir_data = malloc(sizeof(LirHandleData));
+    LirHandleData* lir_data = EL_DYNARENA_NEW(ctx->arena, LirHandleData);
     lir_data->module = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
 
     for (ElMirFunc* func = input->first_func; func != NULL; func = func->next) {
@@ -110,6 +102,7 @@ static ElcCodegenResult elc_llvm_compile(
     *output = elc_llvm_make_lir_handle(lir_data);
     return ELC_CODEGEN_OK;
 }
+
 static void elc_llvm_cleanup(ElcCodegenBackend* self) {
     BackendContext* ctx = self->ctx;
     if (ctx->context) {
@@ -119,7 +112,7 @@ static void elc_llvm_cleanup(ElcCodegenBackend* self) {
 }
 
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
-    BackendContext* ctx = malloc(sizeof(BackendContext));
+    BackendContext* ctx = EL_DYNARENA_NEW(arena, BackendContext);
     ctx->context = LLVMContextCreate();
     ctx->arena = arena;
     
