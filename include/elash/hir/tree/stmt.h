@@ -5,11 +5,13 @@
 #include <elash/util/dynarena.h>
 
 #include "stmt/block.h"
+#include "stmt/vardef.h"
 #include "stmt/return.h"
 
 typedef enum ElHirStmtKind {
     EL_HIR_STMT_EXPR,
     EL_HIR_STMT_RETURN,
+    EL_HIR_STMT_VAR_DEF,
     EL_HIR_STMT_BLOCK,
 } ElHirStmtKind;
 
@@ -19,6 +21,7 @@ typedef struct ElHirStmtNode {
         ElHirExprNode* expr;
         ElHirBlockStmtNode block;
         ElHirReturnStmtNode return_;
+        ElHirVarDefStmtNode var_def;
     } as;
     ElHirStmtNode* next;
 } ElHirStmtNode;
