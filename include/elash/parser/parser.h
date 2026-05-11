@@ -16,6 +16,9 @@ typedef struct ElParser {
     ElDynArena* arena;
 
     ElToken current;
+    ElToken lookahead;
+    bool has_lookahead;
+
     ElParserErrorDetails last_err_details;
 } ElParser;
 
@@ -23,8 +26,10 @@ void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine
 
 ElParserErrorCode el_parser_advance(ElParser* parser);
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type);
-bool el_parser_match(ElParser* parser, ElTokenType type); 
-bool el_parser_check(ElParser* parser, ElTokenType type);
+
+bool    el_parser_match(ElParser* parser, ElTokenType type); 
+bool    el_parser_check(ElParser* parser, ElTokenType type);
+ElToken el_parser_peek(ElParser* parser);
 
 ElParserErrorCode _el_parser_parse_ident(ElParser* parser, ElAstIdentNode** out);
 ElParserErrorCode _el_parser_parse_type(ElParser* parser, ElAstTypeNode** out);
