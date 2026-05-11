@@ -9,7 +9,10 @@
 
 #include <stdlib.h>
 
-LLVMTypeRef elc_llvm_map_type(ElcLLVMBackendCtx* ctx, ElType* type) {
+typedef ElcLLVMBackendFuncCtx FunctionContext;
+typedef ElcLLVMBackendCtx     Context;
+
+LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
     switch (type->kind) {
     case EL_TYPE_PRIM:
         switch (type->as.prim.kind) {
@@ -39,12 +42,7 @@ LLVMTypeRef elc_llvm_map_type(ElcLLVMBackendCtx* ctx, ElType* type) {
     EL_TODO("Unreachable or unhandled type");
 }
 
-LLVMValueRef elc_llvm_map_value(
-    ElcLLVMBackendCtx* ctx,
-    LLVMValueRef llvm_func,
-    LLVMValueRef* regs,
-    ElMirValue* value
-) {
+LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
     switch (value->kind) {
     case EL_MIR_VAL_CONST: {
         LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
@@ -59,21 +57,21 @@ LLVMValueRef elc_llvm_map_value(
         EL_UNREACHABLE_ENUM_VAL(ElPrimitiveTypeKind, value->type->as.prim.kind);
     }
     case EL_MIR_VAL_ARG:
-        return LLVMGetParam(llvm_func, value->as.arg.idx);
+        return LLVMGetParam(func->llvm_fn, value->as.arg.idx);
     case EL_MIR_VAL_REG:
-        return regs[value->as.reg.id];
+        return func->regs[value->as.reg.id];
     case EL_MIR_VAL_GLOBAL:
         EL_TODO("Global values not implemented");
     }
     return NULL;
 }
 
-void elc_llvm_compile_instr(ElcLLVMBackendCtx* ctx, ElMirInstr* instr, LLVMValueRef* regs) {
+void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     switch (instr->kind) {
     case EL_MIR_INSTR_RET: {
         LLVMValueRef val = NULL;
         if (instr->as.return_.value != NULL) {
-            val = elc_llvm_map_value(ctx, ctx->current_func, regs, instr->as.return_.value);
+            val = elc_llvm_map_value(ctx, func, instr->as.return_.value);
         }
         LLVMBuildRet(ctx->builder, val);
         break;
@@ -83,24 +81,26 @@ void elc_llvm_compile_instr(ElcLLVMBackendCtx* ctx, ElMirInstr* instr, LLVMValue
     }
 }
 
-void elc_llvm_compile_func(ElcLLVMBackendCtx* ctx, LLVMModuleRef module, ElMirFunc* mir_func) {
+void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_func) {
     LLVMTypeRef func_type = elc_llvm_map_type(ctx, mir_func->symbol->as.func.type);
 
     char* name = el_dynarena_make_cstr(ctx->arena, mir_func->symbol->name);
-    ctx->current_func = LLVMAddFunction(module, name, func_type);
 
-    LLVMValueRef*      regs   = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMValueRef, mir_func->reg_count);
-    LLVMBasicBlockRef* blocks = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMBasicBlockRef, mir_func->block_count);
+    FunctionContext func;
+    func.llvm_fn = LLVMAddFunction(module, name, func_type);
+    func.regs    = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMValueRef, mir_func->reg_count);
+    func.blocks  = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMBasicBlockRef, mir_func->block_count);
 
     for (ElMirBlock* mir_block = mir_func->first_block; mir_block != NULL; mir_block = mir_block->next) {
-        blocks[mir_block->id] = LLVMAppendBasicBlockInContext(ctx->context, ctx->current_func, "block");
+        func.blocks[mir_block->id]
+            = LLVMAppendBasicBlockInContext(ctx->context, func.llvm_fn, "block");
     }
 
     for (ElMirBlock* mir_block = mir_func->first_block; mir_block != NULL; mir_block = mir_block->next) {
-        LLVMPositionBuilderAtEnd(ctx->builder, blocks[mir_block->id]);
+        LLVMPositionBuilderAtEnd(ctx->builder, func.blocks[mir_block->id]);
         for (usize i = 0; i < mir_block->instr_count; ++i) {
             ElMirInstr* instr = mir_block->instructions[i];
-            elc_llvm_compile_instr(ctx, instr, regs);
+            elc_llvm_compile_instr(ctx, &func, instr);
         }
     }
 }
@@ -110,7 +110,7 @@ ElcCodegenResult elc_llvm_compile(
     const ElMirModule* input,
     ElcLirHandle* output
 ) {
-    ElcLLVMBackendCtx* ctx = self->ctx;
+    Context* ctx = self->ctx;
     ctx->current_mod = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
 
     ElcLLVMLir* lir_data = EL_DYNARENA_NEW(ctx->arena, ElcLLVMLir);

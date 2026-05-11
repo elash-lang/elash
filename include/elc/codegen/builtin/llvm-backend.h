@@ -6,13 +6,18 @@
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
 
+typedef struct ElcLLVMBackendFuncCtx {
+    LLVMValueRef       llvm_fn;
+    LLVMValueRef*      regs;
+    LLVMBasicBlockRef* blocks;
+} ElcLLVMBackendFuncCtx;
+
 typedef struct ElcLLVMBackendCtx {
     LLVMContextRef context;
     LLVMBuilderRef builder;
     ElDynArena* arena;
 
-    LLVMModuleRef current_mod;
-    LLVMValueRef current_func;
+    LLVMModuleRef      current_mod;
 } ElcLLVMBackendCtx;
 
 typedef struct {
