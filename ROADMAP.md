@@ -87,13 +87,13 @@
 - [x] Define mapping from language types to LLVM types
 - [x] Lower primitive types
 - [x] Lower function signatures
-- [ ] Create LLVM function definitions
-- [ ] Map ELMIR basic blocks to LLVM basic blocks
+- [x] Create LLVM function definitions
+- [x] Map ELMIR basic blocks to LLVM basic blocks
 - [ ] Lower local variables and temporaries using alloca in entry block
 - [ ] Lower ELMIR instructions to LLVM IR (arithmetic, comparisons, jumps)
-- [ ] Lower function calls
-- [ ] Lower return instructions
-- [ ] Handle global variables
+- [x] Lower function calls
+- [x] Lower return instructions
+- [x] Handle global variables
 - [ ] Verify LLVM module
 - [ ] Emit LLVM IR (.ll)
 - [ ] Emit object file
