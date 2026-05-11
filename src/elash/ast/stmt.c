@@ -51,6 +51,21 @@ void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
             el_ast_dump_stmt(stmt, indent + 1, out);
         }
         break;
+    case EL_AST_STMT_VAR_DEF:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "VarDefStmt:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "Type: ");
+        el_ast_dump_type(node->as.var_def.type, out);
+        fprintf(out, "\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "Name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.var_def.name->name));
+        if (node->as.var_def.init) {
+            el_ast_dump_print_indent(indent + 1, out);
+            fprintf(out, "Init:\n");
+            el_ast_dump_expr(node->as.var_def.init, indent + 2, out);
+        }
+        break;
     }
 }
 
