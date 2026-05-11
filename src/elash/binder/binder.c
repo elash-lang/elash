@@ -178,8 +178,7 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
         return el_hir_new_call_expr(binder->arena, func->ret_type, callee, args, in->as.call.arg_count);
     }
     }
-
-    return NULL;
+    EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }
 
 ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in) {
@@ -210,8 +209,32 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
         ElHirExprNode* expr = el_binder_bind_expr(binder, in->as.expr);
         return el_hir_new_expr_stmt(binder->arena, expr);
     }
+    case EL_AST_STMT_VAR_DEF: {
+        ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
+        if (!type) return NULL;
+
+        ElSymbol* sym = el_sema_new_var_symbol(binder->arena, in->as.var_def.name->name, type);
+        if (!el_sema_scope_insert(binder->current_scope, sym)) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
+                in->as.var_def.name->span,
+                "redeclaration of symbol '${name}'",
+                EL_DIAG_STRING("name", sym->name)
+            );
+            return NULL;
+        }
+
+        ElHirExprNode* init = NULL;
+        if (in->as.var_def.init) {
+            init = el_binder_bind_expr(binder, in->as.var_def.init);
+            if (!init) return NULL;
+            // TODO: implement type checking 
+        }
+
+        return el_hir_new_var_def_stmt(binder->arena, sym, init);
     }
-    return NULL;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);
 }
 
 
