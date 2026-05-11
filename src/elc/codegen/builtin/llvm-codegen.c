@@ -60,8 +60,14 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
         return LLVMGetParam(func->llvm_fn, value->as.arg.idx);
     case EL_MIR_VAL_REG:
         return func->regs[value->as.reg.id];
-    case EL_MIR_VAL_GLOBAL:
-        EL_TODO("Global values not implemented");
+    case EL_MIR_VAL_GLOBAL: {
+        char* name = el_dynarena_make_cstr(ctx->arena, value->as.global.sym->name);
+        LLVMValueRef glob = LLVMGetNamedFunction(ctx->current_mod, name);
+        if (glob == NULL) {
+            glob = LLVMGetNamedGlobal(ctx->current_mod, name);
+        }
+        return glob;
+    }
     }
     return NULL;
 }
@@ -85,6 +91,30 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     func->regs[instr->result->as.reg.id] = res;
 }
 
+void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    ElMirCallInstr* call = &instr->as.call;
+
+    LLVMValueRef callee    = elc_llvm_map_value(ctx, func, call->callee);
+    LLVMTypeRef  func_type = elc_llvm_map_type(ctx, call->callee->type);
+
+    LLVMValueRef* args = calloc(call->arg_count, sizeof(LLVMValueRef));
+    for (uint32_t i = 0; i < call->arg_count; ++i) {
+        args[i] = elc_llvm_map_value(ctx, func, call->args[i]);
+    }
+
+    LLVMValueRef result = LLVMBuildCall2(
+        ctx->builder, 
+        func_type, callee,
+        args,
+        call->arg_count,
+        ""
+    );
+
+    EL_ASSERT(instr->result->kind == EL_MIR_VAL_REG, "call instr result should be a register");
+    func->regs[instr->result->as.reg.id] = result;
+    free(args);
+}
+
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     switch (instr->kind) {
     case EL_MIR_INSTR_RET: {
@@ -97,6 +127,10 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
     }
     case EL_MIR_INSTR_BIN: {
         elc_llvm_compile_bin_instr(ctx, func, instr);
+        break;
+    }
+    case EL_MIR_INSTR_CALL: {
+        elc_llvm_compile_call_instr(ctx, func, instr);
         break;
     }
     default:
