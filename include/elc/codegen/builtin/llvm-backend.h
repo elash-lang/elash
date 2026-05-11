@@ -10,6 +10,9 @@ typedef struct ElcLLVMBackendCtx {
     LLVMContextRef context;
     LLVMBuilderRef builder;
     ElDynArena* arena;
+
+    LLVMModuleRef current_mod;
+    LLVMValueRef current_func;
 } ElcLLVMBackendCtx;
 
 typedef struct {
