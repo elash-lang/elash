@@ -101,9 +101,9 @@
 
 ## 7. Linking
 
-- [ ] Configure LLVM target triple
-- [ ] Create target machine
-- [ ] Emit object files
+- [x] Configure LLVM target triple
+- [x] Create target machine
+- [x] Emit object files
 - [ ] Invoke system linker
 - [ ] Produce final executable
 
