@@ -66,6 +66,25 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
     return NULL;
 }
 
+void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    ElMirBinInstr* bin = &instr->as.bin;
+    LLVMValueRef lhs = elc_llvm_map_value(ctx, func, bin->lhs);
+    LLVMValueRef rhs = elc_llvm_map_value(ctx, func, bin->rhs);
+
+    LLVMValueRef res = NULL;
+    switch (bin->op) {
+    case EL_SEMA_BIN_OP_ADD: res = LLVMBuildAdd(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_SUB: res = LLVMBuildSub(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_MUL: res = LLVMBuildMul(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_DIV: res = LLVMBuildSDiv(ctx->builder, lhs, rhs, ""); break; // TODO: handle signed/unsigned division
+    default:
+        EL_TODO("binary op not implemented");
+    }
+
+    EL_ASSERT(instr->result->kind == EL_MIR_VAL_REG, "binary instr result should be a register");
+    func->regs[instr->result->as.reg.id] = res;
+}
+
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     switch (instr->kind) {
     case EL_MIR_INSTR_RET: {
@@ -74,6 +93,10 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
             val = elc_llvm_map_value(ctx, func, instr->as.return_.value);
         }
         LLVMBuildRet(ctx->builder, val);
+        break;
+    }
+    case EL_MIR_INSTR_BIN: {
+        elc_llvm_compile_bin_instr(ctx, func, instr);
         break;
     }
     default:
