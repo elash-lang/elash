@@ -37,6 +37,9 @@ void el_binder_free(ElBinder* binder);
 ElScope* _el_binder_push_scope(ElBinder* binder);
 ElScope* _el_binder_pop_scope(ElBinder* binder);
 
+ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in);
+ElType*            _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node);
+
 ElHirExprNode*     el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in);
 ElHirStmtNode*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmtNode* in);
 ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in);
