@@ -27,3 +27,17 @@ typedef enum ElSemaBinOp {
 } ElSemaBinOp;
 
 ElStringView el_sema_bin_op_to_string(ElSemaBinOp type);
+
+static inline bool el_sema_bin_op_is_arithmetic(ElSemaBinOp op) {
+    return op >= EL_SEMA_BIN_OP_ADD && op <= EL_SEMA_BIN_OP_MOD;
+}
+static inline bool el_sema_bin_op_is_comparison(ElSemaBinOp op) {
+    return op >= EL_SEMA_BIN_OP_EQ && op <= EL_SEMA_BIN_OP_GTE;
+}
+static inline bool el_sema_bin_op_is_logical(ElSemaBinOp op) {
+    return op == EL_SEMA_BIN_OP_AND || op == EL_SEMA_BIN_OP_OR;
+}
+static inline bool el_sema_bin_op_is_bitwise(ElSemaBinOp op) {
+    return op >= EL_SEMA_BIN_OP_BW_AND && op <= EL_SEMA_BIN_OP_SHR;
+}
+
