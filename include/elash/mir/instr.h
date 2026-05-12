@@ -42,3 +42,9 @@ struct ElMirInstr {
         ElMirJmpIfInstr  jmpif;
     } as;
 };
+
+static inline bool el_mir_instr_is_terminator(ElMirInstr* instr) {
+    return instr->kind == EL_MIR_INSTR_RET || 
+           instr->kind == EL_MIR_INSTR_JMP || 
+           instr->kind == EL_MIR_INSTR_JMPIF;
+}
