@@ -24,3 +24,11 @@ ElHirExprNode* el_hir_new_char_literal(ElDynArena* arena, ElType* type, char val
     node->as.literal.as.char_ = value;
     return node;
 }
+
+ElHirExprNode* el_hir_new_bool_literal(ElDynArena* arena, ElType* type, bool value) {
+    ElHirExprNode* node = EL_DYNARENA_NEW(arena, ElHirExprNode);
+    node->kind = EL_HIR_EXPR_LITERAL;
+    node->type = type;
+    node->as.literal.as.bool_ = value;
+    return node;
+}

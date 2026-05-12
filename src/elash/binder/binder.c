@@ -104,6 +104,8 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
             return el_hir_new_int_literal(binder->arena, binder->type_int, in->as.literal.of.int_.value);
         case EL_AST_LIT_CHAR:
             return el_hir_new_char_literal(binder->arena, binder->type_char, in->as.literal.of.char_.value);
+        case EL_AST_LIT_BOOL:
+            return el_hir_new_bool_literal(binder->arena, binder->type_bool, in->as.literal.of.bool_.value);
         default:
             // TODO: handle other literal types
             el_diag_report(
