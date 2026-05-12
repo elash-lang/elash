@@ -18,7 +18,8 @@ void el_hir_dump_toplevel(ElHirTopLevelNode* node, usize indent, FILE* out) {
        fputs("define ", out);
        el_sema_dump_type(sym->ret_type, out);
        fputc(' ', out);
-       fprintf(out, EL_SV_FMT "(", EL_SV_FARG(func->symbol->name));
+       el_sema_dump_symbol(func->symbol, out);
+       fputc('(', out);
        
        for (usize i = 0; i < sym->param_count; ++i) {
            ElSymbol* param = sym->params[i];
