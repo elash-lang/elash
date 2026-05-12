@@ -28,6 +28,7 @@ typedef struct ElBinder {
     ElType* type_int;
     ElType* type_uint;
     ElType* type_char;
+    ElType* type_bool;
 } ElBinder;
 
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag);

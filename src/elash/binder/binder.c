@@ -26,6 +26,7 @@ void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag) {
     binder->type_int  = _el_binder_register_builtin_type(binder, EL_SV("int"),  EL_PRIMTYPE_INT);
     binder->type_uint = _el_binder_register_builtin_type(binder, EL_SV("uint"), EL_PRIMTYPE_UINT);
     binder->type_char = _el_binder_register_builtin_type(binder, EL_SV("char"), EL_PRIMTYPE_CHAR);
+    binder->type_bool = _el_binder_register_builtin_type(binder, EL_SV("bool"), EL_PRIMTYPE_BOOL);
 
     binder->global_scope = el_sema_scope_new(binder->builtin_scope);
     binder->current_scope = binder->global_scope;

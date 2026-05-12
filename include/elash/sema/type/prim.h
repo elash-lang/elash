@@ -9,6 +9,7 @@ typedef enum ElPrimitiveTypeKind {
     EL_PRIMTYPE_INT,
     EL_PRIMTYPE_UINT,
     EL_PRIMTYPE_CHAR,
+    EL_PRIMTYPE_BOOL,
 } ElPrimitiveTypeKind;
 
 typedef struct ElPrimitiveType {
