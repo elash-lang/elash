@@ -37,7 +37,14 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
         return el_hir_new_expr_stmt(binder->arena, expr);
     }
     case EL_AST_STMT_IF: {
-        EL_TODO("Implement binding for if statement");
+        return el_hir_new_if_stmt(
+            binder->arena,
+            el_binder_bind_expr(binder, in->as.if_.cond),
+            el_binder_bind_stmt(binder, in->as.if_.then),
+            in->as.if_.else_ != NULL 
+                ? el_binder_bind_stmt(binder, in->as.if_.else_)
+                : NULL
+        );
     }
     case EL_AST_STMT_VAR_DEF: {
         ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
