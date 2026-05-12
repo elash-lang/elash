@@ -10,6 +10,7 @@
 #include "instr/alloca.h"
 #include "instr/load.h"
 #include "instr/store.h"
+#include "instr/jump.h"
 
 typedef enum ElMirInstrKind {
     EL_MIR_INSTR_BIN,
@@ -19,6 +20,8 @@ typedef enum ElMirInstrKind {
     EL_MIR_INSTR_ALLOCA,
     EL_MIR_INSTR_LOAD,
     EL_MIR_INSTR_STORE,
+    EL_MIR_INSTR_JMP,
+    EL_MIR_INSTR_JMPIF,
 } ElMirInstrKind;
 
 typedef struct ElMirInstr ElMirInstr;
@@ -35,5 +38,7 @@ struct ElMirInstr {
         ElMirAllocaInstr alloca;
         ElMirLoadInstr   load;
         ElMirStoreInstr  store;
+        ElMirJmpInstr    jmp;
+        ElMirJmpIfInstr  jmpif;
     } as;
 };
