@@ -48,10 +48,11 @@ void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
             fputs(")\n", out);
             el_hir_dump_stmt(node->as.if_.then, indent + 1, out);
             if (node->as.if_.else_ != NULL) {
+                el_hir_dump_print_indent(indent, out);
                 fputs("else\n", out);
                 el_hir_dump_stmt(node->as.if_.else_, indent + 1, out);
             }
-            break;
+            continue;
 
         case EL_HIR_STMT_BLOCK:
             el_hir_dump_print_indent(indent, out);
