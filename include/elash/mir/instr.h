@@ -11,6 +11,7 @@
 #include "instr/load.h"
 #include "instr/store.h"
 #include "instr/jump.h"
+#include "instr/unreachable.h"
 
 typedef enum ElMirInstrKind {
     EL_MIR_INSTR_BIN,
@@ -22,6 +23,7 @@ typedef enum ElMirInstrKind {
     EL_MIR_INSTR_STORE,
     EL_MIR_INSTR_JMP,
     EL_MIR_INSTR_JMPIF,
+    EL_MIR_INSTR_UNREACHABLE,
 } ElMirInstrKind;
 
 typedef struct ElMirInstr ElMirInstr;
@@ -46,5 +48,6 @@ struct ElMirInstr {
 static inline bool el_mir_instr_is_terminator(ElMirInstr* instr) {
     return instr->kind == EL_MIR_INSTR_RET || 
            instr->kind == EL_MIR_INSTR_JMP || 
-           instr->kind == EL_MIR_INSTR_JMPIF;
+           instr->kind == EL_MIR_INSTR_JMPIF ||
+           instr->kind == EL_MIR_INSTR_UNREACHABLE;
 }

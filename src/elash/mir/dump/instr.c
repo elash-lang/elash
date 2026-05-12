@@ -75,6 +75,9 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         fprintf(out, ", @%u, @%u", instr->as.jmpif.then_id, instr->as.jmpif.else_id);
         break;
     }
+    case EL_MIR_INSTR_UNREACHABLE:
+        fputs("unreachable", out);
+        break;
     }
 
     fputs("\n", out);
