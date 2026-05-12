@@ -48,6 +48,23 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         fputs(")", out);
         break;
     }
+    case EL_MIR_INSTR_ALLOCA: {
+        fputs("alloca ", out);
+        el_sema_dump_type(instr->as.alloca.type, out);
+        break;
+    }
+    case EL_MIR_INSTR_LOAD: {
+        fputs("load ", out);
+        el_mir_dump_value(instr->as.load.ptr, out);
+        break;
+    }
+    case EL_MIR_INSTR_STORE: {
+        fputs("store ", out);
+        el_mir_dump_value(instr->as.store.value, out);
+        fputs(", ", out);
+        el_mir_dump_value(instr->as.store.ptr, out);
+        break;
+    }
     }
 
     fputs("\n", out);
