@@ -6,13 +6,25 @@
 
 #include <elash/sema/type/prim.h>
 
-ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstBinExprNode* bin) {
+ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElAstBinExprNode* bin) {
     ElHirExprNode* left  = el_binder_bind_expr(binder, bin->left);
     ElHirExprNode* right = el_binder_bind_expr(binder, bin->right);
-    if (!left || !right) return NULL;  
 
-    // TODO: implement type checking 
-    return el_hir_new_bin_expr(binder->arena, left->type, bin->op, left, right);
+    // TODO: simplified for now
+    if (!el_sema_type_eql(left->type, right->type)) {
+         el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+            in->span,
+            "invalid expression"
+        );
+    }
+
+    ElType* type = left->type;
+    if (el_sema_bin_op_is_comparison(bin->op)) {
+        type = binder->type_bool;
+    }
+
+    return el_hir_new_bin_expr(binder->arena, type, bin->op, left, right);
 }
 
 ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstUnaryExprNode* unary) {
