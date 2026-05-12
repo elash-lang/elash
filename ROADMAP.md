@@ -9,7 +9,7 @@
 - [ ] Variable declarations (extern)
 
 ### Control Flow
-- [ ] If statement
+- [x] If statement
 - [ ] While statement
 
 ### Type system
@@ -33,6 +33,7 @@
 - [ ] Pointer arithmetic
 - [ ] Variable assignment operator
 - [ ] Compound assignment operators (+=, -=, ...)
+- [ ] String literals
 
 ## Development Roadmap
 
