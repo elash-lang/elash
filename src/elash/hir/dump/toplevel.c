@@ -11,7 +11,7 @@
 void el_hir_dump_toplevel(ElHirTopLevelNode* node, usize indent, FILE* out) {
    switch (node->kind) {
    case EL_HIR_TOPLVL_FUNC_DEF: {
-       ElHirFuncDefinition* func = &node->as.func_def; 
+       ElHirFuncDef* func = &node->as.func_def; 
        ElFuncSymbol* sym = &func->symbol->as.func;
 
        el_hir_dump_print_indent(indent, out);

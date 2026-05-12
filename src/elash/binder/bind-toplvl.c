@@ -57,7 +57,7 @@ ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in
         }
 
         ElHirBlockStmtNode block = _el_binder_bind_block(binder, def->block);
-        ElHirTopLevelNode* func = el_hir_new_func_definition(binder->arena, sym, block);
+        ElHirTopLevelNode* func = el_hir_new_func_def(binder->arena, sym, block);
         _el_binder_pop_scope(binder);
         return func;
     }

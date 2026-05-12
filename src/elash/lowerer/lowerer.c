@@ -199,7 +199,7 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
 void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
     switch (hir->kind) {
     case EL_HIR_TOPLVL_FUNC_DEF: {
-        ElHirFuncDefinition* hir_func = &hir->as.func_def;
+        ElHirFuncDef* hir_func = &hir->as.func_def;
         ElHirBlockStmtNode* hir_block = &hir_func->block;
 
         ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_def.symbol);
