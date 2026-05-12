@@ -12,6 +12,12 @@
 typedef ElcLLVMBackendFuncCtx FunctionContext;
 typedef ElcLLVMBackendCtx     Context;
 
+#define ASSIGN_REG(FUNC, MIR_VALUE, LLVM_VALUE, INSTR_NAME) \
+    do { \
+        EL_ASSERT((MIR_VALUE)->kind == EL_MIR_VAL_REG, INSTR_NAME " instr result should be a register"); \
+        func->regs[(MIR_VALUE)->as.reg.id] = (LLVM_VALUE); \
+    } while (0)
+
 LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
     switch (type->kind) {
     case EL_TYPE_PRIM:
@@ -87,8 +93,7 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
         EL_TODO("binary op not implemented");
     }
 
-    EL_ASSERT(instr->result->kind == EL_MIR_VAL_REG, "binary instr result should be a register");
-    func->regs[instr->result->as.reg.id] = res;
+    ASSIGN_REG(func, instr->result, res, "binary");
 }
 
 void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
@@ -110,9 +115,8 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
         ""
     );
 
-    EL_ASSERT(instr->result->kind == EL_MIR_VAL_REG, "call instr result should be a register");
-    func->regs[instr->result->as.reg.id] = result;
     free(args);
+    ASSIGN_REG(func, instr->result, result, "call");
 }
 
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
@@ -123,19 +127,37 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
             val = elc_llvm_map_value(ctx, func, instr->as.return_.value);
         }
         LLVMBuildRet(ctx->builder, val);
-        break;
+        return;
     }
-    case EL_MIR_INSTR_BIN: {
+
+    case EL_MIR_INSTR_ALLOCA: {
+        LLVMTypeRef type = elc_llvm_map_type(ctx, instr->as.alloca.type);
+        LLVMValueRef res = LLVMBuildAlloca(ctx->builder, type, "");
+        ASSIGN_REG(func, instr->result, res, "alloca");
+        return;
+    }
+    case EL_MIR_INSTR_LOAD: {
+        LLVMTypeRef type = elc_llvm_map_type(ctx, instr->result->type);
+        LLVMValueRef ptr = elc_llvm_map_value(ctx, func, instr->as.load.ptr);
+        LLVMValueRef res = LLVMBuildLoad2(ctx->builder, type, ptr, "");
+        ASSIGN_REG(func, instr->result, res, "load");
+        return;
+    }
+    case EL_MIR_INSTR_STORE: {
+        LLVMValueRef ptr = elc_llvm_map_value(ctx, func, instr->as.store.ptr);
+        LLVMValueRef val = elc_llvm_map_value(ctx, func, instr->as.store.value);
+        LLVMBuildStore(ctx->builder, val, ptr);
+        return;
+    }
+
+    case EL_MIR_INSTR_BIN:
         elc_llvm_compile_bin_instr(ctx, func, instr);
-        break;
-    }
-    case EL_MIR_INSTR_CALL: {
+        return;
+    case EL_MIR_INSTR_CALL:
         elc_llvm_compile_call_instr(ctx, func, instr);
-        break;
+        return;
     }
-    default:
-        EL_TODO("implement codegen for all instructions");
-    }
+    EL_TODO("implement codegen for all instructions");
 }
 
 void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_func) {
