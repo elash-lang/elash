@@ -9,11 +9,14 @@
 #include "stmt/return.h"
 #include "stmt/block.h"
 
+#include "stmt/if.h"
+
 typedef enum ElAstStmtType {
     EL_AST_STMT_EXPR,
     EL_AST_STMT_RETURN,
     EL_AST_STMT_VAR_DEF,
     EL_AST_STMT_BLOCK,
+    EL_AST_STMT_IF,
 } ElAstStmtType;
 
 typedef struct ElAstStmtNode {
@@ -25,6 +28,8 @@ typedef struct ElAstStmtNode {
         ElAstBlockStmtNode block;
         ElAstReturnStmtNode return_;
         ElAstVarDefStmtNode var_def;
+
+        ElAstIfStmtNode if_;
     } as;
     ElAstStmtNode* next; // linked list; used in block stmt
 } ElAstStmtNode;

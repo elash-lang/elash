@@ -44,6 +44,21 @@ void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
             fprintf(out, "void\n");
         }
         break;
+    
+    case EL_AST_STMT_IF:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "BlockStmt:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "cond:\n");
+        el_ast_dump_expr(node->as.if_.cond, indent + 2, out);
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "then:\n");
+        el_ast_dump_stmt(node->as.if_.then, indent + 2, out);
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "else:\n");
+        el_ast_dump_stmt(node->as.if_.else_, indent + 2, out);
+        break;
+
     case EL_AST_STMT_BLOCK:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "BlockStmt:\n");
