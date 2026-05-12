@@ -212,10 +212,7 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
         }
 
         if (!el_lowerer_has_terminator(lw)) {
-            // TODO: i think it's better to emit something like unreachable instruction here
-            //       but we don't have unreachable instruction yet lmao
-            //       so we can just emit `ret void` for now and pretend it works
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_ret_instr(lw->arena, NULL));
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_unreachable_instr(lw->arena));
         }
         el_lowerer_emit_block(lw, lw->current_block_id);
         el_mir_module_add_func(lw->current_mod, func);
