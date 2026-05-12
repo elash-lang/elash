@@ -171,6 +171,9 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         LLVMBuildCondBr(ctx->builder, cond, func->blocks[instr->as.jmpif.then_id], func->blocks[instr->as.jmpif.else_id]);
         return;
     }
+    case EL_MIR_INSTR_UNREACHABLE:
+        LLVMBuildUnreachable(ctx->builder);
+        return;
 
     case EL_MIR_INSTR_ALLOCA: {
         LLVMTypeRef type = elc_llvm_map_type(ctx, instr->as.alloca.type);
