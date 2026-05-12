@@ -64,7 +64,6 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
     EL_UNREACHABLE_ENUM_VAL(ElSymbolKind, sym->kind);
 }
 
-// TODO: stub
 ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_BINARY: {
@@ -112,6 +111,18 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
 }
 
+static bool el_lowerer_has_terminator(ElLowerer* lw) {
+    if (lw->ibuf.len == 0) return false;
+    return el_mir_instr_is_terminator(lw->ibuf.items[lw->ibuf.len - 1]);
+}
+
+static void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
+    if (lw->ibuf.len == 0) return;
+    ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, id, &lw->ibuf);
+    el_mir_func_append_block(lw->current_func, block);
+    el_mir_ibuf_clear(&lw->ibuf);
+}
+
 void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
     switch (hir->kind) {
     case EL_HIR_STMT_EXPR:
@@ -150,6 +161,38 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
             el_lowerer_lower_stmt(lw, node);
         }
         break;
+    case EL_HIR_STMT_IF: {
+        ElHirIfStmtNode* if_stmt = &hir->as.if_;
+        ElMirValue* cond = el_lowerer_lower_expr(lw, if_stmt->cond);
+
+        uint32_t then_id = lw->current_func->block_count++;
+        uint32_t merge_id = lw->current_func->block_count++;
+        uint32_t else_id = (if_stmt->else_ != NULL)
+            ? lw->current_func->block_count++
+            : merge_id;
+
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, cond, then_id, else_id));
+        el_lowerer_emit_block(lw, lw->current_block_id);
+
+        lw->current_block_id = then_id;
+        el_lowerer_lower_stmt(lw, if_stmt->then);
+        if (!el_lowerer_has_terminator(lw)) {
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+        }
+        el_lowerer_emit_block(lw, lw->current_block_id);
+
+        if (if_stmt->else_ != NULL) {
+            lw->current_block_id = else_id;
+            el_lowerer_lower_stmt(lw, if_stmt->else_);
+            if (!el_lowerer_has_terminator(lw)) {
+                el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+            }
+            el_lowerer_emit_block(lw, lw->current_block_id);
+        }
+
+        lw->current_block_id = merge_id;
+        break;
+    }
     }
 }
 
@@ -161,14 +204,20 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
 
         ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_def.symbol);
         lw->current_func = func;
+        lw->current_block_id = func->block_count++;
+
         el_mir_ibuf_clear(&lw->ibuf);
         for (ElHirStmtNode* node = hir_block->stmts; node != NULL; node = node->next) {
             el_lowerer_lower_stmt(lw, node);
         }
 
-        ElMirBlock* block = el_mir_new_block_from_ibuf(lw->arena, func->block_count++, &lw->ibuf);
-        el_mir_func_append_block(func, block);
-
+        if (!el_lowerer_has_terminator(lw)) {
+            // TODO: i think it's better to emit something like unreachable instruction here
+            //       but we don't have unreachable instruction yet lmao
+            //       so we can just emit `ret void` for now and pretend it works
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_ret_instr(lw->arena, NULL));
+        }
+        el_lowerer_emit_block(lw, lw->current_block_id);
         el_mir_module_add_func(lw->current_mod, func);
     }
     }

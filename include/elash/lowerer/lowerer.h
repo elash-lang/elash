@@ -21,6 +21,7 @@ typedef struct ElLowerer {
     ElDynArena* arena;
     ElDiagEngine* diag;
 
+    uint32_t current_block_id;
     ElMirFunc* current_func;
     ElMirModule* current_mod;
     ElMirInstrBuf ibuf;
