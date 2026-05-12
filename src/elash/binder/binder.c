@@ -11,7 +11,7 @@
 
 static ElType* _el_binder_register_builtin_type(ElBinder* binder, ElStringView name, ElPrimitiveTypeKind kind) {
     ElType* type = el_sema_new_prim_type(binder->arena, kind);
-    ElSymbol* sym = el_sema_new_type_symbol(binder->arena, name, type);
+    ElSymbol* sym = el_sema_new_type_symbol(binder->arena, binder->sym_id_counter++, name, type);
     (void) el_sema_scope_insert(binder->builtin_scope, sym);
     return type;
 }
@@ -19,6 +19,7 @@ static ElType* _el_binder_register_builtin_type(ElBinder* binder, ElStringView n
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag) {
     binder->arena = arena;
     binder->diag = diag;
+    binder->sym_id_counter = 0;
 
     binder->builtin_scope = el_sema_scope_new(NULL);
 
@@ -213,7 +214,7 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
         ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
         if (!type) return NULL;
 
-        ElSymbol* sym = el_sema_new_var_symbol(binder->arena, in->as.var_def.name->name, type);
+        ElSymbol* sym = el_sema_new_var_symbol(binder->arena, binder->sym_id_counter++, in->as.var_def.name->name, type);
         if (!el_sema_scope_insert(binder->current_scope, sym)) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
@@ -259,7 +260,10 @@ ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in
                 return NULL;
             }
             
-            ElSymbol* psym = el_sema_new_var_symbol(binder->arena, param->name->name, type);
+            ElSymbol* psym = el_sema_new_var_symbol(
+                binder->arena, binder->sym_id_counter++,
+                param->name->name, type
+            );
             if (!el_sema_scope_insert(binder->current_scope, psym)) {
                 el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
@@ -271,7 +275,10 @@ ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in
             params[i++] = psym;
         }
 
-        ElSymbol* sym = el_sema_new_func_symbol(binder->arena, def->name->name, ret_type, params, def->params.count);
+        ElSymbol* sym = el_sema_new_func_symbol(
+            binder->arena, binder->sym_id_counter++, def->name->name,
+            ret_type, params, def->params.count
+        );
         if (!el_sema_scope_insert(binder->current_scope->parent, sym)) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
@@ -301,5 +308,6 @@ ElHirModule* el_binder_bind_module(ElBinder* binder, ElAstModuleNode* in) {
 
         el_hir_module_append(mod, binded);
     }
+    mod->sym_count = binder->sym_id_counter;
     return mod;
 }

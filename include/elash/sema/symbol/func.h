@@ -15,5 +15,5 @@ typedef struct ElFuncSymbol {
 } ElFuncSymbol;
 
 ElSymbol* el_sema_new_func_symbol(
-    ElDynArena* arena, ElStringView name, ElType* ret_type, ElSymbol** params, usize param_count
+    ElDynArena* arena, uint32_t id, ElStringView name, ElType* ret_type, ElSymbol** params, usize param_count
 );

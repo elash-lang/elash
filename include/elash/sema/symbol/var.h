@@ -10,4 +10,4 @@ typedef struct ElVarSymbol {
     ElType* type;
 } ElVarSymbol;
 
-ElSymbol* el_sema_new_var_symbol(ElDynArena* arena, ElStringView name, ElType* type);
+ElSymbol* el_sema_new_var_symbol(ElDynArena* arena, uint32_t id, ElStringView name, ElType* type);

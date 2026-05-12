@@ -23,6 +23,8 @@ typedef struct ElBinder {
     ElScope* global_scope;
     ElScope* current_scope;
 
+    uint32_t sym_id_counter;
+
     ElType* type_int;
     ElType* type_uint;
     ElType* type_char;

@@ -8,6 +8,7 @@ typedef struct ElHirModule {
     ElHirTopLevelNode* head;
     ElHirTopLevelNode* tail;
     usize count;
+    uint32_t sym_count;
 } ElHirModule;
 
 ElHirModule* el_hir_new_module(ElDynArena* arena);

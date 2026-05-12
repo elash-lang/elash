@@ -15,6 +15,7 @@ typedef enum ElSymbolKind {
 typedef struct ElSymbol {
     ElStringView name;
     ElSymbolKind kind;
+    uint32_t id;
     union {
         ElVarSymbol var;
         ElFuncSymbol func;
