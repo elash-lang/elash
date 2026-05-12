@@ -16,18 +16,25 @@
 - [x] Basic primitive types
 - [x] Pointer types
 - [x] Function types
+- [ ] Slice types
+- [ ] Raw slice types
 - [ ] Array types
+- [ ] Struct types
+- [ ] Enum types
 
 ### Expressions
 - [x] Binary expressions (+, -, *, /, ==, ...)
 - [x] Unary expressions (-, !, ~, ...)
 - [x] Function calls
 - [ ] Pointer dereference operator
+- [ ] Array subscript operator
+- [ ] Member access operator
 - [ ] Increment and decrement operators
+- [ ] Pointer arithmetic
 - [ ] Variable assignment operator
 - [ ] Compound assignment operators (+=, -=, ...)
 
-## Developement Roadmap
+## Development Roadmap
 
 ### 0. Project Setup
 
