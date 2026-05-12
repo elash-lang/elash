@@ -27,6 +27,7 @@ void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag) {
     lw->arena = arena;
     lw->diag = diag;
     el_mir_ibuf_init(&lw->ibuf);
+    lw->symbol_map = NULL;
 }
 
 void el_lowerer_free(ElLowerer* lw) {
@@ -36,6 +37,13 @@ void el_lowerer_free(ElLowerer* lw) {
 ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
     switch (sym->kind) {
     case EL_SYM_VAR: {
+        if (lw->symbol_map && lw->symbol_map[sym->id]) {
+            ElMirValue* ptr = lw->symbol_map[sym->id];
+            ElMirValue* reg = el_mir_new_reg(lw->arena, sym->as.var.type, lw->current_func->reg_count++);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
+            return reg;
+        }
+
         if (lw->current_func != NULL) {
             ElFuncSymbol* func_sym = &lw->current_func->symbol->as.func;
             for (uint32_t i = 0; i < func_sym->param_count; i++) {
@@ -118,6 +126,25 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
         el_mir_ibuf_push(&lw->ibuf, ret_instr);
         break;
     }
+    case EL_HIR_STMT_VAR_DEF: {
+        ElHirVarDefStmtNode* var_def = &hir->as.var_def;
+        ElSymbol* sym = var_def->var;
+
+        ElType* ptr_type = el_sema_new_ptr_type(lw->arena, sym->as.var.type);
+        ElMirValue* ptr_reg = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+
+        ElMirInstr* alloca_instr = el_mir_new_alloca_instr(lw->arena, ptr_reg, sym->as.var.type);
+        el_mir_ibuf_push(&lw->ibuf, alloca_instr);
+
+        lw->symbol_map[sym->id] = ptr_reg;
+
+        if (var_def->init) {
+            ElMirValue* init_val = el_lowerer_lower_expr(lw, var_def->init);
+            ElMirInstr* store_instr = el_mir_new_store_instr(lw->arena, ptr_reg, init_val);
+            el_mir_ibuf_push(&lw->ibuf, store_instr);
+        }
+        break;
+    }
     case EL_HIR_STMT_BLOCK:
         for (ElHirStmtNode* node = hir->as.block.stmts; node != NULL; node = node->next) {
             el_lowerer_lower_stmt(lw, node);
@@ -149,6 +176,8 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
 
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
     lw->current_mod = el_mir_new_module(lw->arena);
+    lw->symbol_map = EL_DYNARENA_NEW_ARR_ZEROED(lw->arena, ElMirValue*, hir->sym_count);
+
     for (ElHirTopLevelNode* node = hir->head; node != NULL; node = node->next) {
         el_lowerer_lower_toplvl(lw, node);
     }
