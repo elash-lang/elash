@@ -3,6 +3,7 @@
 
 #include <elash/ast/toplevel.h>
 #include <elash/ast/toplevel/func-def.h>
+#include <elash/ast/toplevel/func-decl.h>
 
 #include <elash/util/todo.h>
 
@@ -64,29 +65,50 @@ ElParserErrorCode _el_parser_parse_func_sig(ElParser* parser, ElAstFuncSignature
     return _el_parser_ret_ok(parser);
 }
 
-ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode** out) {
+ElParserErrorCode _el_parser_parse_toplevel(ElParser* parser, ElAstTopLevelNode** out) {
     ElParserErrorCode result;
+
+    bool is_extern = false;
+    ElToken extern_tok;
+    if (el_parser_check(parser, EL_TT_KW_EXTERN)) {
+        extern_tok = parser->current;
+        el_parser_advance(parser);
+        is_extern = true;
+    }
 
     ElAstFuncSignature sig;
     result = _el_parser_parse_func_sig(parser, &sig);
     if (result != EL_PARSER_ERR_OK) return result;
 
-    ElToken lbrace_tok = parser->current;
-    result = el_parser_expect(parser, EL_TT_LBRACE);
-    if (result != EL_PARSER_ERR_OK) return result;
+    if (el_parser_check(parser, EL_TT_LBRACE)) {
+        if (is_extern) {
+            // TODO: better error handling
+            return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = extern_tok);
+        }
 
-    ElAstStmtNode* body_stmt;
-    result = _el_parser_parse_block(parser, lbrace_tok, &body_stmt);
-    if (result != EL_PARSER_ERR_OK) return result;
+        ElToken lbrace_tok = parser->current;
+        result = el_parser_expect(parser, EL_TT_LBRACE);
+        if (result != EL_PARSER_ERR_OK) return result;
 
-    ElSourceSpan span = el_source_span_merge(sig.span, body_stmt->span);
+        ElAstStmtNode* body_stmt;
+        result = _el_parser_parse_block(parser, lbrace_tok, &body_stmt);
+        if (result != EL_PARSER_ERR_OK) return result;
 
-    *out = el_ast_new_func_def(parser->arena, span, sig, &body_stmt->as.block);
+        ElSourceSpan span = el_source_span_merge(sig.span, body_stmt->span);
+        *out = el_ast_new_func_def(parser->arena, span, sig, &body_stmt->as.block);
+    } else {
+        ElToken semi_tok = parser->current;
+        result = el_parser_expect(parser, EL_TT_SEMICOLON);
+        if (result != EL_PARSER_ERR_OK) return result;
+
+        ElSourceSpan span = sig.span;
+        if (is_extern) {
+            span = el_source_span_merge(extern_tok.span, span);
+        }
+        span = el_source_span_merge(span, semi_tok.span);
+
+        *out = el_ast_new_func_decl(parser->arena, span, sig);
+    }
 
     return _el_parser_ret_ok(parser);
-}
-
-ElParserErrorCode _el_parser_parse_toplevel(ElParser* parser, ElAstTopLevelNode** out) {
-    // TODO
-    return _el_parser_parse_func_def(parser, out);
 }
