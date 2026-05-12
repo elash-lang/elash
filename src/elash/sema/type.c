@@ -5,16 +5,16 @@ void el_sema_dump_type(const ElType* type, FILE* out) {
     switch (type->kind) {
     case EL_TYPE_PRIM:
         switch (type->as.prim.kind) {
-        case EL_PRIMTYPE_INT:  fputs("int", out);  break;
-        case EL_PRIMTYPE_UINT: fputs("uint", out); break;
-        case EL_PRIMTYPE_CHAR: fputs("char", out); break;
-        case EL_PRIMTYPE_BOOL: fputs("bool", out); break;
+        case EL_PRIMTYPE_INT:  fputs("int", out);  return;
+        case EL_PRIMTYPE_UINT: fputs("uint", out); return;
+        case EL_PRIMTYPE_CHAR: fputs("char", out); return;
+        case EL_PRIMTYPE_BOOL: fputs("bool", out); return;
         }
-        break;
+        EL_UNREACHABLE_ENUM_VAL(ElPrimitiveTypeKind, type->as.prim.kind);
     case EL_TYPE_PTR:
         el_sema_dump_type(type->as.ptr.base, out);
         fputs("*", out);
-        break;
+        return;
     case EL_TYPE_FUNC:
         el_sema_dump_type(type->as.func.ret_type, out);
         fputs("(", out);
@@ -23,7 +23,7 @@ void el_sema_dump_type(const ElType* type, FILE* out) {
             if (i + 1 < type->as.func.param_count) fputs(", ", out);
         }
         fputs(")", out);
-        break;
+        return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElTypeKind, type->kind);
 }
