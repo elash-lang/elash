@@ -65,6 +65,16 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         el_mir_dump_value(instr->as.store.ptr, out);
         break;
     }
+    case EL_MIR_INSTR_JMP: {
+        fprintf(out, "jmp @%u", instr->as.jmp.target_id);
+        break;
+    }
+    case EL_MIR_INSTR_JMPIF: {
+        fputs("jmpif ", out);
+        el_mir_dump_value(instr->as.jmpif.cond, out);
+        fprintf(out, ", @%u, @%u", instr->as.jmpif.then_id, instr->as.jmpif.else_id);
+        break;
+    }
     }
 
     fputs("\n", out);

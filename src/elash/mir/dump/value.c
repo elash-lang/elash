@@ -15,9 +15,10 @@ void el_mir_dump_value(const ElMirValue* value, FILE* out) {
     case EL_MIR_VAL_CONST:
         if (value->type->kind == EL_TYPE_PRIM) {
             switch (value->type->as.prim.kind) {
-            case EL_PRIMTYPE_INT:   fprintf(out, "$%"PRId64, value->as.constant.lit.as.int_);   break;
-            case EL_PRIMTYPE_UINT:  fprintf(out, "$%"PRIu64, value->as.constant.lit.as.uint_);  break;
-            case EL_PRIMTYPE_CHAR:  fprintf(out, "$'%c'", value->as.constant.lit.as.char_);     break;
+            case EL_PRIMTYPE_INT:   fprintf(out, "$%"PRId64, value->as.constant.lit.as.int_);       break;
+            case EL_PRIMTYPE_UINT:  fprintf(out, "$%"PRIu64, value->as.constant.lit.as.uint_);      break;
+            case EL_PRIMTYPE_CHAR:  fprintf(out, "$'%c'", value->as.constant.lit.as.char_);         break;
+            case EL_PRIMTYPE_BOOL:  fputs(value->as.constant.lit.as.bool_ ? "true" : "false", out); break;
             }
         } else {
             fputs("<unhandled const>", out);
