@@ -36,6 +36,7 @@ void el_ast_dump_toplevel(ElAstTopLevelNode* node, usize indent, FILE* out) {
         return;
     case EL_AST_TOPLVL_FUNC_DECL:
         el_ast_dump_func_sig(&node->as.func_def.sig, indent, out, "FuncDecl");
+        return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstTopLevelType, node->type);
 }
