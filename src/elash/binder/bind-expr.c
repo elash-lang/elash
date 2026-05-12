@@ -125,7 +125,7 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
     if (in == NULL) return NULL;
 
     switch (in->type) {
-    case EL_AST_EXPR_BINARY:  return _el_binder_bind_bin_expr(binder, &in->as.binary);
+    case EL_AST_EXPR_BINARY:  return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
     case EL_AST_EXPR_UNARY:   return _el_binder_bind_unary_expr(binder, &in->as.unary);
     case EL_AST_EXPR_LITERAL: return _el_binder_bind_literal(binder, in, &in->as.literal);
     case EL_AST_EXPR_IDENT:   return _el_binder_bind_ident(binder, in, &in->as.ident);
