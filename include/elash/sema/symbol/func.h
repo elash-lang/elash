@@ -12,6 +12,7 @@ typedef struct ElFuncSymbol {
     ElType* ret_type;
     ElSymbol** params;
     usize param_count;
+    bool is_defined;
 } ElFuncSymbol;
 
 ElSymbol* el_sema_new_func_symbol(

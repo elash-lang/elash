@@ -38,6 +38,9 @@ bool el_sema_type_eql(const ElType* lhs, const ElType* rhs) {
     case EL_TYPE_PTR:
         return el_sema_type_eql(lhs->as.ptr.base, rhs->as.ptr.base);
     case EL_TYPE_FUNC:
+        if (lhs->as.func.param_count != rhs->as.func.param_count) {
+            return false;
+        }
         if (!el_sema_type_eql(lhs->as.func.ret_type, rhs->as.func.ret_type)) {
             return false;
         }

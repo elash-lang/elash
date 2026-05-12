@@ -20,6 +20,7 @@ ElSymbol* el_sema_new_func_symbol(
         .ret_type = ret_type,
         .params = params,
         .param_count = param_count,
+        .is_defined = false,
     };
     return sym;
 }
