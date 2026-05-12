@@ -2,7 +2,7 @@
 #include <elash/parser/utility.h>
 
 #include <elash/ast/toplevel.h>
-#include <elash/ast/toplevel/func.h>
+#include <elash/ast/toplevel/func-def.h>
 
 #include <elash/util/todo.h>
 
@@ -36,7 +36,7 @@ static ElParserErrorCode _el_parser_parse_func_params(ElParser* parser, ElAstFun
     return _el_parser_ret_ok(parser);
 }
 
-ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode** out) {
+ElParserErrorCode _el_parser_parse_func_sig(ElParser* parser, ElAstFuncSignature* out) {
     ElParserErrorCode result;
 
     ElAstTypeNode* ret_type;
@@ -54,7 +54,21 @@ ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode*
     result = _el_parser_parse_func_params(parser, &params);
     if (result != EL_PARSER_ERR_OK) return result;
 
+    ElToken rparen_tok = parser->current;
     result = el_parser_expect(parser, EL_TT_RPAREN);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    ElSourceSpan span = el_source_span_merge(ret_type->span, rparen_tok.span);
+    *out = el_ast_func_signature(span, ret_type, name, params);
+
+    return _el_parser_ret_ok(parser);
+}
+
+ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode** out) {
+    ElParserErrorCode result;
+
+    ElAstFuncSignature sig;
+    result = _el_parser_parse_func_sig(parser, &sig);
     if (result != EL_PARSER_ERR_OK) return result;
 
     ElToken lbrace_tok = parser->current;
@@ -65,14 +79,9 @@ ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode*
     result = _el_parser_parse_block(parser, lbrace_tok, &body_stmt);
     if (result != EL_PARSER_ERR_OK) return result;
 
-    *out = el_ast_new_func_definition(
-        parser->arena,
-        el_source_span_merge(ret_type->span, body_stmt->span),
-        ret_type,
-        name,
-        params,
-        &body_stmt->as.block
-    );
+    ElSourceSpan span = el_source_span_merge(sig.span, body_stmt->span);
+
+    *out = el_ast_new_func_def(parser->arena, span, sig, &body_stmt->as.block);
 
     return _el_parser_ret_ok(parser);
 }

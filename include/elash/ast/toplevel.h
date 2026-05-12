@@ -1,7 +1,8 @@
 #pragma once
 
-#include "toplevel/func.h"
 #include <elash/srcdoc/span.h>
+
+#include "toplevel/func-def.h"
 
 typedef enum ElAstTopLevelType {
     EL_AST_TOPLVL_FUNC_DEF,
@@ -11,7 +12,7 @@ typedef struct ElAstTopLevelNode {
     ElAstTopLevelType type;
     ElSourceSpan span;
     union {
-        ElAstFuncDefinition func_def;
+        ElAstFuncDef func_def;
     } as;
     ElAstTopLevelNode* next;
 } ElAstTopLevelNode;

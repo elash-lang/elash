@@ -8,18 +8,18 @@
 ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in) {
     switch (in->type) {
     case EL_AST_TOPLVL_FUNC_DEF: {
-        ElAstFuncDefinition* def = &in->as.func_def;
+        ElAstFuncDef* def = &in->as.func_def;
         _el_binder_push_scope(binder);
 
-        ElType* ret_type = _el_binder_bind_type(binder, def->ret_type);
+        ElType* ret_type = _el_binder_bind_type(binder, def->sig.ret_type);
         if (ret_type == NULL) {
             _el_binder_pop_scope(binder);
             return NULL;
         }
 
-        ElSymbol** params = EL_DYNARENA_NEW_ARR(binder->arena, ElSymbol*, def->params.count);
+        ElSymbol** params = EL_DYNARENA_NEW_ARR(binder->arena, ElSymbol*, def->sig.params.count);
         usize i = 0;
-        for (ElAstFuncParam* param = def->params.head; param != NULL; param = param->next) {
+        for (ElAstFuncParam* param = def->sig.params.head; param != NULL; param = param->next) {
             ElType* type = _el_binder_bind_type(binder, param->type);
             if (type == NULL) {
                 _el_binder_pop_scope(binder);
@@ -42,15 +42,15 @@ ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in
         }
 
         ElSymbol* sym = el_sema_new_func_symbol(
-            binder->arena, binder->sym_id_counter++, def->name->name,
-            ret_type, params, def->params.count
+            binder->arena, binder->sym_id_counter++, def->sig.name->name,
+            ret_type, params, def->sig.params.count
         );
         if (!el_sema_scope_insert(binder->current_scope->parent, sym)) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
-                def->name->span,
+                def->sig.name->span,
                 "redeclaration of symbol '${name}'",
-                EL_DIAG_STRING("name", def->name->name)
+                EL_DIAG_STRING("name", def->sig.name->name)
             );
             _el_binder_pop_scope(binder);
             return NULL;

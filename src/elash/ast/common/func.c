@@ -1,6 +1,4 @@
-#include <elash/ast/toplevel/func.h>
-#include <elash/ast/toplevel.h>
-
+#include <elash/ast/common/func.h>
 #include <stddef.h>
 
 ElAstFuncParam el_ast_func_param(ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name) {
@@ -39,33 +37,13 @@ void el_ast_func_param_list_append(ElAstFuncParamList* list, ElAstFuncParam* par
     list->count++;
 }
 
-// this sucks, but it exists only for consistency with other nodes
-ElAstFuncDefinition el_ast_func_definition(
-    ElAstTypeNode* ret_type,
-    ElAstIdentNode* name,
-    ElAstFuncParamList params,
-    ElAstBlockStmtNode* block
+ElAstFuncSignature el_ast_func_signature(
+    ElSourceSpan span, ElAstTypeNode* ret_type, ElAstIdentNode* name, ElAstFuncParamList params
 ) {
-    return (ElAstFuncDefinition) {
+    return (ElAstFuncSignature) {
+        .span = span,
         .ret_type = ret_type,
         .name = name,
         .params = params,
-        .block = block,
     };
-}
-
-ElAstTopLevelNode* el_ast_new_func_definition(
-    ElDynArena* arena,
-    ElSourceSpan span,
-    ElAstTypeNode* ret_type,
-    ElAstIdentNode* name,
-    ElAstFuncParamList params,
-    ElAstBlockStmtNode* block
-) {
-    ElAstTopLevelNode* node = EL_DYNARENA_NEW(arena, ElAstTopLevelNode);
-    node->type = EL_AST_TOPLVL_FUNC_DEF;
-    node->span = span;
-    node->as.func_def = el_ast_func_definition(ret_type, name, params, block);
-    node->next = NULL;
-    return node;
 }

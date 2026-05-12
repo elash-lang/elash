@@ -27,12 +27,12 @@ typedef struct ElAstFuncParamList {
     usize count;
 } ElAstFuncParamList;
 
-typedef struct ElAstFuncDefinition {
+typedef struct ElAstFuncSignature {
+    ElSourceSpan span;
     ElAstTypeNode* ret_type;
     ElAstIdentNode* name;
     ElAstFuncParamList params;
-    ElAstBlockStmtNode* block;
-} ElAstFuncDefinition;
+} ElAstFuncSignature;
 
 ElAstFuncParam el_ast_func_param(ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name);
 ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name);
@@ -40,18 +40,6 @@ ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElSourceSpan span, ElAs
 ElAstFuncParamList el_ast_make_func_param_list();
 void el_ast_func_param_list_append(ElAstFuncParamList* list, ElAstFuncParam* param);
 
-ElAstFuncDefinition el_ast_func_definition(
-    ElAstTypeNode* ret_type,
-    ElAstIdentNode* name,
-    ElAstFuncParamList params,
-    ElAstBlockStmtNode* block
-);
-
-ElAstTopLevelNode* el_ast_new_func_definition(
-    ElDynArena* arena,
-    ElSourceSpan span,
-    ElAstTypeNode* ret_type,
-    ElAstIdentNode* name,
-    ElAstFuncParamList params,
-    ElAstBlockStmtNode* block
+ElAstFuncSignature el_ast_func_signature(
+    ElSourceSpan span, ElAstTypeNode* ret_type, ElAstIdentNode* name, ElAstFuncParamList params
 );
