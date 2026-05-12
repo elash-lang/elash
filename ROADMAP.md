@@ -5,7 +5,7 @@
 ### Functions & Variables
 - [x] Function definitions
 - [ ] Function declarations (extern)
-- [ ] Variable definitions
+- [x] Variable definitions
 - [ ] Variable declarations (extern)
 
 ### Control Flow
