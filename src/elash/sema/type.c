@@ -1,4 +1,5 @@
 #include <elash/sema/type.h>
+#include <elash/util/assert.h>
 
 void el_sema_dump_type(const ElType* type, FILE* out) {
     switch (type->kind) {
@@ -24,5 +25,28 @@ void el_sema_dump_type(const ElType* type, FILE* out) {
         fputs(")", out);
         break;
     }
+    EL_UNREACHABLE_ENUM_VAL(ElTypeKind, type->kind);
 }
 
+bool el_sema_type_eql(const ElType* lhs, const ElType* rhs) {
+    if (lhs == rhs)             return true;
+    if (lhs->kind != rhs->kind) return false;
+
+    switch (rhs->kind) {
+    case EL_TYPE_PRIM:
+        return lhs->as.prim.kind == rhs->as.prim.kind;
+    case EL_TYPE_PTR:
+        return el_sema_type_eql(lhs->as.ptr.base, rhs->as.ptr.base);
+    case EL_TYPE_FUNC:
+        if (!el_sema_type_eql(lhs->as.func.ret_type, rhs->as.func.ret_type)) {
+            return false;
+        }
+        for (usize i = 0; i < lhs->as.func.param_count; ++i) {
+            if (!el_sema_type_eql(lhs->as.func.params[i], rhs->as.func.params[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElTypeKind, lhs->kind);
+}

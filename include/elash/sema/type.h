@@ -23,3 +23,4 @@ struct ElType {
 };
 
 void el_sema_dump_type(const ElType* type, FILE* out);
+bool el_sema_type_eql(const ElType* lhs, const ElType* rhs);
