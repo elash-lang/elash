@@ -3,6 +3,7 @@
 
 #include <elash/ast/stmt.h>
 #include <elash/ast/stmt/return.h>
+#include <elash/ast/stmt/if.h>
 
 ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElToken return_tok, ElAstStmtNode** out) {
     if (el_parser_check(parser, EL_TT_SEMICOLON)) {
@@ -23,6 +24,41 @@ ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElToken return_tok, 
     if (result != EL_PARSER_ERR_OK) return result;
 
     *out = el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), expr);
+    return _el_parser_ret_ok(parser);
+}
+
+ElParserErrorCode _el_parser_parse_if(ElParser* parser, ElToken if_tok, ElAstStmtNode** out) {
+    ElParserErrorCode result;
+    ElSourceSpan end_span;
+
+    result = el_parser_expect(parser, EL_TT_LPAREN);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    ElAstExprNode* cond;
+    result = _el_parser_parse_expression(parser, &cond);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    result = el_parser_expect(parser, EL_TT_RPAREN);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    ElAstStmtNode* then_stmt;
+    result = _el_parser_parse_stmt(parser, &then_stmt);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    end_span = then_stmt->span;
+
+    ElAstStmtNode* else_stmt = NULL;
+    if (el_parser_match(parser, EL_TT_KW_ELSE)) {
+        result = _el_parser_parse_stmt(parser, &else_stmt);
+        if (result != EL_PARSER_ERR_OK) return result;
+        end_span = else_stmt->span;
+    }
+
+    *out = el_ast_new_if_stmt(
+        parser->arena,
+        el_source_span_merge(if_tok.span, end_span),
+        cond, then_stmt, else_stmt
+    );
     return _el_parser_ret_ok(parser);
 }
 
@@ -94,6 +130,11 @@ ElParserErrorCode _el_parser_parse_stmt(ElParser* parser, ElAstStmtNode** out) {
         ElToken return_tok = parser->current;
         el_parser_advance(parser);
         return _el_parser_parse_return(parser, return_tok, out);
+    }
+    if (el_parser_check(parser, EL_TT_KW_IF)) {
+        ElToken if_tok = parser->current;
+        el_parser_advance(parser);
+        return _el_parser_parse_if(parser, if_tok, out);
     }
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         ElToken lbrace_tok = parser->current;

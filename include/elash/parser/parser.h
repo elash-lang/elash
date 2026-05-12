@@ -50,6 +50,7 @@ ElParserErrorCode _el_parser_parse_logical_and(ElParser* parser, ElAstExprNode**
 ElParserErrorCode _el_parser_parse_logical_or(ElParser* parser, ElAstExprNode** out);
 
 ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElToken return_tok, ElAstStmtNode** out);
+ElParserErrorCode _el_parser_parse_if(ElParser* parser, ElToken if_tok, ElAstStmtNode** out);
 ElParserErrorCode _el_parser_parse_expr_stmt(ElParser* parser, ElAstStmtNode** out);
 ElParserErrorCode _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok, ElAstStmtNode** out);
 ElParserErrorCode _el_parser_parse_stmt(ElParser* parser, ElAstStmtNode** out);
