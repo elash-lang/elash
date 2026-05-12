@@ -27,6 +27,8 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
             return LLVMInt32TypeInContext(ctx->context);
         case EL_PRIMTYPE_CHAR:
             return LLVMInt8TypeInContext(ctx->context);
+        case EL_PRIMTYPE_BOOL:
+            return LLVMInt1TypeInContext(ctx->context);
         }
         break;
     case EL_TYPE_FUNC: {
@@ -59,6 +61,8 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
             return LLVMConstInt(type, value->as.constant.lit.as.uint_, false);
         case EL_PRIMTYPE_CHAR:
             return LLVMConstInt(type, value->as.constant.lit.as.char_, false);
+        case EL_PRIMTYPE_BOOL:
+            return LLVMConstInt(type, value->as.constant.lit.as.bool_, false);
         }
         EL_UNREACHABLE_ENUM_VAL(ElPrimitiveTypeKind, value->type->as.prim.kind);
     }
@@ -78,18 +82,47 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
     return NULL;
 }
 
+LLVMIntPredicate elc_llvm_get_predicate_of(ElSemaBinOp op, bool is_signed) {
+    switch (op) {
+    case EL_SEMA_BIN_OP_EQ:  return LLVMIntEQ;
+    case EL_SEMA_BIN_OP_NEQ: return LLVMIntNE;
+    case EL_SEMA_BIN_OP_GT:  return is_signed ? LLVMIntSGT : LLVMIntUGT;
+    case EL_SEMA_BIN_OP_GTE: return is_signed ? LLVMIntSGE : LLVMIntUGE;
+    case EL_SEMA_BIN_OP_LT:  return is_signed ? LLVMIntSLT : LLVMIntULT;
+    case EL_SEMA_BIN_OP_LTE: return is_signed ? LLVMIntSLE : LLVMIntULE;
+    default:
+        EL_UNREACHABLE("op should be a comparison operator");
+    }
+}
+
+bool elc_llvm_is_type_signed(const ElType* type) {
+    if (type->kind == EL_TYPE_PRIM) {
+        return type->as.prim.kind == EL_PRIMTYPE_INT;
+    }
+    return false;
+}
+
 void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     ElMirBinInstr* bin = &instr->as.bin;
     LLVMValueRef lhs = elc_llvm_map_value(ctx, func, bin->lhs);
     LLVMValueRef rhs = elc_llvm_map_value(ctx, func, bin->rhs);
+
+    bool is_signed = elc_llvm_is_type_signed(instr->result->type);
 
     LLVMValueRef res = NULL;
     switch (bin->op) {
     case EL_SEMA_BIN_OP_ADD: res = LLVMBuildAdd(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_SUB: res = LLVMBuildSub(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_MUL: res = LLVMBuildMul(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_DIV: res = LLVMBuildSDiv(ctx->builder, lhs, rhs, ""); break; // TODO: handle signed/unsigned division
+    case EL_SEMA_BIN_OP_DIV:
+        res = (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv)(ctx->builder, lhs, rhs, ""); break;
     default:
+        if (el_sema_bin_op_is_comparison(bin->op)) {
+            LLVMIntPredicate pred = elc_llvm_get_predicate_of(bin->op, is_signed);
+            res = LLVMBuildICmp(ctx->builder, pred, lhs, rhs, "");
+            break;
+        }
+
         EL_TODO("binary op not implemented");
     }
 
@@ -130,6 +163,15 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         return;
     }
 
+    case EL_MIR_INSTR_JMP:
+        LLVMBuildBr(ctx->builder, func->blocks[instr->as.jmp.target_id]);
+        return;
+    case EL_MIR_INSTR_JMPIF: {
+        LLVMValueRef cond = elc_llvm_map_value(ctx, func, instr->as.jmpif.cond);
+        LLVMBuildCondBr(ctx->builder, cond, func->blocks[instr->as.jmpif.then_id], func->blocks[instr->as.jmpif.else_id]);
+        return;
+    }
+
     case EL_MIR_INSTR_ALLOCA: {
         LLVMTypeRef type = elc_llvm_map_type(ctx, instr->as.alloca.type);
         LLVMValueRef res = LLVMBuildAlloca(ctx->builder, type, "");
@@ -157,6 +199,7 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         elc_llvm_compile_call_instr(ctx, func, instr);
         return;
     }
+
     EL_TODO("implement codegen for all instructions");
 }
 
