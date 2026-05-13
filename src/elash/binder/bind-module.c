@@ -2,7 +2,7 @@
 #include <elash/util/assert.h>
 
 ElHirModule* el_binder_bind_module(ElBinder* binder, ElAstModuleNode* in) {
-    ElHirModule* mod = el_hir_new_module(binder->arena);
+    ElHirModule* mod = el_hir_new_module(binder->hir_arena);
     for (ElAstTopLevelNode* node = in->head; node != NULL; node = node->next) {
         ElHirTopLevelNode* binded = el_binder_bind_toplvl(binder, node);
         if (binded == NULL) continue;

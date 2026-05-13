@@ -61,24 +61,24 @@ ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
         }
     }
 
-    return el_hir_new_return_stmt(binder->arena, val);
+    return el_hir_new_return_stmt(binder->hir_arena, val);
 }
 
 ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
         ElHirBlockStmtNode block = _el_binder_bind_block(binder, &in->as.block);
-        return el_hir_new_block_stmt(binder->arena, block.stmts);
+        return el_hir_new_block_stmt(binder->hir_arena, block.stmts);
     }
     case EL_AST_STMT_RETURN:
         return _el_binder_bind_return(binder, in);
     case EL_AST_STMT_EXPR: {
         ElHirExprNode* expr = el_binder_bind_expr(binder, in->as.expr);
-        return el_hir_new_expr_stmt(binder->arena, expr);
+        return el_hir_new_expr_stmt(binder->hir_arena, expr);
     }
     case EL_AST_STMT_IF: {
         return el_hir_new_if_stmt(
-            binder->arena,
+            binder->hir_arena,
             el_binder_bind_expr(binder, in->as.if_.cond),
             el_binder_bind_stmt(binder, in->as.if_.then),
             in->as.if_.else_ != NULL 
@@ -99,7 +99,7 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
             return NULL;
         }
 
-        ElSymbol* sym = el_sema_new_var_symbol(binder->arena, binder->sym_id_counter++, in->as.var_def.name->name, type);
+        ElSymbol* sym = el_sema_new_var_symbol(binder->sym_arena, binder->sym_id_counter++, in->as.var_def.name->name, type);
         if (!el_sema_scope_insert(binder->current_scope, sym)) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
@@ -117,7 +117,7 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
             // TODO: implement type checking 
         }
 
-        return el_hir_new_var_def_stmt(binder->arena, sym, init);
+        return el_hir_new_var_def_stmt(binder->hir_arena, sym, init);
     }
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);

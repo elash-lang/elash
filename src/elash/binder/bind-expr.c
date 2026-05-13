@@ -24,7 +24,7 @@ ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElA
         type = binder->builtins->type_bool;
     }
 
-    return el_hir_new_bin_expr(binder->arena, type, bin->op, left, right);
+    return el_hir_new_bin_expr(binder->hir_arena, type, bin->op, left, right);
 }
 
 ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstUnaryExprNode* unary) {
@@ -32,17 +32,17 @@ ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstUnaryExprNode* 
     if (!operand) return NULL;
 
     // TODO: implement type checking 
-    return el_hir_new_unary_expr(binder->arena, operand->type, unary->op, operand);
+    return el_hir_new_unary_expr(binder->hir_arena, operand->type, unary->op, operand);
 }
 
 ElHirExprNode* _el_binder_bind_literal(ElBinder* binder, ElAstExprNode* in, ElAstLiteralNode* lit) {
     switch (lit->type) {
     case EL_AST_LIT_INT:
-        return el_hir_new_int_literal(binder->arena, binder->builtins->type_int, lit->of.int_.value);
+        return el_hir_new_int_literal(binder->hir_arena, binder->builtins->type_int, lit->of.int_.value);
     case EL_AST_LIT_CHAR:
-        return el_hir_new_char_literal(binder->arena, binder->builtins->type_char, lit->of.char_.value);
+        return el_hir_new_char_literal(binder->hir_arena, binder->builtins->type_char, lit->of.char_.value);
     case EL_AST_LIT_BOOL:
-        return el_hir_new_bool_literal(binder->arena, binder->builtins->type_bool, lit->of.bool_.value);
+        return el_hir_new_bool_literal(binder->hir_arena, binder->builtins->type_bool, lit->of.bool_.value);
     default:
         // TODO: handle other literal types
         el_diag_report(
@@ -68,9 +68,9 @@ ElHirExprNode* _el_binder_bind_ident(ElBinder* binder, ElAstExprNode* in, ElAstI
 
     switch (sym->kind) {
     case EL_SYM_VAR:
-        return el_hir_new_symbol_expr(binder->arena, sym->as.var.type, sym);
+        return el_hir_new_symbol_expr(binder->hir_arena, sym->as.var.type, sym);
     case EL_SYM_FUNC:
-        return el_hir_new_symbol_expr(binder->arena, sym->as.func.type, sym);
+        return el_hir_new_symbol_expr(binder->hir_arena, sym->as.func.type, sym);
     case EL_SYM_TYPE:
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.type-used-as-expr",
@@ -109,7 +109,7 @@ ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCa
         return NULL;
     }
 
-    ElHirExprNode** args = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExprNode*, call->arg_count);
+    ElHirExprNode** args = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExprNode*, call->arg_count);
     usize i = 0;
     for (ElAstExprNode* curr = call->args; curr != NULL; curr = curr->next) {
         args[i] = el_binder_bind_expr(binder, curr);
@@ -118,7 +118,7 @@ ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCa
         i++;
     }
 
-    return el_hir_new_call_expr(binder->arena, func->ret_type, callee, args, call->arg_count);
+    return el_hir_new_call_expr(binder->hir_arena, func->ret_type, callee, args, call->arg_count);
 }
 
 ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {

@@ -17,10 +17,20 @@
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
 
-typedef struct ElBinder {
-    ElDynArena* arena;
+typedef struct ElBinderInitOpts {
+    ElBuiltins* builtins;
     ElDiagEngine* diag;
-    
+    ElDynArena* hir_arena;
+    ElDynArena* sym_arena;
+    ElDynArena* type_arena;
+} ElBinderInitOpts;
+
+typedef struct ElBinder {
+    ElDynArena* hir_arena;
+    ElDynArena* sym_arena;
+    ElDynArena* type_arena;
+
+    ElDiagEngine* diag;
     ElBuiltins* builtins;
 
     ElScope* builtin_scope;
@@ -32,7 +42,10 @@ typedef struct ElBinder {
     uint32_t sym_id_counter;
 } ElBinder;
 
-void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins);
+#define el_binder_init(BINDER, ...) \
+    el_binder_init_opts((BINDER), (ElBinderInitOpts) { __VA_ARGS__ })
+
+void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts);
 void el_binder_free(ElBinder* binder);
 
 ElScope* _el_binder_push_scope(ElBinder* binder);

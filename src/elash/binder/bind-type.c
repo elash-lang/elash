@@ -12,7 +12,7 @@ ElType* _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node) {
         ElType* base = _el_binder_bind_type(binder ,node->base);
         if (base == NULL) return NULL;
 
-        return el_sema_new_ptr_type(binder->arena, base);
+        return el_sema_new_ptr_type(binder->type_arena, base);
     }
     case EL_AST_TYPE_NAME: {
         ElSymbol* sym = el_sema_scope_lookup(binder->current_scope, node->name->name);
