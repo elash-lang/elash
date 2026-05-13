@@ -45,7 +45,8 @@ test-elc: $(ELC_TESTS_BINS)
 
 test-e2e: $(ELC_BIN)
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR)/e2e)
-	$(PYTHON) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e
+	@echo "Running End-To-End tests"
+	@$(PYTHON) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e
 
 unit-test: test-elash test-elc
 	@echo "All tests passed."
