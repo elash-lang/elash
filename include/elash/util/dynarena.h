@@ -26,6 +26,7 @@ void el_dynarena_reset(ElDynArena* arena);
 
 EL_ATTR_MALLOC void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align);
 EL_ATTR_MALLOC void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align);
+EL_ATTR_MALLOC void* el_dynarena_alloc_init(ElDynArena* arena, usize size, usize align, void* init);
 
 ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv);
 char* el_dynarena_make_cstr(ElDynArena* arena, ElStringView sv);
@@ -41,3 +42,6 @@ char* el_dynarena_make_cstr(ElDynArena* arena, ElStringView sv);
 
 #define EL_DYNARENA_NEW_ARR_ZEROED(ARENA, TYPE, SIZE) \
      (TYPE*)(el_dynarena_alloc_zeroed((ARENA), sizeof(TYPE) * (SIZE), alignof(TYPE)))
+
+#define EL_DYNARENA_NEW_STRUCT(ARENA, STRUCT, ...) \
+    (STRUCT*)(el_dynarena_alloc_init((ARENA), sizeof(STRUCT), alignof(STRUCT), &((STRUCT) __VA_ARGS__)))

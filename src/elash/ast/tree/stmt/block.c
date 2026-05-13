@@ -7,10 +7,10 @@ ElAstBlockStmtNode el_ast_block_stmt(ElAstStmtNode* stmts) {
 }
 
 ElAstStmtNode* el_ast_new_block_stmt(ElDynArena* arena, ElSourceSpan span, ElAstStmtNode* stmts) {
-    ElAstStmtNode* node = EL_DYNARENA_NEW(arena, ElAstStmtNode);
-    node->type = EL_AST_STMT_BLOCK;
-    node->span = span;
-    node->next = NULL;
-    node->as.block = el_ast_block_stmt(stmts);
-    return node;
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmtNode, {
+        .type = EL_AST_STMT_BLOCK,
+        .span = span,
+        .next = NULL,
+        .as.block = el_ast_block_stmt(stmts),
+    });
 }

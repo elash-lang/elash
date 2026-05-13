@@ -12,5 +12,4 @@ typedef struct ElAstCallExprNode {
     usize arg_count;
 } ElAstCallExprNode;
 
-ElAstCallExprNode el_ast_call_expr(ElAstExprNode* callee, ElAstExprNode* args, usize arg_count);
 ElAstExprNode* el_ast_new_call_expr(ElDynArena* arena, ElSourceSpan span, ElAstExprNode* callee, ElAstExprNode* args, usize arg_count);

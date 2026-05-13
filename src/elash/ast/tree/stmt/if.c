@@ -4,8 +4,7 @@ ElAstStmtNode* el_ast_new_if_stmt(
     ElDynArena* arena, ElSourceSpan span,
     ElAstExprNode* cond, ElAstStmtNode* then, ElAstStmtNode* else_
 ) {
-    ElAstStmtNode* node = EL_DYNARENA_NEW(arena, ElAstStmtNode);
-    *node = (ElAstStmtNode) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmtNode, {
         .type = EL_AST_STMT_IF,
         .span = span,
         .next = NULL,
@@ -14,6 +13,5 @@ ElAstStmtNode* el_ast_new_if_stmt(
             .then  = then,
             .else_ = else_,
         },
-    };
-    return node;
+    });
 }

@@ -3,11 +3,9 @@
 #include <stddef.h>
 
 ElHirTopLevelNode* el_hir_new_func_decl(ElDynArena* arena, ElSymbol* symbol) {
-    ElHirTopLevelNode* node = EL_DYNARENA_NEW(arena, ElHirTopLevelNode);
-    *node = (ElHirTopLevelNode) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirTopLevelNode, {
         .kind = EL_HIR_TOPLVL_FUNC_DECL,
         .next = NULL,
         .as.func_decl.symbol = symbol,
-    };
-    return node;
+    });
 }

@@ -2,12 +2,12 @@
 #include <elash/hir/tree/expr.h>
 
 ElHirExprNode* el_hir_new_unary_expr(ElDynArena* arena, ElType* type, ElSemaUnaryOp op, ElHirExprNode* operand) {
-    ElHirExprNode* node = EL_DYNARENA_NEW(arena, ElHirExprNode);
-    node->kind = EL_HIR_EXPR_UNARY;
-    node->type = type;
-    node->as.unary = (ElHirUnaryExprNode) {
-        .op = op,
-        .operand = operand,
-    };
-    return node;
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExprNode, {
+        .kind = EL_HIR_EXPR_UNARY,
+        .type = type,
+        .as.unary = {
+            .op = op,
+            .operand = operand,
+        },
+    });
 }

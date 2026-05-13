@@ -2,11 +2,11 @@
 #include <elash/hir/tree/stmt.h>
 
 ElHirStmtNode* el_hir_new_block_stmt(ElDynArena* arena, ElHirStmtNode* stmts) {
-    ElHirStmtNode* node = EL_DYNARENA_NEW(arena, ElHirStmtNode);
-    node->kind = EL_HIR_STMT_BLOCK;
-    node->next = NULL;
-    node->as.block = (ElHirBlockStmtNode) {
-        .stmts = stmts,
-    };
-    return node;
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmtNode, {
+        .kind = EL_HIR_STMT_BLOCK,
+        .next = NULL,
+        .as.block = {
+            .stmts = stmts,
+        }
+    });
 }

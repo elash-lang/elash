@@ -2,13 +2,13 @@
 #include <elash/hir/tree/expr.h>
 
 ElHirExprNode* el_hir_new_bin_expr(ElDynArena* arena, ElType* type, ElSemaBinOp op, ElHirExprNode* left, ElHirExprNode* right) {
-    ElHirExprNode* node = EL_DYNARENA_NEW(arena, ElHirExprNode);
-    node->kind = EL_HIR_EXPR_BINARY;
-    node->type = type;
-    node->as.binary = (ElHirBinExprNode) {
-        .left = left,
-        .op = op,
-        .right = right,
-    };
-    return node;
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExprNode, {
+        .kind = EL_HIR_EXPR_BINARY,
+        .type = type,
+        .as.binary = {
+            .left = left,
+            .op = op,
+            .right = right,
+        }
+    });
 }

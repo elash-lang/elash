@@ -1,15 +1,6 @@
 #include <elash/ast/tree/module.h>
 #include <elash/ast/tree/expr.h>
 
-ElAstModuleNode el_ast_module(ElSourceSpan span) {
-    return (ElAstModuleNode) {
-        .span = span,
-        .head = NULL,
-        .tail = NULL,
-        .count = 0,
-    };
-}
-
 ElAstModuleNode* el_ast_new_module(ElDynArena* arena, ElSourceSpan span) {
     ElAstModuleNode* node = EL_DYNARENA_NEW_ZEROED(arena, ElAstModuleNode);
     node->span = span;

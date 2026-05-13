@@ -10,7 +10,6 @@ typedef struct ElAstModuleNode {
     usize count;
 } ElAstModuleNode;
 
-ElAstModuleNode el_ast_module(ElSourceSpan span);
 ElAstModuleNode* el_ast_new_module(ElDynArena* arena, ElSourceSpan span);
 
 void el_ast_module_append(ElAstModuleNode* module, ElAstTopLevelNode* node);

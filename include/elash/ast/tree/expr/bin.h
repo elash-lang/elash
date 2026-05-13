@@ -16,5 +16,4 @@ typedef struct ElAstBinExprNode {
     ElAstExprNode* right;
 } ElAstBinExprNode;
 
-ElAstBinExprNode el_ast_bin_expr(ElAstBinOp op, ElAstExprNode* left, ElAstExprNode* right);
-ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElAstBinOp type, ElAstExprNode* left, ElAstExprNode* right);
+ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElAstBinOp op, ElAstExprNode* left, ElAstExprNode* right);

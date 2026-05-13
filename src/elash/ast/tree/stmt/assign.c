@@ -1,8 +1,7 @@
 #include <elash/ast/tree/stmt.h>
 
 ElAstStmtNode* el_ast_new_assign_stmt(ElDynArena* arena, ElSourceSpan span, ElAstExprNode* target, ElAstExprNode* value) {
-    ElAstStmtNode* node = EL_DYNARENA_NEW(arena, ElAstStmtNode);
-    *node = (ElAstStmtNode) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmtNode, {
         .type = EL_AST_STMT_ASSIGN,
         .span = span,
         .next = NULL,
@@ -10,6 +9,5 @@ ElAstStmtNode* el_ast_new_assign_stmt(ElDynArena* arena, ElSourceSpan span, ElAs
             .target = target,
             .value  = value,
         },
-    };
-    return node;
+    });
 }
