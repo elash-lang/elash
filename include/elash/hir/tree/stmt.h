@@ -7,12 +7,14 @@
 #include "stmt/if.h"
 #include "stmt/block.h"
 #include "stmt/vardef.h"
+#include "stmt/assign.h"
 #include "stmt/return.h"
 
 typedef enum ElHirStmtKind {
     EL_HIR_STMT_EXPR,
     EL_HIR_STMT_RETURN,
     EL_HIR_STMT_VAR_DEF,
+    EL_HIR_STMT_ASSIGN,
     EL_HIR_STMT_BLOCK,
     EL_HIR_STMT_IF,
 } ElHirStmtKind;
@@ -25,6 +27,7 @@ typedef struct ElHirStmtNode {
         ElHirBlockStmtNode block;
         ElHirReturnStmtNode return_;
         ElHirVarDefStmtNode var_def;
+        ElHirAssignStmtNode assign;
     } as;
     ElHirStmtNode* next;
 } ElHirStmtNode;
