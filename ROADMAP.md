@@ -197,7 +197,7 @@
 
 ### 12. Stability & Hardening
 
-- [ ] End-to-end compilation tests
+- [x] End-to-end compilation tests
 - [ ] Invalid program test suite
 - [ ] Large file compilation test
 - [ ] Memory usage checks
