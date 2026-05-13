@@ -6,6 +6,7 @@
 #include "expr.h"
 
 #include "stmt/vardef.h"
+#include "stmt/assign.h"
 #include "stmt/return.h"
 #include "stmt/block.h"
 
@@ -15,6 +16,7 @@ typedef enum ElAstStmtType {
     EL_AST_STMT_EXPR,
     EL_AST_STMT_RETURN,
     EL_AST_STMT_VAR_DEF,
+    EL_AST_STMT_ASSIGN,
     EL_AST_STMT_BLOCK,
     EL_AST_STMT_IF,
 } ElAstStmtType;
@@ -28,6 +30,7 @@ typedef struct ElAstStmtNode {
         ElAstBlockStmtNode block;
         ElAstReturnStmtNode return_;
         ElAstVarDefStmtNode var_def;
+        ElAstAssignStmtNode assign;
 
         ElAstIfStmtNode if_;
     } as;
