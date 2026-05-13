@@ -38,6 +38,12 @@ void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
         return;
     }
 
+    case EL_HIR_STMT_ASSIGN:
+        el_hir_dump_expr(node->as.assign.target, indent, out);
+        fputs(" = ", out);
+        el_hir_dump_expr(node->as.assign.value, 0, out);
+        return;
+
     case EL_HIR_STMT_IF:
         el_hir_dump_print_indent(indent, out);
         fputs("if (", out);
