@@ -64,6 +64,40 @@ ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
     return el_hir_new_return_stmt(binder->hir_arena, val);
 }
 
+ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* in) {
+    ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
+    if (!type) return NULL;
+
+    if (type->kind == EL_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
+            in->as.var_def.type->span,
+            "cannot declare variable of incomplete type 'void'"
+        );
+        return NULL;
+    }
+
+    ElSymbol* sym = el_sema_new_var_symbol(binder->sym_arena, binder->sym_id_counter++, in->as.var_def.name->name, type);
+    if (!el_sema_scope_insert(binder->current_scope, sym)) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
+            in->as.var_def.name->span,
+            "redeclaration of symbol '${name}'",
+            EL_DIAG_STRING("name", sym->name)
+        );
+        return NULL;
+    }
+
+    ElHirExprNode* init = NULL;
+    if (in->as.var_def.init) {
+        init = el_binder_bind_expr(binder, in->as.var_def.init);
+        if (!init) return NULL;
+        // TODO: implement type checking 
+    }
+
+    return el_hir_new_var_def_stmt(binder->hir_arena, sym, init);
+}
+
 ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
@@ -76,7 +110,8 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
         ElHirExprNode* expr = el_binder_bind_expr(binder, in->as.expr);
         return el_hir_new_expr_stmt(binder->hir_arena, expr);
     }
-    case EL_AST_STMT_IF: {
+
+    case EL_AST_STMT_IF:
         return el_hir_new_if_stmt(
             binder->hir_arena,
             el_binder_bind_expr(binder, in->as.if_.cond),
@@ -85,40 +120,16 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
                 ? el_binder_bind_stmt(binder, in->as.if_.else_)
                 : NULL
         );
-    }
-    case EL_AST_STMT_VAR_DEF: {
-        ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
-        if (!type) return NULL;
 
-        if (type->kind == EL_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID) {
-            el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
-                in->as.var_def.type->span,
-                "cannot declare variable of incomplete type 'void'"
-            );
-            return NULL;
-        }
+    case EL_AST_STMT_ASSIGN:
+        return el_hir_new_assign_stmt(
+            binder->hir_arena,
+            el_binder_bind_expr(binder, in->as.assign.target),
+            el_binder_bind_expr(binder, in->as.assign.value)
+        );
 
-        ElSymbol* sym = el_sema_new_var_symbol(binder->sym_arena, binder->sym_id_counter++, in->as.var_def.name->name, type);
-        if (!el_sema_scope_insert(binder->current_scope, sym)) {
-            el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
-                in->as.var_def.name->span,
-                "redeclaration of symbol '${name}'",
-                EL_DIAG_STRING("name", sym->name)
-            );
-            return NULL;
-        }
-
-        ElHirExprNode* init = NULL;
-        if (in->as.var_def.init) {
-            init = el_binder_bind_expr(binder, in->as.var_def.init);
-            if (!init) return NULL;
-            // TODO: implement type checking 
-        }
-
-        return el_hir_new_var_def_stmt(binder->hir_arena, sym, init);
-    }
+    case EL_AST_STMT_VAR_DEF:
+        return _el_binder_bind_var_definition(binder, in);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);
 }
