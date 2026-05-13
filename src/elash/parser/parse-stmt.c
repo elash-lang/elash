@@ -4,6 +4,7 @@
 #include <elash/ast/tree/stmt.h>
 #include <elash/ast/tree/stmt/return.h>
 #include <elash/ast/tree/stmt/if.h>
+#include <elash/ast/tree/stmt/assign.h>
 
 ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElToken return_tok, ElAstStmtNode** out) {
     if (el_parser_check(parser, EL_TT_SEMICOLON)) {
@@ -67,6 +68,19 @@ ElParserErrorCode _el_parser_parse_expr_stmt(ElParser* parser, ElAstStmtNode** o
     ElParserErrorCode result = _el_parser_parse_expression(parser, &expr);
     if (result != EL_PARSER_ERR_OK) {
         return result;
+    }
+
+    if (el_parser_match(parser, EL_TT_ASSIGN)) {
+        ElAstExprNode* value;
+        result = _el_parser_parse_expression(parser, &value);
+        if (result != EL_PARSER_ERR_OK) return result;
+
+        ElToken semi_tok = parser->current;
+        result = el_parser_expect(parser, EL_TT_SEMICOLON);
+        if (result != EL_PARSER_ERR_OK) return result;
+
+        *out = el_ast_new_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr, value);
+        return _el_parser_ret_ok(parser);
     }
 
     ElToken semi_tok = parser->current;
