@@ -68,6 +68,11 @@ bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifa
                 return false;
             }
 
+            // just in case
+            if (el_diag_engine_has_errors(pipeline->context.diag)) {
+                return false;
+            }
+
             pipeline->registry[kind] = output;
             elc_pipeline_notify(pipeline, ELC_OBS_STAGE_END, stage, NULL);
             elc_pipeline_notify(pipeline, ELC_OBS_ARTIFACT_PRODUCED, stage, &output);
