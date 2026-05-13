@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import subprocess
 import sys
 import os
+import difflib
 
 @dataclass
 class TestOutput:
@@ -13,11 +14,25 @@ class TestOutput:
 
 script_dir = Path(__file__).resolve().parent
 
-# TODO: fancy ansi output (because its cool)
+CLR_BLUE   = '\033[0;34m'
+CLR_GREEN  = '\033[0;32m'
+CLR_RED    = '\033[0;31m'
+CLR_BOLD   = '\033[0;1m'
+CLR_RESET  = '\033[0m'
+
+def print_info(msg):
+    print(f'[{CLR_BLUE}----{CLR_RESET}] {msg}')
+
+def print_pass(name):
+    print(f'[{CLR_GREEN}PASS{CLR_RESET}] Test passed: {name}')
+
+def print_fail(name):
+    print(f'[{CLR_RED}FAIL{CLR_RESET}] Test failed: {name}')
+
 def error(*args):
-    print('error: ', end='')
+    print(f'{CLR_RED}error: {CLR_RESET}', end='')
     print(*args)
-    sys.exit(0)
+    sys.exit(1)
 
 def get_expected_output(path: Path, name: str) -> TestOutput:
     exitcode: int = 0
@@ -36,6 +51,16 @@ def get_expected_output(path: Path, name: str) -> TestOutput:
         stderr = f.read_text().strip()
 
     return TestOutput(exitcode=exitcode, stdout=stdout, stderr=stderr)
+
+def print_diff(expected: str, actual: str, stream_name: str):
+    diff = difflib.unified_diff(
+        expected.splitlines(keepends=True),
+        actual.splitlines(keepends=True),
+        fromfile=f'expected {stream_name}',
+        tofile=f'actual {stream_name}',
+    )
+    for line in diff:
+        print_info(f'  {line.rstrip()}')
 
 def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str) -> TestOutput:
     input = path.joinpath('input.ela')
@@ -67,24 +92,35 @@ def main():
     if not work_dir.exists():
         os.makedirs(str(work_dir), exist_ok=True)
 
-    failed = False
-    for path in sorted(script_dir.iterdir()):
-        if not path.is_dir() or path.name.startswith('.'): continue
-        if not path.joinpath('input.ela').is_file(): continue
-        
+    passed_count = 0
+    failed_count = 0
+    test_cases = sorted([path for path in script_dir.iterdir() if path.is_dir() and not path.name.startswith('.') and path.joinpath('input.ela').is_file()])
+
+    for path in test_cases:
         name: str = path.name
         expected: TestOutput = get_expected_output(path, name)
         actual:   TestOutput = run_test_case(elc_bin, work_dir, path, name)
         
         if actual == expected:
-            print(f'{name}: PASSED')
+            print_pass(name)
+            passed_count += 1
         else:
-            print(f'{name}: FAILED')
-            print(f'  expected: {expected}')
-            print(f'  actual:   {actual}')
-            failed = True
+            print_fail(name)
+            failed_count += 1
+            if actual.exitcode != expected.exitcode:
+                print_info(f'  exitcode: expected {expected.exitcode}, actual {actual.exitcode}')
+            
+            print_diff(expected.stdout, actual.stdout, 'stdout')
+            print_diff(expected.stderr, actual.stderr, 'stderr')
 
-    if failed:
+    tested_count = passed_count + failed_count
+    print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
+    print(f'Tested: {CLR_BLUE}{tested_count}{CLR_RESET}{CLR_BOLD} ', end='')
+    print(f'| Passing: {CLR_GREEN}{passed_count}{CLR_RESET}{CLR_BOLD} ', end='')
+    print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD}', end='')
+    print()
+
+    if failed_count > 0:
         sys.exit(1)
 
 if __name__ == '__main__':
