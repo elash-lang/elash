@@ -29,6 +29,8 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
             return LLVMInt8TypeInContext(ctx->context);
         case EL_PRIMTYPE_BOOL:
             return LLVMInt1TypeInContext(ctx->context);
+        case EL_PRIMTYPE_VOID:
+            return LLVMVoidTypeInContext(ctx->context);
         }
         break;
     case EL_TYPE_FUNC: {
@@ -63,6 +65,8 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
             return LLVMConstInt(type, value->as.constant.lit.as.char_, false);
         case EL_PRIMTYPE_BOOL:
             return LLVMConstInt(type, value->as.constant.lit.as.bool_, false);
+        case EL_PRIMTYPE_VOID:
+            EL_UNREACHABLE("void constant");
         }
         EL_UNREACHABLE_ENUM_VAL(ElPrimitiveTypeKind, value->type->as.prim.kind);
     }
@@ -154,7 +158,9 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
     );
 
     free(args);
-    ASSIGN_REG(func, instr->result, result, "call");
+    if (instr->result != NULL) {
+        ASSIGN_REG(func, instr->result, result, "call");
+    }
 }
 
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {

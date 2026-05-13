@@ -100,7 +100,9 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
             args[i] = el_lowerer_lower_expr(lw, call->args[i]);
         }
 
-        ElMirValue* result = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+        // TODO: we don't have reference to type_void here...
+        bool is_void = (hir->type->kind == EL_TYPE_PRIM && hir->type->as.prim.kind == EL_PRIMTYPE_VOID);
+        ElMirValue* result = is_void ? NULL : el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
         ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
         el_mir_ibuf_push(&lw->ibuf, instr);
         return result;
@@ -212,7 +214,12 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
         }
 
         if (!el_lowerer_has_terminator(lw)) {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_unreachable_instr(lw->arena));
+            ElType* ret_type = hir->as.func_def.symbol->as.func.ret_type;
+            if (ret_type->kind == EL_TYPE_PRIM && ret_type->as.prim.kind == EL_PRIMTYPE_VOID) {
+                el_mir_ibuf_push(&lw->ibuf, el_mir_new_ret_instr(lw->arena, NULL));
+            } else {
+                el_mir_ibuf_push(&lw->ibuf, el_mir_new_unreachable_instr(lw->arena));
+            }
         }
         el_lowerer_emit_block(lw, lw->current_block_id);
         el_mir_module_add_func(lw->current_mod, func);
