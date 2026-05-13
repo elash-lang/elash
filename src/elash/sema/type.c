@@ -5,6 +5,7 @@ void el_sema_dump_type(const ElType* type, FILE* out) {
     switch (type->kind) {
     case EL_TYPE_PRIM:
         switch (type->as.prim.kind) {
+        case EL_PRIMTYPE_VOID: fputs("void", out); return;
         case EL_PRIMTYPE_INT:  fputs("int", out);  return;
         case EL_PRIMTYPE_UINT: fputs("uint", out); return;
         case EL_PRIMTYPE_CHAR: fputs("char", out); return;

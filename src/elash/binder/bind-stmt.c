@@ -22,16 +22,56 @@ ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* i
     return (ElHirBlockStmtNode) { .stmts = head };
 }
 
+ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
+    ElHirExprNode* val = el_binder_bind_expr(binder, in->as.return_.value);
+    bool is_void_func = el_sema_type_eql(binder->current_func->as.func.ret_type, binder->type_void);
+        
+    if (val == NULL) {
+        if (!is_void_func) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.return-val-expected",
+                in->span,
+                "expected return value in non-void function"
+            );
+        }
+    } else {
+        bool is_val_void = el_sema_type_eql(val->type, binder->type_void);
+        if (is_void_func) {
+            if (!is_val_void) {
+                el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.return-val-in-void-func",
+                    in->span,
+                    "void function should not return a value"
+                );
+            }
+        } else {
+            if (is_val_void) {
+                 el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.returning-void",
+                    in->span,
+                    "cannot return void value from non-void ction"
+                );
+            } else if (!el_sema_type_eql(val->type, binder->current_func->as.func.ret_type)) {
+                el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                    in->span,
+                    "incompatible return type"
+                );
+            }
+        }
+    }
+
+    return el_hir_new_return_stmt(binder->arena, val);
+}
+
 ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
         ElHirBlockStmtNode block = _el_binder_bind_block(binder, &in->as.block);
         return el_hir_new_block_stmt(binder->arena, block.stmts);
     }
-    case EL_AST_STMT_RETURN: {
-        ElHirExprNode* val = el_binder_bind_expr(binder, in->as.return_.value);
-        return el_hir_new_return_stmt(binder->arena, val);
-    }
+    case EL_AST_STMT_RETURN:
+        return _el_binder_bind_return(binder, in);
     case EL_AST_STMT_EXPR: {
         ElHirExprNode* expr = el_binder_bind_expr(binder, in->as.expr);
         return el_hir_new_expr_stmt(binder->arena, expr);
@@ -49,6 +89,15 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
     case EL_AST_STMT_VAR_DEF: {
         ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
         if (!type) return NULL;
+
+        if (type->kind == EL_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
+                in->as.var_def.type->span,
+                "cannot declare variable of incomplete type 'void'"
+            );
+            return NULL;
+        }
 
         ElSymbol* sym = el_sema_new_var_symbol(binder->arena, binder->sym_id_counter++, in->as.var_def.name->name, type);
         if (!el_sema_scope_insert(binder->current_scope, sym)) {

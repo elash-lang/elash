@@ -1,6 +1,7 @@
 #include <elash/hir/dump/expr.h>
 #include <elash/sema/symbol/dump.h>
 #include <elash/hir/dump/indent.h>
+#include <elash/util/assert.h>
 
 #include <elash/hir/tree/expr.h>
 
@@ -41,6 +42,7 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
             case EL_PRIMTYPE_UINT:  fprintf(out, "%"PRIu64, node->as.literal.as.uint_);       break;
             case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.literal.as.char_);          break;
             case EL_PRIMTYPE_BOOL:  fputs(node->as.literal.as.bool_ ? "true" : "false", out); break;
+            case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                           break;
             }
         } else {
             fputs("<unhandled>", out);

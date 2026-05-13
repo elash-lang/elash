@@ -5,6 +5,7 @@
 typedef struct ElType ElType;
 
 typedef enum ElPrimitiveTypeKind {
+    EL_PRIMTYPE_VOID,
     // TODO: add more integer types
     EL_PRIMTYPE_INT,
     EL_PRIMTYPE_UINT,

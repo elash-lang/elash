@@ -12,9 +12,11 @@ void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag) {
     binder->arena = arena;
     binder->diag = diag;
     binder->sym_id_counter = 0;
+    binder->current_func = NULL;
 
     binder->builtin_scope = el_sema_scope_new(NULL);
 
+    binder->type_void = _el_binder_register_builtin_type(binder, EL_SV("void"), EL_PRIMTYPE_VOID);
     binder->type_int  = _el_binder_register_builtin_type(binder, EL_SV("int"),  EL_PRIMTYPE_INT);
     binder->type_uint = _el_binder_register_builtin_type(binder, EL_SV("uint"), EL_PRIMTYPE_UINT);
     binder->type_char = _el_binder_register_builtin_type(binder, EL_SV("char"), EL_PRIMTYPE_CHAR);

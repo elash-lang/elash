@@ -129,6 +129,8 @@ ElHirTopLevelNode* _el_binder_bind_func_def(ElBinder* binder, ElAstFuncDef* def)
     }
     sym->as.func.is_defined = true;
 
+    binder->current_func = sym;
+
     _el_binder_push_scope(binder);
     for (usize i = 0; i < sym->as.func.param_count; ++i) {
         (void) el_sema_scope_insert(binder->current_scope, sym->as.func.params[i]);
