@@ -19,6 +19,7 @@
 #include <elash/sema/symbol/var.h>
 #include <elash/sema/expr/bin-op.h>
 
+#include <elash/hir/tree/stmt/assign.h>
 #include <elash/mir/value/global.h>
 
 #include <stddef.h>
@@ -43,15 +44,6 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
             ElMirValue* reg = el_mir_new_reg(lw->arena, sym->as.var.type, lw->current_func->reg_count++);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
             return reg;
-        }
-
-        if (lw->current_func != NULL) {
-            ElFuncSymbol* func_sym = &lw->current_func->symbol->as.func;
-            for (uint32_t i = 0; i < func_sym->param_count; i++) {
-                if (func_sym->params[i] == sym) {
-                    return lw->current_func->args[i];
-                }
-            }
         }
 
         EL_TODO("Variables not supported yet");
@@ -125,11 +117,30 @@ static void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
     el_mir_ibuf_clear(&lw->ibuf);
 }
 
+// TODO: this function is to large and probably should be splitted into smaller helpers
+//       "clang-tidy: Function 'el_lowerer_lower_stmt' has cognitive complexity of 31 (threshold 25)" ~2026
 void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
     switch (hir->kind) {
     case EL_HIR_STMT_EXPR:
         el_lowerer_lower_expr(lw, hir->as.expr);
         break;
+    case EL_HIR_STMT_ASSIGN: {
+        ElHirAssignStmtNode* assign = &hir->as.assign;
+        ElMirValue* value = el_lowerer_lower_expr(lw, assign->value);
+
+        if (assign->target->kind == EL_HIR_EXPR_SYMBOL) {
+            ElSymbol* sym = assign->target->as.symbol;
+            if (lw->symbol_map && lw->symbol_map[sym->id]) {
+                ElMirValue* ptr = lw->symbol_map[sym->id];
+                el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
+            } else {
+                EL_UNREACHABLE("invalid assignment target");
+            }
+        } else {
+            EL_TODO("support for pointer dereferences etc.");
+        }
+        break;
+    }
     case EL_HIR_STMT_RETURN: {
         ElMirValue* ret_val = NULL;
         if (hir->as.return_.value) {
@@ -209,6 +220,20 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
         lw->current_block_id = func->block_count++;
 
         el_mir_ibuf_clear(&lw->ibuf);
+
+        ElFuncSymbol* func_sym = &func->symbol->as.func;
+        for (uint32_t i = 0; i < func_sym->param_count; i++) {
+            ElSymbol* param_sym = func_sym->params[i];
+            ElType* param_type = param_sym->as.var.type;
+            ElType* ptr_type = el_sema_new_ptr_type(lw->arena, param_type);
+            ElMirValue* ptr_reg = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ptr_reg, param_type));
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr_reg, func->args[i]));
+
+            lw->symbol_map[param_sym->id] = ptr_reg;
+        }
+
         for (ElHirStmtNode* node = hir_block->stmts; node != NULL; node = node->next) {
             el_lowerer_lower_stmt(lw, node);
         }
