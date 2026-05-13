@@ -138,6 +138,20 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     ASSIGN_REG(func, instr->result, res, "binary");
 }
 
+void elc_llvm_compile_unary_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    ElMirUnaryInstr* unary = &instr->as.unary;
+
+    LLVMValueRef operand = elc_llvm_map_value(ctx, func, unary->operand);
+    LLVMValueRef res = NULL;
+    switch (unary->op) {
+    case EL_SEMA_UNARY_OP_NEG: res = LLVMBuildNeg(ctx->builder, operand, ""); break;
+    default:
+        EL_TODO("unary op not implemented");
+    }
+
+    ASSIGN_REG(func, instr->result, res, "unary");
+}
+
 void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     ElMirCallInstr* call = &instr->as.call;
 
@@ -208,6 +222,9 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
 
     case EL_MIR_INSTR_BIN:
         elc_llvm_compile_bin_instr(ctx, func, instr);
+        return;
+    case EL_MIR_INSTR_UNARY:
+        elc_llvm_compile_unary_instr(ctx, func, instr);
         return;
     case EL_MIR_INSTR_CALL:
         elc_llvm_compile_call_instr(ctx, func, instr);
