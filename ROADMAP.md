@@ -115,7 +115,7 @@
 - [ ] Validate function calls
 - [x] Validate return types
 - [ ] Implement implicit and explicit conversions
-- [ ] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
+- [x] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
 - [ ] Add semantic & ELHIR test suite
 
 
