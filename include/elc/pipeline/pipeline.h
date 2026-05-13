@@ -18,7 +18,7 @@ typedef struct ElcPipeline {
     ElcArtifact registry[ELC_ART_MAX];
 } ElcPipeline;
 
-void elc_pipeline_init(ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag);
+void elc_pipeline_init(ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins);
 void elc_pipeline_add_stage(ElcPipeline* pipeline, ElcStage stage);
 void elc_pipeline_add_observer(ElcPipeline* pipeline, ElcObserver observer);
 

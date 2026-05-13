@@ -1,14 +1,16 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
+#include <elash/sema/builtin.h>
 #include <elash/diag/engine.h>
 
 #include <elc/pipeline/pipeline.h>
 
 typedef struct ElcDriver {
-    ElDynArena arena;
+    ElDynArena   arena;
     ElDiagEngine diag;
-    ElcPipeline pipeline;
+    ElBuiltins   builtins;
+    ElcPipeline  pipeline;
 } ElcDriver;
 
 bool elc_driver_init(ElcDriver* driver);

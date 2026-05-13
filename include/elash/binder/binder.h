@@ -1,5 +1,6 @@
 #pragma once
 
+#include <elash/sema/builtin.h>
 #include <elash/sema/symbol.h>
 #include <elash/sema/scope.h>
 
@@ -19,22 +20,19 @@
 typedef struct ElBinder {
     ElDynArena* arena;
     ElDiagEngine* diag;
+    
+    ElBuiltins* builtins;
+
     ElScope* builtin_scope;
     ElScope* global_scope;
+
     ElScope* current_scope;
+    ElSymbol* current_func;
 
     uint32_t sym_id_counter;
-
-    ElType* type_int;
-    ElType* type_uint;
-    ElType* type_char;
-    ElType* type_bool;
-    ElType* type_void;
-
-    ElSymbol* current_func;
 } ElBinder;
 
-void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag);
+void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins);
 void el_binder_free(ElBinder* binder);
 
 ElScope* _el_binder_push_scope(ElBinder* binder);

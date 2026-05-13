@@ -6,7 +6,7 @@ bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
     (void) stage;
 
     ElBinder binder;
-    el_binder_init(&binder, ctx->arena, ctx->diag);
+    el_binder_init(&binder, ctx->arena, ctx->diag, ctx->builtins);
 
     ElHirModule* mod = el_binder_bind_module(&binder, input->as.ast);
 

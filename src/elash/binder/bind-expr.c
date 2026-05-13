@@ -21,7 +21,7 @@ ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElA
 
     ElType* type = left->type;
     if (el_sema_bin_op_is_comparison(bin->op)) {
-        type = binder->type_bool;
+        type = binder->builtins->type_bool;
     }
 
     return el_hir_new_bin_expr(binder->arena, type, bin->op, left, right);
@@ -38,11 +38,11 @@ ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstUnaryExprNode* 
 ElHirExprNode* _el_binder_bind_literal(ElBinder* binder, ElAstExprNode* in, ElAstLiteralNode* lit) {
     switch (lit->type) {
     case EL_AST_LIT_INT:
-        return el_hir_new_int_literal(binder->arena, binder->type_int, lit->of.int_.value);
+        return el_hir_new_int_literal(binder->arena, binder->builtins->type_int, lit->of.int_.value);
     case EL_AST_LIT_CHAR:
-        return el_hir_new_char_literal(binder->arena, binder->type_char, lit->of.char_.value);
+        return el_hir_new_char_literal(binder->arena, binder->builtins->type_char, lit->of.char_.value);
     case EL_AST_LIT_BOOL:
-        return el_hir_new_bool_literal(binder->arena, binder->type_bool, lit->of.bool_.value);
+        return el_hir_new_bool_literal(binder->arena, binder->builtins->type_bool, lit->of.bool_.value);
     default:
         // TODO: handle other literal types
         el_diag_report(

@@ -24,7 +24,7 @@ ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* i
 
 ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
     ElHirExprNode* val = el_binder_bind_expr(binder, in->as.return_.value);
-    bool is_void_func = el_sema_type_eql(binder->current_func->as.func.ret_type, binder->type_void);
+    bool is_void_func = el_sema_type_eql(binder->current_func->as.func.ret_type, binder->builtins->type_void);
         
     if (val == NULL) {
         if (!is_void_func) {
@@ -35,7 +35,7 @@ ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
             );
         }
     } else {
-        bool is_val_void = el_sema_type_eql(val->type, binder->type_void);
+        bool is_val_void = el_sema_type_eql(val->type, binder->builtins->type_void);
         if (is_void_func) {
             if (!is_val_void) {
                 el_diag_report(

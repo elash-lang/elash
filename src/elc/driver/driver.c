@@ -17,7 +17,8 @@
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
     el_diag_engine_init(&driver->diag, &driver->arena);
-    elc_pipeline_init(&driver->pipeline, &driver->arena, &driver->diag);
+    el_sema_init_builtins(&driver->builtins, &driver->arena);
+    elc_pipeline_init(&driver->pipeline, &driver->arena, &driver->diag, &driver->builtins);
     return true;
 }
 

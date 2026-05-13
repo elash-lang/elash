@@ -15,11 +15,13 @@
 #include <elash/mir/func.h>
 
 #include <elash/util/dynarena.h>
+#include <elash/sema/builtin.h>
 #include <elash/diag/engine.h>
 
 typedef struct ElLowerer {
-    ElDynArena* arena;
+    ElDynArena*   arena;
     ElDiagEngine* diag;
+    ElBuiltins*   builtins;
 
     uint32_t current_block_id;
     ElMirFunc* current_func;
@@ -29,7 +31,7 @@ typedef struct ElLowerer {
     ElMirValue** symbol_map;
 } ElLowerer;
 
-void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag);
+void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins);
 void el_lowerer_free(ElLowerer* lw);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir);

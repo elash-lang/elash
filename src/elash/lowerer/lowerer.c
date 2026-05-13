@@ -23,9 +23,10 @@
 
 #include <stddef.h>
 
-void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag) {
+void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins) {
     lw->arena = arena;
     lw->diag = diag;
+    lw->builtins = builtins;
     el_mir_ibuf_init(&lw->ibuf);
     lw->symbol_map = NULL;
 }
@@ -100,8 +101,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
             args[i] = el_lowerer_lower_expr(lw, call->args[i]);
         }
 
-        // TODO: we don't have reference to type_void here...
-        bool is_void = (hir->type->kind == EL_TYPE_PRIM && hir->type->as.prim.kind == EL_PRIMTYPE_VOID);
+        bool is_void = el_sema_type_eql(hir->type, lw->builtins->type_void);
         ElMirValue* result = is_void ? NULL : el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
         ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
         el_mir_ibuf_push(&lw->ibuf, instr);

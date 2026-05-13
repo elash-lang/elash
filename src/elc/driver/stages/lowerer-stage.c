@@ -6,7 +6,7 @@ bool elc_lowerer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, cons
     (void) stage;
 
     ElLowerer lowerer;
-    el_lowerer_init(&lowerer, ctx->arena, ctx->diag);
+    el_lowerer_init(&lowerer, ctx->arena, ctx->diag, ctx->builtins);
 
     ElMirModule* mod = el_lowerer_lower_module(&lowerer, input->as.hir);
 
