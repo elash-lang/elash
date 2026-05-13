@@ -1,3 +1,5 @@
+PYTHON ?= python
+
 TESTS_DIR     := tests
 TESTS_OUT_DIR := $(OUT_DIR)/tests
 
@@ -10,10 +12,13 @@ ELASH_TESTS_BINS := $(patsubst $(TESTS_DIR)/%.c,$(TESTS_OUT_DIR)/%$(EXE_EXT),$(E
 ELC_TESTS_SRCS := $(call rwildcard,$(ELC_TESTS_DIR),*.c)
 ELC_TESTS_BINS := $(patsubst $(TESTS_DIR)/%.c,$(TESTS_OUT_DIR)/%$(EXE_EXT),$(ELC_TESTS_SRCS))
 
+E2E_TEST_RUNNER := $(TESTS_DIR)/e2e/runner.py
+
 TESTS_CFLAGS := $(CFLAGS)
 TESTS_LDFLAGS := $(LDFLAGS) -lcriterion
 
-.PHONY: test-dirs test test-elash test-elc
+.PHONY: test-dirs test-e2e test-elash test-elc
+.PHONY: unit-test test
 
 test-dirs:
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR))
@@ -38,5 +43,12 @@ test-elc: $(ELC_TESTS_BINS)
 		$(call FIXPATH,$(t)) && \
 	) true
 
-test: test-elash test-elc
+test-e2e: $(ELC_BIN)
+	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR)/e2e)
+	$(PYTHON) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e
+
+unit-test: test-elash test-elc
+	@echo "All tests passed."
+
+test: test-elash test-elc test-e2e
 	@echo "All tests passed."
