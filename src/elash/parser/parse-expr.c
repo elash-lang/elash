@@ -55,10 +55,7 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
         ElToken tok = parser->current;
         el_parser_advance(parser);
 
-        char val = 0;
-        if (tok.lexeme.len >= 3) {
-             val = tok.lexeme.data[1];
-        }
+        char val = tok.lexeme.data[0];
         *out = el_ast_new_char_literal(parser->arena, tok.span, val);
         return _el_parser_ret_ok(parser);
     }

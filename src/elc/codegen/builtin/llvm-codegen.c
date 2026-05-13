@@ -74,7 +74,12 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
         char* name = el_dynarena_make_cstr(ctx->arena, value->as.global.sym->name);
         LLVMValueRef glob = LLVMGetNamedFunction(ctx->current_mod, name);
         if (glob == NULL) {
-            glob = LLVMGetNamedGlobal(ctx->current_mod, name);
+            if (value->as.global.sym->kind == EL_SYM_FUNC) {
+                LLVMTypeRef type = elc_llvm_map_type(ctx, value->as.global.sym->as.func.type);
+                glob = LLVMAddFunction(ctx->current_mod, name, type);
+            } else {
+                glob = LLVMGetNamedGlobal(ctx->current_mod, name);
+            }
         }
         return glob;
     }
@@ -212,7 +217,10 @@ void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_fu
     char* name = el_dynarena_make_cstr(ctx->arena, mir_func->symbol->name);
 
     FunctionContext func;
-    func.llvm_fn = LLVMAddFunction(module, name, func_type);
+    func.llvm_fn = LLVMGetNamedFunction(module, name);
+    if (!func.llvm_fn) {
+        func.llvm_fn = LLVMAddFunction(module, name, func_type);
+    }
     func.regs    = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMValueRef, mir_func->reg_count);
     func.blocks  = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMBasicBlockRef, mir_func->block_count);
 

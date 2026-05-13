@@ -219,6 +219,9 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
         return;
     }
     case EL_HIR_TOPLVL_FUNC_DECL: {
+        if (hir->as.func_decl.symbol->as.func.is_defined) {
+            return;
+        }
         ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_decl.symbol);
         el_mir_module_add_func(lw->current_mod, func);
         return;

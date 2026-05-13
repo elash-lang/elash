@@ -130,22 +130,8 @@ ElHirTopLevelNode* _el_binder_bind_func_def(ElBinder* binder, ElAstFuncDef* def)
     sym->as.func.is_defined = true;
 
     _el_binder_push_scope(binder);
-    bool has_error = false;
-    for (ElAstFuncParam* param = def->sig.params.head; param != NULL; param = param->next) {
-        ElType* type = _el_binder_bind_type(binder, param->type);
-        ElSymbol* psym = el_sema_new_var_symbol(
-            binder->arena, binder->sym_id_counter++,
-            param->name->name, type
-        );
-        if (!el_sema_scope_insert(binder->current_scope, psym)) {
-            REPORT_PARAM_REDECLARATION(binder, param);
-            has_error = true;
-        }
-    }
-
-    if (has_error) {
-        _el_binder_pop_scope(binder);
-        return NULL;
+    for (usize i = 0; i < sym->as.func.param_count; ++i) {
+        (void) el_sema_scope_insert(binder->current_scope, sym->as.func.params[i]);
     }
 
     ElHirBlockStmtNode block = _el_binder_bind_block(binder, def->block);
