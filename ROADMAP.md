@@ -4,7 +4,7 @@
 
 ### Functions & Variables
 - [x] Function definitions
-- [ ] Function declarations (extern)
+- [x] Function declarations (extern)
 - [x] Variable definitions
 - [ ] Variable declarations (extern)
 
@@ -31,7 +31,7 @@
 - [ ] Member access operator
 - [ ] Increment and decrement operators
 - [ ] Pointer arithmetic
-- [ ] Variable assignment operator
+- [x] Variable assignment operator
 - [ ] Compound assignment operators (+=, -=, ...)
 - [ ] String literals
 
@@ -104,7 +104,7 @@
 - [x] Define internal type representation
 - [ ] Implement expression type checking
 - [ ] Validate function calls
-- [ ] Validate return types
+- [x] Validate return types
 - [ ] Implement implicit and explicit conversions
 - [ ] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
 - [ ] Add semantic & ELHIR test suite
@@ -128,14 +128,14 @@
 - [x] Lower function signatures
 - [x] Create LLVM function definitions
 - [x] Map ELMIR basic blocks to LLVM basic blocks
-- [ ] Lower local variables and temporaries using alloca in entry block
-- [ ] Lower ELMIR instructions to LLVM IR (arithmetic, comparisons, jumps)
+- [x] Lower local variables and temporaries using alloca in entry block
+- [x] Lower ELMIR instructions to LLVM IR (arithmetic, comparisons, jumps)
 - [x] Lower function calls
 - [x] Lower return instructions
 - [x] Handle global variables
 - [ ] Verify LLVM module
-- [ ] Emit LLVM IR (.ll)
-- [ ] Emit object file
+- [x] Emit LLVM IR (.ll)
+- [x] Emit object file
 
 
 ### 7. Linking
