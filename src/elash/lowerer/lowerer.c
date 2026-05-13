@@ -216,8 +216,15 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
         }
         el_lowerer_emit_block(lw, lw->current_block_id);
         el_mir_module_add_func(lw->current_mod, func);
+        return;
+    }
+    case EL_HIR_TOPLVL_FUNC_DECL: {
+        ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_decl.symbol);
+        el_mir_module_add_func(lw->current_mod, func);
+        return;
     }
     }
+    EL_UNREACHABLE_ENUM_VAL(ElHirTopLevelKind, hir->kind);
 }
 
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
