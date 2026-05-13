@@ -13,6 +13,7 @@ class TestOutput:
 
 script_dir = Path(__file__).resolve().parent
 
+# TODO: fancy ansi output (because its cool)
 def error(*args):
     print('error: ', end='')
     print(*args)
@@ -28,11 +29,11 @@ def get_expected_output(path: Path, name: str) -> TestOutput:
     
     stdout: str = ''
     if (f := path.joinpath('stdout.txt')).is_file():
-        stdout = f.read_text();
+        stdout = f.read_text().strip()
 
     stderr: str = ''
     if (f := path.joinpath('stderr.txt')).is_file():
-        stderr = f.read_text()
+        stderr = f.read_text().strip()
 
     return TestOutput(exitcode=exitcode, stdout=stdout, stderr=stderr)
 
@@ -55,7 +56,7 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str) -> TestO
         return TestOutput(exitcode=res.returncode, stdout='', stderr='')
     
     res = subprocess.run([str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    return TestOutput(exitcode=res.returncode, stdout=res.stdout, stderr=res.stderr)
+    return TestOutput(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip())
 
 def main():
     if len(sys.argv) <= 2:
