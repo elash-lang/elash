@@ -1,9 +1,9 @@
 #include <elash/parser/parser.h>
 #include <elash/parser/utility.h>
 
-#include <elash/ast/stmt.h>
-#include <elash/ast/stmt/return.h>
-#include <elash/ast/stmt/if.h>
+#include <elash/ast/tree/stmt.h>
+#include <elash/ast/tree/stmt/return.h>
+#include <elash/ast/tree/stmt/if.h>
 
 ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElToken return_tok, ElAstStmtNode** out) {
     if (el_parser_check(parser, EL_TT_SEMICOLON)) {

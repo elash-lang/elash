@@ -2,11 +2,11 @@
 
 #include <elash/lexer/tokstream.h>
 
-#include <elash/ast/expr.h>
-#include <elash/ast/stmt.h>
-#include <elash/ast/toplevel.h>
-#include <elash/ast/module.h>
-#include <elash/ast/common/type.h>
+#include <elash/ast/tree/expr.h>
+#include <elash/ast/tree/stmt.h>
+#include <elash/ast/tree/toplevel.h>
+#include <elash/ast/tree/module.h>
+#include <elash/ast/tree/common/type.h>
 
 #include <elash/parser/error.h>
 
@@ -27,7 +27,7 @@ void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine
 ElParserErrorCode el_parser_advance(ElParser* parser);
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type);
 
-bool    el_parser_match(ElParser* parser, ElTokenType type); 
+bool    el_parser_match(ElParser* parser, ElTokenType type);
 bool    el_parser_check(ElParser* parser, ElTokenType type);
 ElToken el_parser_peek(ElParser* parser);
 

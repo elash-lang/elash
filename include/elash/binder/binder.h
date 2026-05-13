@@ -8,10 +8,10 @@
 #include <elash/hir/tree/stmt.h>
 #include <elash/hir/tree/expr.h>
 
-#include <elash/ast/module.h>
-#include <elash/ast/toplevel.h>
-#include <elash/ast/stmt.h>
-#include <elash/ast/expr.h>
+#include <elash/ast/tree/module.h>
+#include <elash/ast/tree/toplevel.h>
+#include <elash/ast/tree/stmt.h>
+#include <elash/ast/tree/expr.h>
 
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>

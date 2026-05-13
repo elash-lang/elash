@@ -1,7 +1,7 @@
 #include <elash/parser/parser.h>
 #include <elash/parser/utility.h>
 
-#include <elash/ast/module.h>
+#include <elash/ast/tree/module.h>
 
 ElParserErrorCode _el_parser_parse_module(ElParser* parser, ElAstModuleNode** out) {
     ElSourceSpan module_span = EL_SOURCE_SPAN_NULL;
@@ -10,7 +10,7 @@ ElParserErrorCode _el_parser_parse_module(ElParser* parser, ElAstModuleNode** ou
     // We can't easily know the full span until we parse everything.
     // If there are no nodes, the span is NULL.
     // Otherwise, it merges from the first node to the last.
-    
+
     // Actually, a better way: start with the first token's span.
     if (parser->current.type != EL_TT_EOF) {
         module_span = parser->current.span;

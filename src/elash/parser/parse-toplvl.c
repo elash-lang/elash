@@ -1,9 +1,9 @@
 #include <elash/parser/parser.h>
 #include <elash/parser/utility.h>
 
-#include <elash/ast/toplevel.h>
-#include <elash/ast/toplevel/func-def.h>
-#include <elash/ast/toplevel/func-decl.h>
+#include <elash/ast/tree/toplevel.h>
+#include <elash/ast/tree/toplevel/func-def.h>
+#include <elash/ast/tree/toplevel/func-decl.h>
 
 #include <elash/util/todo.h>
 

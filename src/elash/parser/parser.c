@@ -4,10 +4,10 @@
 #include <elash/util/dynarena.h>
 #include <elash/util/strconv.h>
 
-#include <elash/ast/expr.h>
-#include <elash/ast/expr/bin.h>
-#include <elash/ast/expr/unary.h>
-#include <elash/ast/expr/literal.h>
+#include <elash/ast/tree/expr.h>
+#include <elash/ast/tree/expr/bin.h>
+#include <elash/ast/tree/expr/unary.h>
+#include <elash/ast/tree/expr/literal.h>
 
 ElParserErrorCode el_parser_advance(ElParser* parser) {
     if (parser->has_lookahead) {
@@ -16,7 +16,7 @@ ElParserErrorCode el_parser_advance(ElParser* parser) {
     } else {
         parser->current = parser->tokens.next(&parser->tokens, parser->engine);
     }
-    
+
     if (parser->current.type == EL_TT_UNKNOWN) {
         return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = parser->current);
     }
@@ -68,6 +68,6 @@ ElParserErrorCode el_parser_parse(ElParser* parser, ElAstModuleNode** out) {
         ElParserErrorCode err = el_parser_advance(parser);
         if (err != EL_PARSER_ERR_OK) return err;
     }
-    
+
     return _el_parser_parse_module(parser, out);
 }

@@ -2,7 +2,7 @@
 
 #include <elash/srcdoc/srcdoc.h>
 #include <elash/lexer/tokstream.h>
-#include <elash/ast/module.h>
+#include <elash/ast/tree/module.h>
 #include <elash/hir/tree/module.h>
 #include <elash/mir/module.h>
 

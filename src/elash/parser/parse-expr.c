@@ -4,12 +4,12 @@
 #include <elash/util/dynarena.h>
 #include <elash/util/strconv.h>
 
-#include <elash/ast/expr.h>
-#include <elash/ast/expr/bin.h>
-#include <elash/ast/expr/unary.h>
-#include <elash/ast/expr/literal.h>
+#include <elash/ast/tree/expr.h>
+#include <elash/ast/tree/expr/bin.h>
+#include <elash/ast/tree/expr/unary.h>
+#include <elash/ast/tree/expr/literal.h>
 
-#include <elash/ast/common/ident.h>
+#include <elash/ast/tree/common/ident.h>
 
 ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out) {
     if (el_parser_check(parser, EL_TT_IDENT)) {
@@ -31,7 +31,7 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
         *out = el_ast_new_int_literal(parser->arena, tok.span, val);
         return _el_parser_ret_ok(parser);
     }
-    
+
     if (el_parser_check(parser, EL_TT_FLOAT_LITERAL)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
@@ -89,7 +89,7 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
         if (err != EL_PARSER_ERR_OK) return err;
         return el_parser_expect(parser, EL_TT_RPAREN);
     }
-    
+
     return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = parser->current);
 }
 

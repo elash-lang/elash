@@ -1,8 +1,8 @@
 #include <elash/parser/parser.h>
 #include <elash/parser/utility.h>
 
-#include <elash/ast/common/type.h>
-#include <elash/ast/common/ident.h>
+#include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/common/ident.h>
 
 ElParserErrorCode _el_parser_parse_ident(ElParser* parser, ElAstIdentNode** out) {
     ElToken tok = parser->current;
@@ -18,7 +18,7 @@ ElParserErrorCode _el_parser_parse_ident(ElParser* parser, ElAstIdentNode** out)
 
 ElParserErrorCode _el_parser_parse_type(ElParser* parser, ElAstTypeNode** out) {
     ElParserErrorCode result;
-    
+
     ElAstIdentNode* name;
     result = _el_parser_parse_ident(parser, &name);
     if (result != EL_PARSER_ERR_OK) return result;

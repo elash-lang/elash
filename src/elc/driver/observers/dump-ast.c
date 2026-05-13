@@ -1,5 +1,5 @@
 #include <elc/driver/observers/dump-ast.h>
-#include <elash/ast/module.h>
+#include <elash/ast/dump/module.h>
 #include <stdio.h>
 
 void elc_dump_ast_observer_exec(
