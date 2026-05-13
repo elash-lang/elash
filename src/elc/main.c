@@ -6,11 +6,13 @@
 
 int main(int argc, const char* const* argv) {
     if (argc < 2) {
-        fprintf(stderr, "usage: %s source-code.ela\n", argv[0]);
+        fprintf(stderr, "usage: %s <input.ela> [output.o]\n", argv[0]);
         return 1;
     }
 
+    // TODO: full argument parser
     const char* input_path = argv[1];
+    const char* output_path = argc > 2 ? argv[2] : "code.o";
 
     ElcDriver driver;
     if (!elc_driver_init(&driver)) {
@@ -29,7 +31,7 @@ int main(int argc, const char* const* argv) {
     elc_driver_register_stages(&driver);
     elc_driver_register_observers(&driver);
 
-    bool success = elc_driver_run(&driver);
+    bool success = elc_driver_run(&driver, output_path);
 
     ElDiagPrinter printer = el_diag_make_console_printer();
     el_diag_engine_print(&driver.diag, &printer, stdout);

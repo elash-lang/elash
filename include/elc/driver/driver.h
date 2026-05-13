@@ -19,4 +19,4 @@ bool elc_driver_register_observers(ElcDriver* driver);
 
 void elc_driver_provide_source(ElcDriver* driver, ElSourceDocument* source);
 
-bool elc_driver_run(ElcDriver* driver);
+bool elc_driver_run(ElcDriver* driver, const char* output_path);

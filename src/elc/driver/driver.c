@@ -52,13 +52,16 @@ void elc_driver_provide_source(ElcDriver* driver, ElSourceDocument* source) {
     });
 }
 
-bool elc_driver_run(ElcDriver* driver) {
+bool elc_driver_run(ElcDriver* driver, const char* output_path) {
     ElcArtifact out;
     if (!elc_pipeline_request(&driver->pipeline, ELC_ART_OBJ, &out)) {
         return false;
     }
 
-    FILE* obj_file = fopen("code.o", "wb");
+    FILE* obj_file = fopen(output_path, "wb");
+    if (!obj_file) {
+        return false;
+    }
     fwrite(out.as.obj.data, out.as.obj.size, 1, obj_file);
     fclose(obj_file);
 
