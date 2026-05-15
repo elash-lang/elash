@@ -63,6 +63,31 @@ ElParserErrorCode _el_parser_parse_if(ElParser* parser, ElToken if_tok, ElAstStm
     return _el_parser_ret_ok(parser);
 }
 
+ElParserErrorCode _el_parser_parse_while(ElParser* parser, ElToken while_tok, ElAstStmtNode** out) {
+    ElParserErrorCode result;
+
+    result = el_parser_expect(parser, EL_TT_LPAREN);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    ElAstExprNode* cond;
+    result = _el_parser_parse_expression(parser, &cond);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    result = el_parser_expect(parser, EL_TT_RPAREN);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    ElAstStmtNode* body_stmt;
+    result = _el_parser_parse_stmt(parser, &body_stmt);
+    if (result != EL_PARSER_ERR_OK) return result;
+
+    *out = el_ast_new_while_stmt(
+        parser->arena,
+        el_source_span_merge(while_tok.span, body_stmt->span),
+        cond, body_stmt
+    );
+    return _el_parser_ret_ok(parser);
+}
+
 ElParserErrorCode _el_parser_parse_expr_stmt(ElParser* parser, ElAstStmtNode** out) {
     ElAstExprNode* expr;
     ElParserErrorCode result = _el_parser_parse_expression(parser, &expr);
@@ -149,6 +174,11 @@ ElParserErrorCode _el_parser_parse_stmt(ElParser* parser, ElAstStmtNode** out) {
         ElToken if_tok = parser->current;
         el_parser_advance(parser);
         return _el_parser_parse_if(parser, if_tok, out);
+    }
+    if (el_parser_check(parser, EL_TT_KW_WHILE)) {
+        ElToken if_tok = parser->current;
+        el_parser_advance(parser);
+        return _el_parser_parse_while(parser, if_tok, out);
     }
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         ElToken lbrace_tok = parser->current;
