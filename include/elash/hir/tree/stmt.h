@@ -5,6 +5,7 @@
 #include <elash/util/dynarena.h>
 
 #include "stmt/if.h"
+#include "stmt/while.h"
 #include "stmt/block.h"
 #include "stmt/vardef.h"
 #include "stmt/assign.h"
@@ -17,17 +18,21 @@ typedef enum ElHirStmtKind {
     EL_HIR_STMT_ASSIGN,
     EL_HIR_STMT_BLOCK,
     EL_HIR_STMT_IF,
+    EL_HIR_STMT_WHILE,
 } ElHirStmtKind;
 
 typedef struct ElHirStmtNode {
     ElHirStmtKind kind;
     union {
         ElHirExprNode* expr;
-        ElHirIfStmtNode if_;
-        ElHirBlockStmtNode block;
+
         ElHirReturnStmtNode return_;
         ElHirVarDefStmtNode var_def;
         ElHirAssignStmtNode assign;
+        
+        ElHirBlockStmtNode block;
+        ElHirWhileStmtNode while_;
+        ElHirIfStmtNode    if_;
     } as;
     ElHirStmtNode* next;
 } ElHirStmtNode;
