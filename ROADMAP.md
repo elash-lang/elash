@@ -93,13 +93,13 @@
 - [ ] Implement variable definitions
 - [x] Implement function definitions
 - [ ] Implement variable declarations (extern)
-- [ ] Implement function declarations (extern)
+- [x] Implement function declarations (extern)
 - [x] Implement blocks
-- [ ] Implement control flow statements
+- [x] Implement control flow statements
 - [x] Implement return statements
 - [x] Implement top-level/module parsing
 - [x] Attach source spans to AST nodes
-- [ ] Implement error recovery
+- [x] Implement error recovery
 - [ ] Add parser test suite
 
 
