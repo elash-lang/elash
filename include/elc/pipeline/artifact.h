@@ -36,3 +36,6 @@ typedef struct ElcArtifact {
         ElcCodegenBuffer    obj;
     } as;
 } ElcArtifact;
+
+ElStringView elc_artifact_kind_to_string(ElcArtifactKind art);
+ElcArtifactKind elc_artifact_kind_from_string(ElStringView str);
