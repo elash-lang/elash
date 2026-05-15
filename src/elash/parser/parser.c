@@ -1,32 +1,47 @@
 #include <elash/parser/parser.h>
-#include <elash/parser/utility.h>
 
-#include <elash/util/dynarena.h>
-#include <elash/util/strconv.h>
+#include <elash/diag/meta.h>
+#include <elash/lexer/token.h>
 
-#include <elash/ast/tree/expr.h>
-#include <elash/ast/tree/expr/bin.h>
-#include <elash/ast/tree/expr/unary.h>
-#include <elash/ast/tree/expr/literal.h>
+void _el_parser_report_expected(ElParser* parser, ElTokenType expected) {
+    el_diag_report(
+        parser->diag, EL_DIAG_ERROR, "syntax.expected-token",
+        parser->current.span,
+        "expected ${expected}, found ${found}",
+        EL_DIAG_STRING("expected", el_token_type_to_string(expected)),
+        EL_DIAG_STRING("found", el_token_type_to_string(parser->current.type))
+    );
+}
 
-ElParserErrorCode el_parser_advance(ElParser* parser) {
+void _el_parser_report_unexpected(ElParser* parser, ElToken tok) {
+    el_diag_report(
+        parser->diag, EL_DIAG_ERROR, "syntax.unexpected-token",
+        tok.span,
+        "unexpected token: ${token}",
+        EL_DIAG_STRING("token", el_token_type_to_string(tok.type))
+    );
+}
+
+bool el_parser_has_errs(const ElParser* parser) {
+    return el_diag_engine_has_errors(parser->diag);
+}
+
+void el_parser_advance(ElParser* parser) {
     if (parser->has_lookahead) {
         parser->current = parser->lookahead;
         parser->has_lookahead = false;
     } else {
-        parser->current = parser->tokens.next(&parser->tokens, parser->engine);
+        parser->current = parser->tokens.next(&parser->tokens, parser->diag);
     }
 
     if (parser->current.type == EL_TT_UNKNOWN) {
-        return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = parser->current);
+        _el_parser_report_unexpected(parser, parser->current);
     }
-
-    return _el_parser_ret_ok(parser);
 }
 
 ElToken el_parser_peek(ElParser* parser) {
     if (!parser->has_lookahead) {
-        parser->lookahead = parser->tokens.next(&parser->tokens, parser->engine);
+        parser->lookahead = parser->tokens.next(&parser->tokens, parser->diag);
         parser->has_lookahead = true;
     }
     return parser->lookahead;
@@ -44,30 +59,18 @@ bool el_parser_check(ElParser* parser, ElTokenType type) {
     return parser->current.type == type;
 }
 
-ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type) {
+void el_parser_expect(ElParser* parser, ElTokenType type) {
     if (el_parser_check(parser, type)) {
-        return el_parser_advance(parser);
+        el_parser_advance(parser);
+        return;
     }
-    return _el_parser_ret_err(parser,
-        .code = EL_PARSER_ERR_EXPECTED_TOKEN,
-        .expected = type
-    );
+    _el_parser_report_expected(parser, type);
 }
 
 void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena) {
     parser->tokens = tokens;
-    parser->engine = engine;
+    parser->diag = engine;
     parser->arena = arena;
     parser->current.type = EL_TT_UNKNOWN;
     parser->has_lookahead = false;
-    memset(&parser->last_err_details, 0, sizeof(parser->last_err_details));
-}
-
-ElParserErrorCode el_parser_parse(ElParser* parser, ElAstModuleNode** out) {
-    if (parser->current.type == EL_TT_UNKNOWN) {
-        ElParserErrorCode err = el_parser_advance(parser);
-        if (err != EL_PARSER_ERR_OK) return err;
-    }
-
-    return _el_parser_parse_module(parser, out);
 }

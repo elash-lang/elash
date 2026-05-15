@@ -1,197 +1,168 @@
 #include <elash/parser/parser.h>
-#include <elash/parser/utility.h>
+
+#include <elash/diag/engine.h>
 
 #include <elash/ast/tree/stmt.h>
 #include <elash/ast/tree/stmt/return.h>
 #include <elash/ast/tree/stmt/if.h>
 #include <elash/ast/tree/stmt/assign.h>
 
-ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElToken return_tok, ElAstStmtNode** out) {
+ElAstStmtNode* _el_parser_parse_return(ElParser* parser, ElToken return_tok) {
     if (el_parser_check(parser, EL_TT_SEMICOLON)) {
         ElToken semi_tok = parser->current;
         el_parser_advance(parser);
-        *out = el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), NULL);
-        return _el_parser_ret_ok(parser);
+        return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), NULL);
     }
 
-    ElAstExprNode* expr;
-    ElParserErrorCode result = _el_parser_parse_expression(parser, &expr);
-    if (result != EL_PARSER_ERR_OK) {
-        return result;
-    }
+    ElAstExprNode* expr = el_parser_parse_expr(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
     ElToken semi_tok = parser->current;
-    result = el_parser_expect(parser, EL_TT_SEMICOLON);
-    if (result != EL_PARSER_ERR_OK) return result;
+    el_parser_expect(parser, EL_TT_SEMICOLON);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    *out = el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), expr);
-    return _el_parser_ret_ok(parser);
+    return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), expr);
 }
 
-ElParserErrorCode _el_parser_parse_if(ElParser* parser, ElToken if_tok, ElAstStmtNode** out) {
-    ElParserErrorCode result;
+ElAstStmtNode* _el_parser_parse_if(ElParser* parser, ElToken if_tok) {
     ElSourceSpan end_span;
 
-    result = el_parser_expect(parser, EL_TT_LPAREN);
-    if (result != EL_PARSER_ERR_OK) return result;
+    el_parser_expect(parser, EL_TT_LPAREN);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    ElAstExprNode* cond;
-    result = _el_parser_parse_expression(parser, &cond);
-    if (result != EL_PARSER_ERR_OK) return result;
+    ElAstExprNode* cond = el_parser_parse_expr(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    result = el_parser_expect(parser, EL_TT_RPAREN);
-    if (result != EL_PARSER_ERR_OK) return result;
+    el_parser_expect(parser, EL_TT_RPAREN);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    ElAstStmtNode* then_stmt;
-    result = _el_parser_parse_stmt(parser, &then_stmt);
-    if (result != EL_PARSER_ERR_OK) return result;
+    ElAstStmtNode* then_stmt = el_parser_parse_stmt(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
     end_span = then_stmt->span;
 
     ElAstStmtNode* else_stmt = NULL;
     if (el_parser_match(parser, EL_TT_KW_ELSE)) {
-        result = _el_parser_parse_stmt(parser, &else_stmt);
-        if (result != EL_PARSER_ERR_OK) return result;
+        else_stmt = el_parser_parse_stmt(parser);
+        if (el_parser_has_errs(parser)) return NULL;
         end_span = else_stmt->span;
     }
 
-    *out = el_ast_new_if_stmt(
+    return el_ast_new_if_stmt(
         parser->arena,
         el_source_span_merge(if_tok.span, end_span),
         cond, then_stmt, else_stmt
     );
-    return _el_parser_ret_ok(parser);
 }
 
-ElParserErrorCode _el_parser_parse_while(ElParser* parser, ElToken while_tok, ElAstStmtNode** out) {
-    ElParserErrorCode result;
+static ElAstStmtNode* _el_parser_parse_while(ElParser* parser, ElToken while_tok) {
+    el_parser_expect(parser, EL_TT_LPAREN);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    result = el_parser_expect(parser, EL_TT_LPAREN);
-    if (result != EL_PARSER_ERR_OK) return result;
+    ElAstExprNode* cond = el_parser_parse_expr(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    ElAstExprNode* cond;
-    result = _el_parser_parse_expression(parser, &cond);
-    if (result != EL_PARSER_ERR_OK) return result;
+    el_parser_expect(parser, EL_TT_RPAREN);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    result = el_parser_expect(parser, EL_TT_RPAREN);
-    if (result != EL_PARSER_ERR_OK) return result;
+    ElAstStmtNode* body_stmt = el_parser_parse_stmt(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    ElAstStmtNode* body_stmt;
-    result = _el_parser_parse_stmt(parser, &body_stmt);
-    if (result != EL_PARSER_ERR_OK) return result;
-
-    *out = el_ast_new_while_stmt(
+    return el_ast_new_while_stmt(
         parser->arena,
         el_source_span_merge(while_tok.span, body_stmt->span),
         cond, body_stmt
     );
-    return _el_parser_ret_ok(parser);
 }
 
-ElParserErrorCode _el_parser_parse_expr_stmt(ElParser* parser, ElAstStmtNode** out) {
-    ElAstExprNode* expr;
-    ElParserErrorCode result = _el_parser_parse_expression(parser, &expr);
-    if (result != EL_PARSER_ERR_OK) {
-        return result;
-    }
+ElAstStmtNode* _el_parser_parse_expr_stmt(ElParser* parser) {
+    ElAstExprNode* expr = el_parser_parse_expr(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
     if (el_parser_match(parser, EL_TT_ASSIGN)) {
-        ElAstExprNode* value;
-        result = _el_parser_parse_expression(parser, &value);
-        if (result != EL_PARSER_ERR_OK) return result;
+        ElAstExprNode* value = el_parser_parse_expr(parser);
+        if (el_parser_has_errs(parser)) return NULL;
 
         ElToken semi_tok = parser->current;
-        result = el_parser_expect(parser, EL_TT_SEMICOLON);
-        if (result != EL_PARSER_ERR_OK) return result;
+        el_parser_expect(parser, EL_TT_SEMICOLON);
+        if (el_parser_has_errs(parser)) return NULL;
 
-        *out = el_ast_new_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr, value);
-        return _el_parser_ret_ok(parser);
+        return el_ast_new_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr, value);
     }
 
     ElToken semi_tok = parser->current;
-    result = el_parser_expect(parser, EL_TT_SEMICOLON);
-    if (result != EL_PARSER_ERR_OK) return result;
+    el_parser_expect(parser, EL_TT_SEMICOLON);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    *out = el_ast_new_expr_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr);
-    return _el_parser_ret_ok(parser);
+    return el_ast_new_expr_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr);
 }
 
-ElParserErrorCode _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok, ElAstStmtNode** out) {
+ElAstStmtNode* _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok) {
     ElAstStmtNode* head = NULL;
     ElAstStmtNode* tail = NULL;
 
     while (parser->current.type != EL_TT_RBRACE && parser->current.type != EL_TT_EOF) {
-        ElAstStmtNode* stmt;
-        ElParserErrorCode result = _el_parser_parse_stmt(parser, &stmt);
-        if (result != EL_PARSER_ERR_OK) {
-            return result;
-        }
+        ElAstStmtNode* stmt = el_parser_parse_stmt(parser);
+        if (el_parser_has_errs(parser)) return NULL;
 
         el_ast_stmt_list_append(&head, &tail, stmt);
     }
 
     ElToken rbrace_tok = parser->current;
-    ElParserErrorCode result = el_parser_expect(parser, EL_TT_RBRACE);
-    if (result != EL_PARSER_ERR_OK) {
-        return result;
-    }
+    el_parser_expect(parser, EL_TT_RBRACE);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    *out = el_ast_new_block_stmt(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span), head);
-    return _el_parser_ret_ok(parser);
+    return el_ast_new_block_stmt(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span), head);
 }
 
-ElParserErrorCode _el_parser_parse_var_def(ElParser* parser, ElAstStmtNode** out) {
-    ElParserErrorCode result;
-    ElAstTypeNode* type;
-    result = _el_parser_parse_type(parser, &type);
-    if (result != EL_PARSER_ERR_OK) return result;
+static ElAstStmtNode* _el_parser_parse_var_def(ElParser* parser) {
+    ElAstTypeNode* type = _el_parser_parse_type(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    ElAstIdentNode* name;
-    result = _el_parser_parse_ident(parser, &name);
-    if (result != EL_PARSER_ERR_OK) return result;
+    ElAstIdentNode* name = _el_parser_parse_ident(parser);
+    if (el_parser_has_errs(parser)) return NULL;
 
     ElAstExprNode* init = NULL;
     if (el_parser_match(parser, EL_TT_ASSIGN)) {
-        result = _el_parser_parse_expression(parser, &init);
-        if (result != EL_PARSER_ERR_OK) return result;
+        init = el_parser_parse_expr(parser);
+        if (el_parser_has_errs(parser)) return NULL;
     }
 
     ElToken semi_tok = parser->current;
-    result = el_parser_expect(parser, EL_TT_SEMICOLON);
-    if (result != EL_PARSER_ERR_OK) return result;
+    el_parser_expect(parser, EL_TT_SEMICOLON);
+    if (el_parser_has_errs(parser)) return NULL;
 
-    *out = el_ast_new_var_def_stmt(parser->arena, el_source_span_merge(type->span, semi_tok.span), type, name, init);
-    return _el_parser_ret_ok(parser);
+    return el_ast_new_var_def_stmt(parser->arena, el_source_span_merge(type->span, semi_tok.span), type, name, init);
 }
 
-ElParserErrorCode _el_parser_parse_stmt(ElParser* parser, ElAstStmtNode** out) {
+ElAstStmtNode* el_parser_parse_stmt(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_RETURN)) {
         ElToken return_tok = parser->current;
         el_parser_advance(parser);
-        return _el_parser_parse_return(parser, return_tok, out);
+        return _el_parser_parse_return(parser, return_tok);
     }
     if (el_parser_check(parser, EL_TT_KW_IF)) {
         ElToken if_tok = parser->current;
         el_parser_advance(parser);
-        return _el_parser_parse_if(parser, if_tok, out);
+        return _el_parser_parse_if(parser, if_tok);
     }
     if (el_parser_check(parser, EL_TT_KW_WHILE)) {
-        ElToken if_tok = parser->current;
+        ElToken while_tok = parser->current;
         el_parser_advance(parser);
-        return _el_parser_parse_while(parser, if_tok, out);
+        return _el_parser_parse_while(parser, while_tok);
     }
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         ElToken lbrace_tok = parser->current;
         el_parser_advance(parser);
-        return _el_parser_parse_block(parser, lbrace_tok, out);
+        return _el_parser_parse_block(parser, lbrace_tok);
     }
 
     if (el_parser_check(parser, EL_TT_IDENT)) {
         ElTokenType next_type = el_parser_peek(parser).type;
         if (next_type == EL_TT_IDENT || next_type == EL_TT_STAR) {
-            return _el_parser_parse_var_def(parser, out);
+            return _el_parser_parse_var_def(parser);
         }
     }
 
-    return _el_parser_parse_expr_stmt(parser, out);
+    return _el_parser_parse_expr_stmt(parser);
 }
