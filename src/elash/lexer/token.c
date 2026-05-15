@@ -109,33 +109,28 @@ static ElStringView el_token_type_to_string_map[] = {
     [EL_TT_PP_EMBED] = EL_SV("PP_EMBED"),
 
     [EL_TT_PP_EMIT] = EL_SV("PP_EMIT"),
+    [EL_TT_PP_END] = EL_SV("PP_END"),
 
     [EL_TT_PP_DEFINE] = EL_SV("PP_DEFINE"),
-    [EL_TT_PP_ENDDEF] = EL_SV("PP_ENDDEF"),
     [EL_TT_PP_UNDEF] = EL_SV("PP_UNDEF"),
 
     [EL_TT_PP_PRAGMA] = EL_SV("PP_PRAGMA"),
-    [EL_TT_PP_ANNOTE] = EL_SV("PP_ANNOTE"), 
     [EL_TT_PP_ERROR] = EL_SV("PP_ERROR"),
     [EL_TT_PP_WARNING] = EL_SV("PP_WARNING"),
     [EL_TT_PP_NOTE] = EL_SV("PP_NOTE"),
+    [EL_TT_PP_DEBUG] = EL_SV("PP_DEBUG"),
 
     [EL_TT_PP_ASSIGN] = EL_SV("PP_ASSIGN"),
-    [EL_TT_PP_DEASSIGN] = EL_SV("PP_DEASSIGN"),
     [EL_TT_PP_INC] = EL_SV("PP_INC"),
     [EL_TT_PP_DEC] = EL_SV("PP_DEC"),
 
     [EL_TT_PP_IF] = EL_SV("PP_IF"),
     [EL_TT_PP_ELIF] = EL_SV("PP_ELIF"),
     [EL_TT_PP_ELSE] = EL_SV("PP_ELSE"),
-    [EL_TT_PP_ENDIF] = EL_SV("PP_ENDIF"),
 
     [EL_TT_PP_WHILE] = EL_SV("PP_WHILE"),
-    [EL_TT_PP_ENDWHILE] = EL_SV("PP_ENDWHILE"),
-
     [EL_TT_PP_FOR] = EL_SV("PP_FOR"),
     [EL_TT_PP_FOREACH] = EL_SV("PP_FOREACH"),
-    [EL_TT_PP_ENDFOR] = EL_SV("PP_ENDFOR"),
 
     [EL_TT_ELLIPSIS] = EL_SV("ELLIPSIS"),
     [EL_TT_LINE_COMMENT] = EL_SV("LINE_COMMENT"),

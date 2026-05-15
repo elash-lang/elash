@@ -8,7 +8,6 @@
 #include <elash/lexer/tokstream.h>
 
 #include <elash/pp/error.h>
-#include <elash/pp/instr.h>
 #include <elash/pp/vars.h>
 
 #include <stdbool.h>
@@ -19,7 +18,6 @@ typedef struct ElPreprocessor {
 
     ElDynArena arena;
 
-    ElPpInstr currently_parsing;
     ElPpVars vars;
 
     ElPpErrorDetails last_err_details;
