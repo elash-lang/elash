@@ -1,0 +1,78 @@
+#include <elash/lowerer/lowerer.h>
+
+#include <elash/util/assert.h>
+#include <elash/util/todo.h>
+
+#include <elash/mir/instr.h>
+
+ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
+    switch (sym->kind) {
+    case EL_SYM_VAR: {
+        if (lw->symbol_map && lw->symbol_map[sym->id]) {
+            ElMirValue* ptr = lw->symbol_map[sym->id];
+            ElMirValue* reg = el_mir_new_reg(lw->arena, sym->as.var.type, lw->current_func->reg_count++);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
+            return reg;
+        }
+
+        EL_TODO("Variables not supported yet");
+    }
+    case EL_SYM_FUNC:
+        return el_mir_new_global(lw->arena, sym->as.func.type, sym);
+    case EL_SYM_TYPE:
+        EL_UNREACHABLE("Type symbol in expression context (this should be caught during semantic analysis)");
+        break;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElSymbolKind, sym->kind);
+}
+
+// TODO: this function is too large; split it into smaller helpers
+//       before adding any new expression types
+ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
+    switch (hir->kind) {
+    case EL_HIR_EXPR_BINARY: {
+        ElHirBinExprNode* expr = &hir->as.binary;
+        ElMirValue* lhs = el_lowerer_lower_expr(lw, expr->left);
+        ElMirValue* rhs = el_lowerer_lower_expr(lw, expr->right);
+
+        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+        ElMirInstr* instr = el_mir_new_bin_instr(lw->arena, reg, expr->op, lhs, rhs);
+
+        el_mir_ibuf_push(&lw->ibuf, instr);
+        return reg;
+    }
+    case EL_HIR_EXPR_UNARY: {
+        ElHirUnaryExprNode* expr = &hir->as.unary;
+        ElMirValue* operand = el_lowerer_lower_expr(lw, expr->operand);
+
+        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+        ElMirInstr* instr = el_mir_new_unary_instr(lw->arena, reg, expr->op, operand);
+
+        el_mir_ibuf_push(&lw->ibuf, instr);
+        return reg;
+    }
+    case EL_HIR_EXPR_LITERAL: {
+        ElHirLiteral* lit = &hir->as.literal;
+        return el_mir_new_const(lw->arena, hir->type, *lit);
+    }
+    case EL_HIR_EXPR_CALL: {
+        ElHirCallExprNode* call = &hir->as.call;
+
+        ElMirValue* callee = el_lowerer_lower_expr(lw, call->callee);
+        ElMirValue** args = EL_DYNARENA_NEW_ARR(lw->arena, ElMirValue*, call->arg_count);
+        for (usize i = 0; i < call->arg_count; ++i) {
+            args[i] = el_lowerer_lower_expr(lw, call->args[i]);
+        }
+
+        bool is_void = el_sema_type_eql(hir->type, lw->builtins->type_void);
+        ElMirValue* result = is_void ? NULL : el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+        ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
+        el_mir_ibuf_push(&lw->ibuf, instr);
+        return result;
+    }
+    case EL_HIR_EXPR_SYMBOL:
+        return el_lowerer_lower_symbol(lw, hir->as.symbol);
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
+}
+

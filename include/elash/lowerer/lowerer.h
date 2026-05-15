@@ -34,6 +34,9 @@ typedef struct ElLowerer {
 void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins);
 void el_lowerer_free(ElLowerer* lw);
 
+bool el_lowerer_has_terminator(ElLowerer* lw);
+void el_lowerer_emit_block(ElLowerer* lw, uint32_t id);
+
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir);
 void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir);
 void         el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir);
