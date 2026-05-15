@@ -9,5 +9,5 @@ void elc_dump_hir_observer_exec(
     ElStringView stage_name,
     const ElcArtifact* artifact
 );
-ElcObserver elc_make_dump_hir_observer();
+ElcObserver elc_make_dump_hir_observer(const char* output_path);
 

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-void elc_args_print_usage(FILE* out, const char* program_name) {
+void elc_cli_print_usage(FILE* out, const char* program_name) {
     fprintf(out, "Usage: %s [command] [options] <input.ela>\n", program_name);
     fputs("\nCommands:",                                                          out);
     fputs("  build       build an executable (default)",                          out);
@@ -29,7 +29,7 @@ void elc_args_print_usage(FILE* out, const char* program_name) {
 }
 
 // TODO: fancy ansi output
-void elc_args_print_error(FILE* out, ElcCliParseResult res) {
+void elc_cli_print_error(FILE* out, ElcCliParseResult res) {
     switch (res.code) {
     case ELC_CLI_PARSE_STOP:
     case ELC_CLI_PARSE_OK: break;

@@ -37,11 +37,11 @@
 
 ### Compiler CLI
 - [x] diagnostics engine
-- [ ] lower assemble, compile, build and inspect commands
-- [ ] --output/-o flag
+- [x] lower, check, compile, build and inspect commands
+- [x] --output/-o flag
 - [ ] --opt=\<N\>/-O\<N\> flag
-- [ ] --dump-tokens, --dump-pp-tokens and --dump-ast flags
-- [ ] --dump-hir, --dump-mir and --dump-lir flags
+- [x] --dump-tokens, --dump-pp-tokens and --dump-ast flags
+- [x] --dump-hir, --dump-mir and --dump-lir flags
 - [ ] --color=never/auto/always flag
 - [ ] -I\<scope\>:\<path\> flag
 

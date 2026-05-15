@@ -169,7 +169,7 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
     return ELC_CLI_PARSE_RESULT_OK;
 }
 
-ElcCliParseResult elc_args_parse(int argc, const char* const* argv, ElcArgs* out) {
+ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out) {
     memset(out, 0, sizeof(ElcArgs));
     out->output = el_sv_from_cstr("-");
     out->until = ELC_ART_OBJ;

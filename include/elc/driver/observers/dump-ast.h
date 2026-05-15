@@ -9,4 +9,4 @@ void elc_dump_ast_observer_exec(
     ElStringView stage_name,
     const ElcArtifact* artifact
 );
-ElcObserver elc_make_dump_ast_observer();
+ElcObserver elc_make_dump_ast_observer(const char* output_path);

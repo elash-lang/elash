@@ -38,33 +38,93 @@ bool elc_driver_register_stages(ElcDriver* driver) {
     return true;
 }
 
-bool elc_driver_register_observers(ElcDriver* driver) {
-    elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_ast_observer());
-    elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_hir_observer());
-    elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_mir_observer());
-    elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_lir_observer());
+#define REGISTER_DUMP_OBSERVER(KIND, FIELD, MAKER) \
+    do { \
+        bool is_target = (args->emit == (KIND) || args->until == (KIND)); \
+        if (args->FIELD.is_enabled || is_target) { \
+            const char* path = NULL; \
+            if (args->FIELD.is_enabled && !el_sv_is_null(args->FIELD.output)) { \
+                path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output); \
+            } else if (is_target) { \
+                path = el_dynarena_make_cstr(&driver->arena, args->output); \
+            } \
+            elc_pipeline_add_observer(&driver->pipeline, (MAKER)(path)); \
+        } \
+    } while (0)
+
+// clang-tidy is stupid and dont understand macros
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+bool elc_driver_register_observers(ElcDriver* driver, const ElcArgs* args) {
+    REGISTER_DUMP_OBSERVER(ELC_ART_AST, dump_ast, elc_make_dump_ast_observer);
+    REGISTER_DUMP_OBSERVER(ELC_ART_HIR, dump_hir, elc_make_dump_hir_observer);
+    REGISTER_DUMP_OBSERVER(ELC_ART_MIR, dump_mir, elc_make_dump_mir_observer);
+    REGISTER_DUMP_OBSERVER(ELC_ART_LIR, dump_lir, elc_make_dump_lir_observer);
     return true;
 }
 
-void elc_driver_provide_source(ElcDriver* driver, ElSourceDocument* source) {
+#define STDIN_READ_BUF_SIZE 4096
+
+bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
+    ElSourceDocument src;
+    ElSrcDocErrorCode err;
+
+    if (el_sv_eql(args->input, EL_SV("-"))) {
+        err = el_srcdoc_init_empty(&src, EL_SV("<stdin>"));
+        if (err == EL_SRCDOC_ERR_SUCCESS) {
+            char buf[STDIN_READ_BUF_SIZE];
+            size_t n;
+            while ((n = fread(buf, 1, sizeof(buf), stdin)) > 0) {
+                el_srcdoc_append_str(&src, el_sv_from_data_and_len(buf, n));
+            }
+        }
+    } else {
+        err = el_srcdoc_init_from_file(&src, el_dynarena_make_cstr(&driver->arena, args->input));
+    }
+
+    if (err != EL_SRCDOC_ERR_SUCCESS) return false;
+
     elc_pipeline_provide(&driver->pipeline, (ElcArtifact) {
         .kind = ELC_ART_SOURCE_TEXT,
-        .as.source = source
+        .as.source = &src
     });
-}
 
-bool elc_driver_run(ElcDriver* driver, const char* output_path) {
+    // just shut up my dear clang-tidy
+    // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
+    ElcArtifactKind target = args->emit != ELC_ART_NONE ? args->emit :
+                             args->until != ELC_ART_NONE ? args->until :
+                             ELC_ART_OBJ;
+    // NOLINTEND(readability-avoid-nested-conditional-operator)
+
     ElcArtifact out;
-    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_OBJ, &out)) {
-        return false;
+    bool success = elc_pipeline_request(&driver->pipeline, target, &out);
+
+    if (success && (target == ELC_ART_OBJ || target == ELC_ART_ASM)) {
+        ElcCodegenBuffer buffer = (target == ELC_ART_OBJ) ? out.as.obj : out.as.asm;
+        FILE* f = NULL;
+
+        ElStringView out_path = args->output;
+
+        if (el_sv_eql(out_path, EL_SV("-"))) {
+            if (target == ELC_ART_OBJ) {
+                out_path = EL_SV("output.o");
+                goto label;
+            }
+            f = stdout;
+        } else if (!el_sv_is_null(args->output)) {
+        label: {
+            const char* path = el_dynarena_make_cstr(&driver->arena, out_path);
+            f = fopen(path, "wb");
+        }
+        }
+
+        if (f) {
+            fwrite(buffer.data, 1, buffer.size, f);
+            if (f != stdout) fclose(f);
+        } else {
+            success = false;
+        }
     }
 
-    FILE* obj_file = fopen(output_path, "wb");
-    if (!obj_file) {
-        return false;
-    }
-    fwrite(out.as.obj.data, out.as.obj.size, 1, obj_file);
-    fclose(obj_file);
-
-    return true;
+    el_srcdoc_destroy(&src);
+    return success;
 }

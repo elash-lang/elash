@@ -72,7 +72,7 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str) -> TestO
     obj = work_dir.joinpath(f'{name}.o')
     exe = work_dir.joinpath(name)
 
-    res = subprocess.run([str(elc_bin), str(input_file), str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
         return TestOutput(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), error_stage='compilation')
     
