@@ -4,142 +4,148 @@
 #include <stdlib.h>
 #include <string.h>
 
-static ElStringView el_token_type_to_string_map[] = {
-    [EL_TT_EOF] = EL_SV("EOF"),
+#define F(T, M) \
+    { EL_SV(T), EL_SV(M) }
 
-    [EL_TT_IDENT] = EL_SV("IDENT"),
+static struct {
+    ElStringView to_str;
+    ElStringView format;
+} el_token_type_to_string_map[] = {
+    [EL_TT_EOF] = F("EOF", "EOF"),
 
-    [EL_TT_INT_LITERAL] = EL_SV("INT_LITERAL"),
-    [EL_TT_FLOAT_LITERAL] = EL_SV("FLOAT_LITERAL"),
-    [EL_TT_CHAR_LITERAL] = EL_SV("CHAR_LITERAL"),
-    [EL_TT_STRING_LITERAL] = EL_SV("STRING_LITERAL"),
+    [EL_TT_IDENT] = F("IDENT", "identifier"),
 
-    [EL_TT_TRUE_LITERAL] = EL_SV("TRUE_LITERAL"),
-    [EL_TT_FALSE_LITERAL] = EL_SV("FALSE_LITERAL"),
-    [EL_TT_NULL_LITERAL] = EL_SV("NULL_LITERAL"),
+    [EL_TT_INT_LITERAL]    = F("INT_LITERAL", "<int literal>"),
+    [EL_TT_FLOAT_LITERAL]  = F("FLOAT_LITERAL", "<float literal>"),
+    [EL_TT_CHAR_LITERAL]   = F("CHAR_LITERAL", "<char literal>"),
+    [EL_TT_STRING_LITERAL] = F("STRING_LITERAL", "<string literal>"),
 
-    [EL_TT_KW_IF] = EL_SV("KW_IF"),
-    [EL_TT_KW_ELSE] = EL_SV("KW_ELSE"),
-    [EL_TT_KW_SWITCH] = EL_SV("KW_SWITCH"),
+    [EL_TT_TRUE_LITERAL]  = F("TRUE_LITERAL", "true"),
+    [EL_TT_FALSE_LITERAL] = F("FALSE_LITERAL", "false"),
+    [EL_TT_NULL_LITERAL]  = F("NULL_LITERAL", "null"),
 
-    [EL_TT_KW_WHILE] = EL_SV("KW_WHILE"),
-    [EL_TT_KW_FOR] = EL_SV("KW_FOR"),
-    [EL_TT_KW_DO] = EL_SV("KW_DO"),
+    [EL_TT_KW_IF]     = F("KW_IF", "if"),
+    [EL_TT_KW_ELSE]   = F("KW_ELSE", "else"),
+    [EL_TT_KW_SWITCH] = F("KW_SWITCH", "switch"),
 
-    [EL_TT_KW_CONTINUE] = EL_SV("KW_CONTINUE"),
-    [EL_TT_KW_DEFAULT] = EL_SV("KW_DEFAULT"),
-    [EL_TT_KW_RETURN] = EL_SV("KW_RETURN"),
-    [EL_TT_KW_BREAK] = EL_SV("KW_BREAK"),
-    [EL_TT_KW_CASE] = EL_SV("KW_CASE"),
-    [EL_TT_KW_GOTO] = EL_SV("KW_GOTO"),
+    [EL_TT_KW_WHILE] = F("KW_WHILE", "while"),
+    [EL_TT_KW_FOR]   = F("KW_FOR", "for"),
+    [EL_TT_KW_DO]    = F("KW_DO", "do"),
 
-    [EL_TT_KW_EXTERN] = EL_SV("KW_EXTERN"),
-    [EL_TT_KW_STATIC] = EL_SV("KW_STATIC"),
-    [EL_TT_KW_INLINE] = EL_SV("KW_INLINE"),
+    [EL_TT_KW_CONTINUE] = F("KW_CONTINUE", "continue"),
+    [EL_TT_KW_DEFAULT]  = F("KW_DEFAULT", "default"),
+    [EL_TT_KW_RETURN]   = F("KW_RETURN", "return"),
+    [EL_TT_KW_BREAK]    = F("KW_BREAK", "break"),
+    [EL_TT_KW_CASE]     = F("KW_CASE", "case"),
+    [EL_TT_KW_GOTO]     = F("KW_GOTO", "goto"),
 
-    [EL_TT_KW_VOLATILE] = EL_SV("KW_VOLATILE"),
-    [EL_TT_KW_CONST] = EL_SV("KW_CONST"),
+    [EL_TT_KW_EXTERN] = F("KW_EXTERN", "extern"),
+    [EL_TT_KW_STATIC] = F("KW_STATIC", "static"),
+    [EL_TT_KW_INLINE] = F("KW_INLINE", "inline"),
 
-    [EL_TT_KW_ENUM] = EL_SV("KW_ENUM"),
-    [EL_TT_KW_UNION] = EL_SV("KW_UNION"),
-    [EL_TT_KW_STRUCT] = EL_SV("KW_STRUCT"),
-    [EL_TT_KW_TYPEDEF] = EL_SV("KW_TYPEDEF"),
+    [EL_TT_KW_VOLATILE] = F("KW_VOLATILE", "volatile"),
+    [EL_TT_KW_CONST] = F("KW_CONST", "const"),
 
-    [EL_TT_SIZEOF] = EL_SV("SIZEOF"),
+    [EL_TT_KW_ENUM]    = F("KW_ENUM", "enum"),
+    [EL_TT_KW_UNION]   = F("KW_UNION", "union"),
+    [EL_TT_KW_STRUCT]  = F("KW_STRUCT", "struct"),
+    [EL_TT_KW_TYPEDEF] = F("KW_TYPEDEF", "typedef"),
 
-    [EL_TT_PLUS] = EL_SV("PLUS"),
-    [EL_TT_MINUS] = EL_SV("MINUS"),
-    [EL_TT_STAR] = EL_SV("STAR"),
-    [EL_TT_SLASH] = EL_SV("SLASH"),
-    [EL_TT_PERCENT] = EL_SV("PERCENT"),
+    [EL_TT_SIZEOF] = F("SIZEOF", "sizeof"),
 
-    [EL_TT_INC] = EL_SV("INC"),
-    [EL_TT_DEC] = EL_SV("DEC"),
+    [EL_TT_PLUS]    = F("PLUS", "'+'"),
+    [EL_TT_MINUS]   = F("MINUS", "'-'"),
+    [EL_TT_STAR]    = F("STAR", "'*'"),
+    [EL_TT_SLASH]   = F("SLASH", "'/'"),
+    [EL_TT_PERCENT] = F("PERCENT", "'/'"),
 
-    [EL_TT_ASSIGN] = EL_SV("ASSIGN"),
-    [EL_TT_ADD_ASSIGN] = EL_SV("ADD_ASSIGN"),
-    [EL_TT_SUB_ASSIGN] = EL_SV("SUB_ASSIGN"),
-    [EL_TT_MUL_ASSIGN] = EL_SV("MUL_ASSIGN"),
-    [EL_TT_DIV_ASSIGN] = EL_SV("DIV_ASSIGN"),
-    [EL_TT_MOD_ASSIGN] = EL_SV("MOD_ASSIGN"),
+    [EL_TT_INC] = F("INC", "'++'"),
+    [EL_TT_DEC] = F("DEC", "'--'"),
 
-    [EL_TT_EQL] = EL_SV("EQL"),
-    [EL_TT_NEQ] = EL_SV("NEQ"),
-    [EL_TT_LT] = EL_SV("LT"),
-    [EL_TT_LTE] = EL_SV("LTE"),
-    [EL_TT_GT] = EL_SV("GT"),
-    [EL_TT_GTE] = EL_SV("GTE"),
+    [EL_TT_ASSIGN] =     F("ASSIGN",     "'='"),
+    [EL_TT_ADD_ASSIGN] = F("ADD_ASSIGN", "'+='"),
+    [EL_TT_SUB_ASSIGN] = F("SUB_ASSIGN", "'-='"),
+    [EL_TT_MUL_ASSIGN] = F("MUL_ASSIGN", "'*='"),
+    [EL_TT_DIV_ASSIGN] = F("DIV_ASSIGN", "'/='"),
+    [EL_TT_MOD_ASSIGN] = F("MOD_ASSIGN", "'%='"),
 
-    [EL_TT_LOGICAL_AND] = EL_SV("LOGICAL_AND"),
-    [EL_TT_LOGICAL_OR] = EL_SV("LOGICAL_OR"),
-    [EL_TT_LOGICAL_NOT] = EL_SV("LOGICAL_NOT"),
+    [EL_TT_EQL] = F("EQL", "'=='"),
+    [EL_TT_NEQ] = F("NEQ", "'!='"),
+    [EL_TT_LT]  = F("LT", "'<'"),
+    [EL_TT_LTE] = F("LTE", "'<='"),
+    [EL_TT_GT]  = F("GT", "'>'"),
+    [EL_TT_GTE] = F("GTE", "'>='"),
 
-    [EL_TT_BITWISE_AND] = EL_SV("BITWISE_AND"),
-    [EL_TT_BITWISE_OR] = EL_SV("BITWISE_OR"),
-    [EL_TT_BITWISE_XOR] = EL_SV("BITWISE_XOR"),
-    [EL_TT_BITWISE_NOT] = EL_SV("BITWISE_NOT"),
+    [EL_TT_LOGICAL_AND] = F("LOGICAL_AND", "'&&'"),
+    [EL_TT_LOGICAL_OR]  = F("LOGICAL_OR", "'||'"),
+    [EL_TT_LOGICAL_NOT] = F("LOGICAL_NOT", "'!'"),
 
-    [EL_TT_BITWISE_AND_ASSIGN] = EL_SV("BITWISE_AND_ASSIGN"),
-    [EL_TT_BITWISE_OR_ASSIGN] = EL_SV("BITWISE_OR_ASSIGN"),
-    [EL_TT_BITWISE_XOR_ASSIGN] = EL_SV("BITWISE_XOR_ASSIGN"),
+    [EL_TT_BITWISE_AND] = F("BITWISE_AND", "'&'"),
+    [EL_TT_BITWISE_OR]  = F("BITWISE_OR", "'|'"),
+    [EL_TT_BITWISE_XOR] = F("BITWISE_XOR", "'^'"),
+    [EL_TT_BITWISE_NOT] = F("BITWISE_NOT", "'~'"),
 
-    [EL_TT_SHL] = EL_SV("SHL"),
-    [EL_TT_SHR] = EL_SV("SHR"),
+    [EL_TT_BITWISE_AND_ASSIGN] = F("BITWISE_AND_ASSIGN", "'&='"),
+    [EL_TT_BITWISE_OR_ASSIGN]  = F("BITWISE_OR_ASSIGN", "'|='"),
+    [EL_TT_BITWISE_XOR_ASSIGN] = F("BITWISE_XOR_ASSIGN", "'^='"),
 
-    [EL_TT_SHL_ASSIGN] = EL_SV("SHL_ASSIGN"),
-    [EL_TT_SHR_ASSIGN] = EL_SV("SHR_ASSIGN"),
+    [EL_TT_SHL] = F("SHL", "'<<'"),
+    [EL_TT_SHR] = F("SHR", "'>>'"),
 
-    [EL_TT_LPAREN] = EL_SV("LPAREN"),
-    [EL_TT_RPAREN] = EL_SV("RPAREN"),
-    [EL_TT_LBRACKET] = EL_SV("LBRACKET"),
-    [EL_TT_RBRACKET] = EL_SV("RBRACKET"),
-    [EL_TT_LBRACE] = EL_SV("LBRACE"),
-    [EL_TT_RBRACE] = EL_SV("RBRACE"),
+    [EL_TT_SHL_ASSIGN] = F("SHL_ASSIGN", "'<<='"),
+    [EL_TT_SHR_ASSIGN] = F("SHR_ASSIGN", "'>>='"),
 
-    [EL_TT_SEMICOLON] = EL_SV("SEMICOLON"),
-    [EL_TT_COLON] = EL_SV("COLON"),
-    [EL_TT_COMMA] = EL_SV("COMMA"),
-    [EL_TT_DOT] = EL_SV("DOT"),
-    [EL_TT_DOUBLECOLON] = EL_SV("DOUBLECOLON"),
-    [EL_TT_ARROW] = EL_SV("ARROW"),
+    [EL_TT_LPAREN]   = F("LPAREN", "'('"),
+    [EL_TT_RPAREN]   = F("RPAREN", "')'"),
+    [EL_TT_LBRACKET] = F("LBRACKET", "'['"),
+    [EL_TT_RBRACKET] = F("RBRACKET", "']'"),
+    [EL_TT_LBRACE]   = F("LBRACE", "'{'"),
+    [EL_TT_RBRACE]   = F("RBRACE", "'}'"),
 
-    [EL_TT_HASH] = EL_SV("HASH"),
+    [EL_TT_SEMICOLON]   = F("SEMICOLON", "';'"),
+    [EL_TT_COLON]       = F("COLON", "':'"),
+    [EL_TT_COMMA]       = F("COMMA", "','"),
+    [EL_TT_DOT]         = F("DOT", "'.'"),
+    [EL_TT_DOUBLECOLON] = F("DOUBLECOLON", "'::'"),
+    [EL_TT_ARROW]       = F("ARROW", "'->'"),
 
-    [EL_TT_PP_INCLUDE] = EL_SV("PP_INCLUDE"),
-    [EL_TT_PP_EMBED] = EL_SV("PP_EMBED"),
+    [EL_TT_HASH] = F("HASH", "'#'"),
 
-    [EL_TT_PP_EMIT] = EL_SV("PP_EMIT"),
-    [EL_TT_PP_END] = EL_SV("PP_END"),
+    [EL_TT_PP_INCLUDE] = F("PP_INCLUDE", "include directive"),
+    [EL_TT_PP_EMBED]   = F("PP_EMBED", "embed directive"),
 
-    [EL_TT_PP_DEFINE] = EL_SV("PP_DEFINE"),
-    [EL_TT_PP_UNDEF] = EL_SV("PP_UNDEF"),
+    [EL_TT_PP_EMIT] = F("PP_EMIT", "emit directive"),
+    [EL_TT_PP_END]  = F("PP_END", "end directive"),
 
-    [EL_TT_PP_PRAGMA] = EL_SV("PP_PRAGMA"),
-    [EL_TT_PP_ERROR] = EL_SV("PP_ERROR"),
-    [EL_TT_PP_WARNING] = EL_SV("PP_WARNING"),
-    [EL_TT_PP_NOTE] = EL_SV("PP_NOTE"),
-    [EL_TT_PP_DEBUG] = EL_SV("PP_DEBUG"),
+    [EL_TT_PP_DEFINE] = F("PP_DEFINE", "define directive"),
+    [EL_TT_PP_UNDEF]  = F("PP_UNDEF", "undef directive"),
 
-    [EL_TT_PP_ASSIGN] = EL_SV("PP_ASSIGN"),
-    [EL_TT_PP_INC] = EL_SV("PP_INC"),
-    [EL_TT_PP_DEC] = EL_SV("PP_DEC"),
+    [EL_TT_PP_PRAGMA]  = F("PP_PRAGMA", "pragma directive"),
+    [EL_TT_PP_ERROR]   = F("PP_ERROR", "error directive"),
+    [EL_TT_PP_WARNING] = F("PP_WARNING", "warning directive"),
+    [EL_TT_PP_NOTE]    = F("PP_NOTE", "note directive"),
+    [EL_TT_PP_DEBUG]   = F("PP_DEBUG", "debug directive"),
 
-    [EL_TT_PP_IF] = EL_SV("PP_IF"),
-    [EL_TT_PP_ELIF] = EL_SV("PP_ELIF"),
-    [EL_TT_PP_ELSE] = EL_SV("PP_ELSE"),
+    [EL_TT_PP_ASSIGN] = F("PP_ASSIGN", "assign directive"),
+    [EL_TT_PP_INC]    = F("PP_INC", "inc directive"),
+    [EL_TT_PP_DEC]    = F("PP_DEC", "dec directive"),
 
-    [EL_TT_PP_WHILE] = EL_SV("PP_WHILE"),
-    [EL_TT_PP_FOR] = EL_SV("PP_FOR"),
-    [EL_TT_PP_FOREACH] = EL_SV("PP_FOREACH"),
+    [EL_TT_PP_IF]   = F("PP_IF", "if directive"),
+    [EL_TT_PP_ELIF] = F("PP_ELIF", "elif directive"),
+    [EL_TT_PP_ELSE] = F("PP_ELSE", "else directive"),
 
-    [EL_TT_ELLIPSIS] = EL_SV("ELLIPSIS"),
-    [EL_TT_LINE_COMMENT] = EL_SV("LINE_COMMENT"),
-    [EL_TT_BLOCK_COMMENT] = EL_SV("BLOCK_COMMENT"),
+    [EL_TT_PP_WHILE]   = F("PP_WHILE", "while directive"),
+    [EL_TT_PP_FOR]     = F("PP_FOR", "for directive"),
+    [EL_TT_PP_FOREACH] = F("PP_FOREACH", "foreach directive"),
 
-    [EL_TT_WHITESPACE] = EL_SV("WHITESPACE"),
-    [EL_TT_NEWLINE] = EL_SV("NEWLINE"),
+    [EL_TT_ELLIPSIS]      = F("ELLIPSIS", "'...'"),
+    [EL_TT_LINE_COMMENT]  = F("LINE_COMMENT", "line comment"),
+    [EL_TT_BLOCK_COMMENT] = F("BLOCK_COMMENT", "block comment"),
 
-    [EL_TT_UNKNOWN] = EL_SV("UNKNOWN"),
+    [EL_TT_WHITESPACE] = F("WHITESPACE", "whitespace"),
+    [EL_TT_NEWLINE]    = F("NEWLINE", "new line"),
+
+    [EL_TT_UNKNOWN] = F("UNKNOWN", "unknown"),
 };
 
 bool el_token_type_is_keyword(ElTokenType tt) {
@@ -148,8 +154,15 @@ bool el_token_type_is_keyword(ElTokenType tt) {
 
 ElStringView el_token_type_to_string(ElTokenType tt) {
     if (tt < 0 || tt >= _EL_TT_COUNT) return EL_SV_NULL;
-    ElStringView s = el_token_type_to_string_map[tt];
+    ElStringView s = el_token_type_to_string_map[tt].to_str;
     if (el_sv_is_null(s)) return EL_SV("UNKNOWN");
+    return s;
+}
+
+ElStringView el_token_type_format(ElTokenType tt) {
+    if (tt < 0 || tt >= _EL_TT_COUNT) return EL_SV_NULL;
+    ElStringView s = el_token_type_to_string_map[tt].format;
+    if (el_sv_is_null(s)) return EL_SV("unknown");
     return s;
 }
 

@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 
-// clang-format off
 typedef enum ElTokenType {
     EL_TT_EOF = 0,
 
@@ -175,7 +174,6 @@ typedef enum ElTokenType {
     EL_TT_UNKNOWN,
     _EL_TT_COUNT,
 } ElTokenType;
-// clang-format on
 
 typedef struct ElToken {
     ElTokenType type;
@@ -185,10 +183,8 @@ typedef struct ElToken {
 
 bool el_token_type_is_keyword(ElTokenType tt);
 
-/// @brief Convert a token type to its string representation.
-/// @param tt Token type.
-/// @return Pointer to a null-terminated string describing the token type.
 ElStringView el_token_type_to_string(ElTokenType tt);
+ElStringView el_token_type_format(ElTokenType tt);
 
 /// @brief Format a token into a provided buffer.
 /// @param tok Token to format.
