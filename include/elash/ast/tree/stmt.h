@@ -9,7 +9,7 @@
 #include "stmt/assign.h"
 #include "stmt/return.h"
 #include "stmt/block.h"
-
+#include "stmt/while.h"
 #include "stmt/if.h"
 
 typedef enum ElAstStmtType {
@@ -19,6 +19,7 @@ typedef enum ElAstStmtType {
     EL_AST_STMT_ASSIGN,
     EL_AST_STMT_BLOCK,
     EL_AST_STMT_IF,
+    EL_AST_STMT_WHILE,
 } ElAstStmtType;
 
 typedef struct ElAstStmtNode {
@@ -27,12 +28,13 @@ typedef struct ElAstStmtNode {
     union {
         ElAstExprNode* expr;
 
-        ElAstBlockStmtNode block;
+        ElAstBlockStmtNode  block;
         ElAstReturnStmtNode return_;
         ElAstVarDefStmtNode var_def;
         ElAstAssignStmtNode assign;
 
-        ElAstIfStmtNode if_;
+        ElAstIfStmtNode    if_;
+        ElAstWhileStmtNode while_;
     } as;
     ElAstStmtNode* next; // linked list; used in block stmt
 } ElAstStmtNode;
