@@ -10,7 +10,7 @@
 
 ### Control Flow
 - [x] If statement
-- [ ] While statement
+- [x] While statement
 
 ### Type system
 - [x] Basic primitive types
