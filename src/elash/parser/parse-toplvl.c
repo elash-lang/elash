@@ -13,16 +13,21 @@ static ElAstFuncParamList _el_parser_parse_func_params(ElParser* parser) {
 
     while (parser->current.type != EL_TT_RPAREN) {
         ElAstTypeNode* p_type = _el_parser_parse_type(parser);
-        if (el_parser_has_errs(parser)) return params;
+        if (el_parser_has_errs(parser)) {
+            el_parser_skip_to(parser, EL_TT_RPAREN);
+            return params;
+        }
 
         ElAstIdentNode* p_name = _el_parser_parse_ident(parser);
-        if (el_parser_has_errs(parser)) return params;
+        if (el_parser_has_errs(parser)) {
+            el_parser_skip_to(parser, EL_TT_RPAREN);
+            return params;
+        }
 
         el_ast_func_param_list_append(&params, el_ast_new_func_param(
             parser->arena,
             el_source_span_merge(p_type->span, p_name->span),
-            p_type,
-            p_name
+            p_type, p_name
         ));
 
         if (parser->current.type == EL_TT_COMMA) {
@@ -44,22 +49,28 @@ static ElAstFuncParamList _el_parser_parse_func_params(ElParser* parser) {
 
 static ElAstFuncSignature _el_parser_parse_func_sig(ElParser* parser) {
     ElAstFuncSignature sig = {0};
+    uint errs_before = el_parser_error_count(parser);
 
     ElAstTypeNode* ret_type = _el_parser_parse_type(parser);
-    if (el_parser_has_errs(parser)) return sig;
+    if (el_parser_had_new_errors(parser, errs_before)) return sig;
 
     ElAstIdentNode* name = _el_parser_parse_ident(parser);
-    if (el_parser_has_errs(parser)) return sig;
+    if (el_parser_had_new_errors(parser, errs_before)) return sig;
 
     el_parser_expect(parser, EL_TT_LPAREN);
-    if (el_parser_has_errs(parser)) return sig;
+    if (el_parser_had_new_errors(parser, errs_before)) return sig;
 
     ElAstFuncParamList params = _el_parser_parse_func_params(parser);
-    if (el_parser_has_errs(parser)) return sig;
+    if (el_parser_had_new_errors(parser, errs_before)) return sig;
 
     ElToken rparen_tok = parser->current;
-    el_parser_expect(parser, EL_TT_RPAREN);
-    if (el_parser_has_errs(parser)) {
+    if (!el_parser_check(parser, EL_TT_RPAREN)) {
+        el_parser_expect(parser, EL_TT_RPAREN);
+        return sig;
+    }
+    el_parser_advance(parser);
+
+    if (ret_type == NULL || name == NULL) {
         return sig;
     }
 
@@ -76,8 +87,16 @@ ElAstTopLevelNode* el_parser_parse_toplevel(ElParser* parser) {
         is_extern = true;
     }
 
+    uint errs_before = el_parser_error_count(parser);
     ElAstFuncSignature sig = _el_parser_parse_func_sig(parser);
-    if (el_parser_has_errs(parser)) return NULL;
+    if (el_parser_had_new_errors(parser, errs_before) || sig.ret_type == NULL || sig.name == NULL) {
+        if (el_parser_check(parser, EL_TT_LBRACE)) {
+            el_parser_skip_balanced_braces(parser);
+            return NULL;
+        }
+
+        return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+    }
 
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         if (is_extern) {
@@ -86,23 +105,25 @@ ElAstTopLevelNode* el_parser_parse_toplevel(ElParser* parser) {
                 extern_tok.span,
                 "extern declaration cannot have a body"
             );
+            el_parser_skip_balanced_braces(parser);
             return NULL;
         }
 
         ElToken lbrace_tok = parser->current;
-        el_parser_expect(parser, EL_TT_LBRACE);
-        if (el_parser_has_errs(parser)) return NULL;
+        el_parser_advance(parser);
 
         ElAstStmtNode* body_stmt = _el_parser_parse_block(parser, lbrace_tok);
-        if (el_parser_has_errs(parser)) return NULL;
 
         ElSourceSpan span = el_source_span_merge(sig.span, body_stmt->span);
         return el_ast_new_func_def(parser->arena, span, sig, &body_stmt->as.block);
     }
 
     ElToken semi_tok = parser->current;
-    el_parser_expect(parser, EL_TT_SEMICOLON);
-    if (el_parser_has_errs(parser)) return NULL;
+    if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
+        el_parser_expect(parser, EL_TT_SEMICOLON);
+        return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+    }
+    el_parser_advance(parser);
 
     ElSourceSpan span = sig.span;
     if (is_extern) {

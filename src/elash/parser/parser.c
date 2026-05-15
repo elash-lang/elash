@@ -26,6 +26,14 @@ bool el_parser_has_errs(const ElParser* parser) {
     return el_diag_engine_has_errors(parser->diag);
 }
 
+uint el_parser_error_count(const ElParser* parser) {
+    return parser->diag->summary.total_errors;
+}
+
+bool el_parser_had_new_errors(const ElParser* parser, uint error_count_before) {
+    return parser->diag->summary.total_errors > error_count_before;
+}
+
 void el_parser_advance(ElParser* parser) {
     if (parser->has_lookahead) {
         parser->current = parser->lookahead;
@@ -73,4 +81,6 @@ void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine
     parser->arena = arena;
     parser->current.type = EL_TT_UNKNOWN;
     parser->has_lookahead = false;
+
+    el_parser_advance(parser);
 }

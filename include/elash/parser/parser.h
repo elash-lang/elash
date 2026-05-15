@@ -1,5 +1,8 @@
 #pragma once
 
+#include <elash/parser/recovery.h>
+
+#include <elash/defs/int-types.h>
 #include <elash/lexer/tokstream.h>
 
 #include <elash/ast/tree/expr.h>
@@ -23,6 +26,8 @@ typedef struct ElParser {
 void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena);
 
 bool el_parser_has_errs(const ElParser* parser);
+uint el_parser_error_count(const ElParser* parser);
+bool el_parser_had_new_errors(const ElParser* parser, uint error_count_before);
 
 void el_parser_advance(ElParser* parser);
 void el_parser_expect(ElParser* parser, ElTokenType type);

@@ -16,16 +16,16 @@ ElAstModuleNode* el_parser_parse_module(ElParser* parser) {
 
     while (parser->current.type != EL_TT_EOF) {
         ElAstTopLevelNode* node = el_parser_parse_toplevel(parser);
-        if (el_parser_has_errs(parser)) return module;
+        if (node == NULL) {
+            continue;
+        }
 
-        if (node) {
-            el_ast_module_append(module, node);
-            if (first) {
-                module->span = node->span;
-                first = false;
-            } else {
-                module->span = el_source_span_merge(module->span, node->span);
-            }
+        el_ast_module_append(module, node);
+        if (first) {
+            module->span = node->span;
+            first = false;
+        } else {
+            module->span = el_source_span_merge(module->span, node->span);
         }
     }
 
