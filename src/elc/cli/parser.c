@@ -75,13 +75,15 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
 
     if (el_sv_starts_with(arg, EL_SV("--output"))) {
         ElcCliParseResult err = handle_output_flag(p, arg);
-        if (err.code != ELC_CLI_PARSE_OK) return err;
-    } else if (el_sv_starts_with(arg, EL_SV("--until"))) {
+        return err;
+    }
+    if (el_sv_starts_with(arg, EL_SV("--until"))) {
         ElcCliParseResult err = handle_until_flag(p, arg);
-        if (err.code != ELC_CLI_PARSE_OK) return err;
-    } else if (el_sv_starts_with(arg, EL_SV("--emit"))) {
+        return err;
+    }
+    if (el_sv_starts_with(arg, EL_SV("--emit"))) {
         ElcCliParseResult err = handle_emit_flag(p, arg);
-        if (err.code != ELC_CLI_PARSE_OK) return err;
+        return err;
     }
 
     if (handle_dump_switch(p, arg, EL_SV("--dump-toks"),    &p->out->dump_toks))    return ELC_CLI_PARSE_RESULT_OK;
