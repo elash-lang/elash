@@ -38,6 +38,43 @@ void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmtNode* if_stmt) {
     lw->current_block_id = merge_id;
 }
 
+void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmtNode* while_stmt) {
+    uint32_t cond_id = lw->current_func->block_count++;
+    uint32_t body_id = lw->current_func->block_count++;
+    uint32_t exit_id = lw->current_func->block_count++;
+
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, cond_id));
+    el_lowerer_emit_block(lw, lw->current_block_id);
+
+    lw->current_block_id = cond_id;
+    ElMirValue* cond = el_lowerer_lower_expr(lw, while_stmt->cond);
+
+    el_mir_ibuf_push(
+        &lw->ibuf,
+        el_mir_new_jmpif_instr(
+            lw->arena,
+            cond,
+            body_id,
+            exit_id
+        )
+    );
+
+    el_lowerer_emit_block(lw, lw->current_block_id);
+
+    lw->current_block_id = body_id;
+    el_lowerer_lower_stmt(lw, while_stmt->body);
+
+    if (!el_lowerer_has_terminator(lw)) {
+        el_mir_ibuf_push(
+            &lw->ibuf,
+            el_mir_new_jmp_instr(lw->arena, cond_id)
+        );
+    }
+
+    el_lowerer_emit_block(lw, lw->current_block_id);
+    lw->current_block_id = exit_id;
+}
+
 void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmtNode* assign) {
     ElMirValue* value = el_lowerer_lower_expr(lw, assign->value);
 
@@ -94,7 +131,7 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
     case EL_HIR_STMT_VAR_DEF: return _el_lowerer_lower_vardef(lw, &hir->as.var_def);
 
     case EL_HIR_STMT_IF:      return _el_lowerer_lower_if(lw, &hir->as.if_);
-    case EL_HIR_STMT_WHILE:   EL_TODO("implement lowering while statement");
+    case EL_HIR_STMT_WHILE:   return _el_lowerer_lower_while(lw, &hir->as.while_);
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirStmtKind, hir->kind);
 }
