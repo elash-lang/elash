@@ -140,33 +140,29 @@ typedef enum ElTokenType {
     EL_TT_PP_EMBED,                // (contextual) embed
 
     EL_TT_PP_PRAGMA,               // (contextual) pragma
-    EL_TT_PP_ANNOTE,               // (contextual) annote
     EL_TT_PP_ERROR,                // (contextual) error
     EL_TT_PP_WARNING,              // (contextual) warning
     EL_TT_PP_NOTE,                 // (contextual) note
+    EL_TT_PP_DEBUG,                // (contextual) debug
 
     EL_TT_PP_EMIT,                 // (contextual) emit 
 
     EL_TT_PP_DEFINE,               // (contextual) define
-    EL_TT_PP_ENDDEF,               // (contextual) enddef
-    EL_TT_PP_UNDEF,                // (contextual) undef
-    
+    EL_TT_PP_MACRO,                // (contextual) macro 
     EL_TT_PP_ASSIGN,               // (contextual) assign
-    EL_TT_PP_DEASSIGN,             // (contextual) deassign
-    EL_TT_PP_INC,                  // (contextual) inc
+    EL_TT_PP_UNDEF,                // (contextual) undef
     EL_TT_PP_DEC,                  // (contextual) dec
+    EL_TT_PP_INC,                  // (contextual) inc
     
     EL_TT_PP_IF,                   // (contextual) if
     EL_TT_PP_ELIF,                 // (contextual) elif
     EL_TT_PP_ELSE,                 // (contextual) else
-    EL_TT_PP_ENDIF,                // (contextual) endif
     
     EL_TT_PP_WHILE,                // (contextual) while
-    EL_TT_PP_ENDWHILE,             // (contextual) endwhile
-
     EL_TT_PP_FOR,                  // (contextual) for
     EL_TT_PP_FOREACH,              // (contextual) foreach
-    EL_TT_PP_ENDFOR,               // (contextual) endfor
+
+    EL_TT_PP_END,                  // (contextual) end
     /////////////////////////////////////////////////////////////////
 
     EL_TT_ELLIPSIS,             // ...

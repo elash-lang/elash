@@ -1,0 +1,57 @@
+#include std "io.elh"
+
+#define A 123
+#note "hello"
+
+#if defined(A)
+    #assign bool A_IS_123: A == 123 
+#else
+    #assign bool A_IS_123: false
+#end 
+
+#if A_IS_123
+    #include . "a-is-123.h"
+#end
+
+#macro CREATE_ENUM(str NAME, list ENUMERATORS):
+    #emit enum #{tokens::IDENT(NAME)} {
+    #foreach E in ENUMERATORS
+        #emit #{tokens::IDENT(E)},
+    #end
+    #emit }
+
+    #emit str[] #{tokens::IDENT(NAME)}_names = {
+    #foreach E in ENUMERATORS
+        #emit [(int)#{tokens::IDENT(NAME)}::#{tokens::IDENT(E)}] = #{tokens::STRING(E)},
+    #end
+    #emit };
+
+    #emit str #{tokens::IDENT(NAME)}_to_string(#{tokens::IDENT(NAME)} value) {
+    #emit return #{tokens::IDENT(NAME)}_names[(int)value];
+    #emit }
+#end
+
+const byte[...] binary_file = #embed assets "file.bin";
+const usize binary_file_size = sizeof(binary_file);
+
+// expands to:
+// enum Color {
+// Red,
+// Green,
+// Blue,
+// }
+// str[] Color_names = {
+// [(int)Color::Red] = "Red",
+// [(int)Color::Green] = "Green",
+// [(int)Color::Blue] = "Blue",
+// };
+// str Color_to_string(Color value) {
+// return Color_names[(int)value];
+// }
+CREATE_ENUM("Color", ("Red", "Green", "Blue"));
+
+int main() { 
+    Color color = Color::Red;
+    printf("color = %s", Color_to_string(color));
+    return 0;
+}
