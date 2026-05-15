@@ -120,6 +120,12 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
                 ? el_binder_bind_stmt(binder, in->as.if_.else_)
                 : NULL
         );
+    case EL_AST_STMT_WHILE:
+        return el_hir_new_while_stmt(
+            binder->hir_arena,
+            el_binder_bind_expr(binder, in->as.while_.cond),
+            el_binder_bind_stmt(binder, in->as.while_.body)
+        );
 
     case EL_AST_STMT_ASSIGN:
         return el_hir_new_assign_stmt(
