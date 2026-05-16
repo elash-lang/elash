@@ -8,6 +8,9 @@ out
 # Debugging
 vgcore.*
 
+# Local files
+.local/
+
 # IDEs configuration
 compile_commands.json
 compile_flags.txt
