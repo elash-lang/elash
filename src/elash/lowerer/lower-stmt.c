@@ -98,18 +98,8 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmtNode* while_stmt) {
 
 void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmtNode* assign) {
     ElMirValue* value = el_lowerer_lower_expr(lw, assign->value);
-
-    if (assign->target->kind == EL_HIR_EXPR_SYMBOL) {
-        ElSymbol* sym = assign->target->as.symbol;
-        if (lw->symbol_map && lw->symbol_map[sym->id]) {
-            ElMirValue* ptr = lw->symbol_map[sym->id];
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
-        } else {
-            EL_UNREACHABLE("invalid assignment target");
-        }
-    } else {
-        EL_TODO("support for pointer dereferences etc.");
-    }
+    ElMirValue* ptr = el_lowerer_get_lvalue(lw, assign->target);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
 }
 
 void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmtNode* ret) {

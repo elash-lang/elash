@@ -5,20 +5,41 @@
 
 #include <elash/mir/instr.h>
 
-ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym) {
+ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExprNode* hir) {
+    switch (hir->kind) {
+    case EL_HIR_EXPR_SYMBOL: {
+        ElSymbol* sym = hir->as.symbol;
+        if (sym->kind == EL_SYM_VAR) {
+            if (lw->symbol_map && lw->symbol_map[sym->id]) {
+                return lw->symbol_map[sym->id];
+            }
+            EL_TODO("global variables not supported yet");
+        }
+        EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
+    }
+    
+    case EL_HIR_EXPR_UNARY:
+        if (hir->as.unary.op == EL_SEMA_UNARY_OP_DEREF) {
+            // from what i understand, lvalue of *p is effectively the value p
+            return el_lowerer_lower_expr(lw, hir->as.unary.operand);
+        }
+        break;
+
+    default: break;
+    }
+    EL_UNREACHABLE("expression is not an lvalue (this should be caught during semantic analysis)");
+}
+
+ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) {
     switch (sym->kind) {
     case EL_SYM_VAR: {
-        if (lw->symbol_map && lw->symbol_map[sym->id]) {
-            ElMirValue* ptr = lw->symbol_map[sym->id];
-            ElMirValue* reg = el_mir_new_reg(lw->arena, sym->as.var.type, lw->current_func->reg_count++);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
-            return reg;
-        }
-
-        EL_TODO("Variables not supported yet");
+        ElMirValue* ptr = lw->symbol_map[sym->id];
+        ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
+        return reg;
     }
     case EL_SYM_FUNC:
-        return el_mir_new_global(lw->arena, sym->as.func.type, sym);
+        return el_mir_new_global(lw->arena, type, sym);
     case EL_SYM_TYPE:
         EL_UNREACHABLE("Type symbol in expression context (this should be caught during semantic analysis)");
         break;
@@ -43,6 +64,18 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
     }
     case EL_HIR_EXPR_UNARY: {
         ElHirUnaryExprNode* expr = &hir->as.unary;
+
+        if (expr->op == EL_SEMA_UNARY_OP_ADDROF) {
+            return el_lowerer_get_lvalue(lw, expr->operand);
+        }
+
+        if (expr->op == EL_SEMA_UNARY_OP_DEREF) {
+            ElMirValue* ptr = el_lowerer_lower_expr(lw, expr->operand);
+            ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
+            return reg;
+        }
+
         ElMirValue* operand = el_lowerer_lower_expr(lw, expr->operand);
 
         ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
@@ -71,7 +104,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
         return result;
     }
     case EL_HIR_EXPR_SYMBOL:
-        return el_lowerer_lower_symbol(lw, hir->as.symbol);
+        return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
 }

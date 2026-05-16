@@ -18,7 +18,8 @@ int main() {
     char c = 'Y';
     putchar_by_ptr(&c, &n);
     
-    if (n != 'Y') {
+    // 89 == 'Y'
+    if (n != 89) {
         return 1;
     }
     return 0;
