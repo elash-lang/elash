@@ -1,7 +1,3 @@
-#include <elash/diag/engine.h>
-#include <elash/diag/handle.h>
-#include <elash/diag/printer/console.h>
-
 #include <elc/driver/driver.h>
 
 #include <elc/cli/args.h>
@@ -25,10 +21,6 @@ int main(int argc, const char* const* argv) {
     elc_driver_register_observers(&driver, &args);
 
     bool success = elc_driver_run(&driver, &args);
-
-    ElDiagPrinter printer = el_diag_make_console_printer();
-    el_diag_engine_print(&driver.diag, &printer, stdout);
-
     elc_driver_free(&driver);
 
     return success ? 0 : 1;

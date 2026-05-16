@@ -1,5 +1,8 @@
 #include <elc/driver/driver.h>
-#include <elash/hir/dump/module.h>
+
+#include <elash/diag/engine.h>
+#include <elash/diag/handle.h>
+#include <elash/diag/printer/console.h>
 
 #include <elc/driver/stages/lexer-stage.h>
 #include <elc/driver/stages/pp-stage.h>
@@ -130,6 +133,9 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
             success = false;
         }
     }
+
+    ElDiagPrinter printer = el_diag_make_console_printer();
+    el_diag_engine_print(&driver->diag, &printer, stdout);
 
     el_srcdoc_destroy(&src);
     return success;
