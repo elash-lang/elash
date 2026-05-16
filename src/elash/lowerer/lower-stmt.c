@@ -7,6 +7,9 @@
 #include <elash/mir/instr.h>
 #include <elash/mir/value.h>
 
+#include <elash/hir/tree/stmt/break.h>
+#include <elash/hir/tree/stmt/continue.h>
+
 void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmtNode* if_stmt) {
     ElMirValue* cond = el_lowerer_lower_expr(lw, if_stmt->cond);
 
@@ -38,10 +41,25 @@ void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmtNode* if_stmt) {
     lw->current_block_id = merge_id;
 }
 
+void _el_lowerer_lower_break(ElLowerer* lw, ElHirBreakStmtNode* node) {
+    (void) node;
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->break_target_id));
+}
+
+void _el_lowerer_lower_continue(ElLowerer* lw, ElHirContinueStmtNode* node) {
+    (void) node;
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->continue_target_id));
+}
+
 void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmtNode* while_stmt) {
     uint32_t cond_id = lw->current_func->block_count++;
     uint32_t body_id = lw->current_func->block_count++;
     uint32_t exit_id = lw->current_func->block_count++;
+
+    uint32_t prev_break = lw->break_target_id;
+    uint32_t prev_continue = lw->continue_target_id;
+    lw->break_target_id = exit_id;
+    lw->continue_target_id = cond_id;
 
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, cond_id));
     el_lowerer_emit_block(lw, lw->current_block_id);
@@ -73,6 +91,9 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmtNode* while_stmt) {
 
     el_lowerer_emit_block(lw, lw->current_block_id);
     lw->current_block_id = exit_id;
+
+    lw->break_target_id = prev_break;
+    lw->continue_target_id = prev_continue;
 }
 
 void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmtNode* assign) {
@@ -132,6 +153,9 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
 
     case EL_HIR_STMT_IF:      return _el_lowerer_lower_if(lw, &hir->as.if_);
     case EL_HIR_STMT_WHILE:   return _el_lowerer_lower_while(lw, &hir->as.while_);
+
+    case EL_HIR_STMT_BREAK:    return _el_lowerer_lower_break(lw, &hir->as.break_);
+    case EL_HIR_STMT_CONTINUE: return _el_lowerer_lower_continue(lw, &hir->as.continue_);
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirStmtKind, hir->kind);
 }

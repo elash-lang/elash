@@ -30,6 +30,8 @@ void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElBui
     lw->builtins = builtins;
     el_mir_ibuf_init(&lw->ibuf);
     lw->symbol_map = NULL;
+    lw->break_target_id = 0;
+    lw->continue_target_id = 0;
 }
 
 void el_lowerer_free(ElLowerer* lw) {
