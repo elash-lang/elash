@@ -51,6 +51,15 @@ void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
         el_ast_dump_print_indent(indent + 1, out);
         break;
 
+    case EL_AST_STMT_BREAK:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "BreakStmt\n");
+        break;
+    case EL_AST_STMT_CONTINUE:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "ContinueStmt\n");
+        break;
+
     case EL_AST_STMT_BLOCK:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "BlockStmt:\n");
