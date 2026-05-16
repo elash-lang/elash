@@ -27,12 +27,27 @@ ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElA
     return el_hir_new_bin_expr(binder->hir_arena, type, bin->op, left, right);
 }
 
-ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstUnaryExprNode* unary) {
+ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExprNode* in, ElAstUnaryExprNode* unary) {
     ElHirExprNode* operand = el_binder_bind_expr(binder, unary->operand);
     if (!operand) return NULL;
 
-    // TODO: implement type checking 
-    return el_hir_new_unary_expr(binder->hir_arena, operand->type, unary->op, operand);
+    ElType* type = operand->type;
+    if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
+        type = el_sema_new_ptr_type(binder->type_arena, operand->type);
+    } else if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
+        if (operand->type->kind != EL_TYPE_PTR) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                in->span,
+                "cannot dereference non-pointer type ${type}",
+                EL_DIAG_STRING("type", EL_SV("TODO"))
+            );
+            return NULL;
+        }
+        type = operand->type->as.ptr.base;
+    }
+
+    return el_hir_new_unary_expr(binder->hir_arena, type, unary->op, operand);
 }
 
 ElHirExprNode* _el_binder_bind_literal(ElBinder* binder, ElAstExprNode* in, ElAstLiteralNode* lit) {
@@ -126,7 +141,7 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
 
     switch (in->type) {
     case EL_AST_EXPR_BINARY:  return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
-    case EL_AST_EXPR_UNARY:   return _el_binder_bind_unary_expr(binder, &in->as.unary);
+    case EL_AST_EXPR_UNARY:   return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
     case EL_AST_EXPR_LITERAL: return _el_binder_bind_literal(binder, in, &in->as.literal);
     case EL_AST_EXPR_IDENT:   return _el_binder_bind_ident(binder, in, &in->as.ident);
     case EL_AST_EXPR_CALL:    return _el_binder_bind_call(binder, in, &in->as.call);

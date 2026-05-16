@@ -8,6 +8,12 @@
 #include <elash/hir/tree/stmt/block.h>
 #include <elash/hir/tree/stmt/return.h>
 
+bool _el_binder_is_lvalue(ElHirExprNode* expr) {
+    // TODO: simplified
+    return (expr->kind == EL_HIR_EXPR_UNARY && expr->as.unary.op == EL_SEMA_UNARY_OP_DEREF)
+         || expr->kind == EL_HIR_EXPR_SYMBOL;
+}
+
 ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in) {
     ElHirStmtNode* head = NULL;
     ElHirStmtNode* tail = NULL;
@@ -98,6 +104,23 @@ ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* i
     return el_hir_new_var_def_stmt(binder->hir_arena, sym, init);
 }
 
+ElHirStmtNode* _el_binder_bind_assign(ElBinder* binder, ElAstStmtNode* in, ElAstAssignStmtNode* assign) {
+    ElHirExprNode* target = el_binder_bind_expr(binder, assign->target);
+    if (!_el_binder_is_lvalue(target)) {
+         el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.assign-rvalue",
+            in->span, "cannot assign to rvalue",
+        );
+        return NULL;
+    }
+
+    return el_hir_new_assign_stmt(
+        binder->hir_arena,
+        target,
+        el_binder_bind_expr(binder, assign->value)
+    );
+}
+
 ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
@@ -151,12 +174,7 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
         return el_hir_new_continue_stmt(binder->hir_arena);
 
     case EL_AST_STMT_ASSIGN:
-        return el_hir_new_assign_stmt(
-            binder->hir_arena,
-            el_binder_bind_expr(binder, in->as.assign.target),
-            el_binder_bind_expr(binder, in->as.assign.value)
-        );
-
+        return _el_binder_bind_assign(binder, in, &in->as.assign);
     case EL_AST_STMT_VAR_DEF:
         return _el_binder_bind_var_definition(binder, in);
     }
