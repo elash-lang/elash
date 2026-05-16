@@ -4,12 +4,16 @@
 #include <elash/sema/symbol.h>
 #include <elash/util/dynarena.h>
 
-#include "stmt/if.h"
-#include "stmt/while.h"
 #include "stmt/block.h"
 #include "stmt/vardef.h"
 #include "stmt/assign.h"
 #include "stmt/return.h"
+
+#include "stmt/if.h"
+#include "stmt/while.h"
+
+#include "stmt/break.h"
+#include "stmt/continue.h"
 
 typedef enum ElHirStmtKind {
     EL_HIR_STMT_EXPR,
@@ -19,6 +23,8 @@ typedef enum ElHirStmtKind {
     EL_HIR_STMT_BLOCK,
     EL_HIR_STMT_IF,
     EL_HIR_STMT_WHILE,
+    EL_HIR_STMT_BREAK,
+    EL_HIR_STMT_CONTINUE,
 } ElHirStmtKind;
 
 typedef struct ElHirStmtNode {
@@ -33,6 +39,9 @@ typedef struct ElHirStmtNode {
         ElHirBlockStmtNode block;
         ElHirWhileStmtNode while_;
         ElHirIfStmtNode    if_;
+
+        ElHirContinueStmtNode continue_;
+        ElHirBreakStmtNode    break_;
     } as;
     ElHirStmtNode* next;
 } ElHirStmtNode;
