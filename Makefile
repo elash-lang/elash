@@ -7,6 +7,20 @@ else
 	PLATFORM := posix
 endif
 
+ifeq ($(wildcard VERSION),)
+$(error VERSION file not found)
+endif
+
+ifeq ($(PLATFORM),windows)
+	VERSION   := $(strip $(shell type VERSION))
+	DIST_OS   := windows
+	DIST_ARCH := $(shell powershell -NoProfile -Command "$$env:PROCESSOR_ARCHITECTURE.ToLower()")
+else
+	VERSION   := $(strip $(shell cat VERSION))
+	DIST_OS   := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+	DIST_ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
+endif
+
 SRC_DIR     := src
 TEST_DIR    := tests
 INCLUDE_DIR := include
@@ -36,6 +50,14 @@ LIBELASH_SHARED  := $(LIB_DIR)/lib$(LIBELASH_NAME)$(SHARED_EXT)
 LIBELC_NAME      := elc
 LIBELC_STATIC    := $(LIB_DIR)/lib$(LIBELC_NAME)$(STATIC_EXT)
 LIBELC_SHARED    := $(LIB_DIR)/lib$(LIBELC_NAME)$(SHARED_EXT)
+
+DIST_NAME := $(OUT_DIR)/elash-$(VERSION)-$(DIST_OS)-$(DIST_ARCH)-$(BUILD)
+
+ifeq ($(PLATFORM),windows)
+	DIST_FILE := $(DIST_NAME).zip
+else
+	DIST_FILE := $(DIST_NAME).tar.gz
+endif
 
 ELC_BIN := $(BIN_DIR)/elc$(EXE_EXT)
 
@@ -82,10 +104,12 @@ endif
 ifeq ($(PLATFORM),windows)
 	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
 	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	CMD_ARCHIVE = powershell -NoProfile -Command "Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force"
 	FIXPATH     = $(subst /,\,$(1))
 else ifeq ($(PLATFORM),posix)
 	CMD_MKDIR_P = mkdir -p "$(1)"
 	CMD_RM_RF = rm -rf "$(1)"
+	CMD_ARCHIVE = tar -czf $(DIST_FILE) -C $(OUT_DIR) bin lib
 	FIXPATH     = $(1)
 endif
 
@@ -121,9 +145,12 @@ DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
 .PHONY: all dirs lint clean check-llvm
 .PHONY: libelash libelash-shared libelash-static
 .PHONY: libelc libelc-shared libelc-static
-.PHONY: elc
+.PHONY: elc archive
 
 all: dirs elc libelash libelc
+
+archive: all
+	@$(call CMD_ARCHIVE)
 
 libelash-static: $(LIBELASH_STATIC)
 libelash-shared: $(LIBELASH_SHARED)
