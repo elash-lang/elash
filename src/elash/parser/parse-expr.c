@@ -220,6 +220,20 @@ ElAstExprNode* _el_parser_parse_unary(ElParser* parser) {
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_PRE_DEC, operand);
     }
+    if (el_parser_check(parser, EL_TT_STAR)) {
+        ElToken tok = parser->current;
+        el_parser_advance(parser);
+        ElAstExprNode* operand = _el_parser_parse_unary(parser);
+        if (el_parser_has_errs(parser)) return NULL;
+        return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_DEREF, operand);
+    }
+    if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
+        ElToken tok = parser->current;
+        el_parser_advance(parser);
+        ElAstExprNode* operand = _el_parser_parse_unary(parser);
+        if (el_parser_has_errs(parser)) return NULL;
+        return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_ADDROF, operand);
+    }
 
     return _el_parser_parse_postfix(parser);
 }

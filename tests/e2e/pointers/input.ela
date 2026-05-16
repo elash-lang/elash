@@ -1,0 +1,25 @@
+void modify(int* ptr) {
+    *ptr = 47;
+}
+
+int putchar(int c);
+void putchar_by_ptr(char* ptr, int* result) {
+    *result = putchar(*ptr);
+}
+
+int main() {
+    int n = 10;
+    modify(&n);
+
+    if (n != 47) {
+        return 1;
+    }
+
+    char c = 'Y';
+    putchar_by_ptr(&c, &n);
+    
+    if (n != 'Y') {
+        return 1;
+    }
+    return 0;
+}
