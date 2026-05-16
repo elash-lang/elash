@@ -102,6 +102,24 @@ void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmtNode* assign) {
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
 }
 
+void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmtNode* cassign) {
+    ElMirValue* ptr = el_lowerer_get_lvalue(lw, cassign->target);
+
+    // Load current value
+    ElMirValue* current_val = el_mir_new_reg(lw->arena, cassign->target->type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
+
+    // Lower RHS
+    ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
+
+    // Perform op
+    ElMirValue* result = el_mir_new_reg(lw->arena, cassign->target->type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, cassign->op, current_val, rhs));
+
+    // Store back
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, result));
+}
+
 void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmtNode* ret) {
     ElMirValue* ret_val = ret->value != NULL
         ? el_lowerer_lower_expr(lw, ret->value)
@@ -140,6 +158,8 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
     case EL_HIR_STMT_ASSIGN:  return _el_lowerer_lower_assign(lw, &hir->as.assign);
     case EL_HIR_STMT_RETURN:  return _el_lowerer_lower_return(lw, &hir->as.return_);
     case EL_HIR_STMT_VAR_DEF: return _el_lowerer_lower_vardef(lw, &hir->as.var_def);
+
+    case EL_HIR_STMT_COMPOUND_ASSIGN: return _el_lowerer_lower_cassign(lw, &hir->as.cassign);
 
     case EL_HIR_STMT_IF:      return _el_lowerer_lower_if(lw, &hir->as.if_);
     case EL_HIR_STMT_WHILE:   return _el_lowerer_lower_while(lw, &hir->as.while_);
