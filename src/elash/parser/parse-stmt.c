@@ -6,6 +6,7 @@
 #include <elash/ast/tree/stmt/return.h>
 #include <elash/ast/tree/stmt/if.h>
 #include <elash/ast/tree/stmt/assign.h>
+#include <elash/ast/tree/stmt/cassign.h>
 
 ElAstStmtNode* _el_parser_parse_return(ElParser* parser, ElToken return_tok) {
     if (el_parser_check(parser, EL_TT_SEMICOLON)) {
@@ -109,6 +110,33 @@ ElAstStmtNode* _el_parser_parse_expr_stmt(ElParser* parser) {
         el_parser_advance(parser);
 
         return el_ast_new_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr, value);
+    }
+
+    ElSemaBinOp op;
+    bool is_compound = false;
+    if      (el_parser_match(parser, EL_TT_ADD_ASSIGN))         { op = EL_SEMA_BIN_OP_ADD;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_SUB_ASSIGN))         { op = EL_SEMA_BIN_OP_SUB;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_MUL_ASSIGN))         { op = EL_SEMA_BIN_OP_MUL;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_DIV_ASSIGN))         { op = EL_SEMA_BIN_OP_DIV;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_MOD_ASSIGN))         { op = EL_SEMA_BIN_OP_MOD;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_AND_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_AND; is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_OR_ASSIGN))  { op = EL_SEMA_BIN_OP_BW_OR;  is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_XOR_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_XOR; is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { op = EL_SEMA_BIN_OP_SHL;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { op = EL_SEMA_BIN_OP_SHR;    is_compound = true; }
+
+    if (is_compound) {
+        ElAstExprNode* value = el_parser_parse_expr(parser);
+        if (value == NULL) return NULL;
+
+        ElToken semi_tok = parser->current;
+        if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
+            el_parser_expect(parser, EL_TT_SEMICOLON);
+            return NULL;
+        }
+        el_parser_advance(parser);
+
+        return el_ast_new_compound_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), op, expr, value);
     }
 
     ElToken semi_tok = parser->current;
