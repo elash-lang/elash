@@ -4,6 +4,7 @@
 #include <elash/sema/symbol.h>
 #include <elash/util/dynarena.h>
 
+#include "stmt/cassign.h"
 #include "stmt/block.h"
 #include "stmt/vardef.h"
 #include "stmt/assign.h"
@@ -18,6 +19,7 @@
 typedef enum ElHirStmtKind {
     EL_HIR_STMT_EXPR,
     EL_HIR_STMT_RETURN,
+    EL_HIR_STMT_COMPOUND_ASSIGN,
     EL_HIR_STMT_VAR_DEF,
     EL_HIR_STMT_ASSIGN,
     EL_HIR_STMT_BLOCK,
@@ -35,6 +37,8 @@ typedef struct ElHirStmtNode {
         ElHirReturnStmtNode return_;
         ElHirVarDefStmtNode var_def;
         ElHirAssignStmtNode assign;
+
+        ElHirCompoundAssignStmtNode cassign;
         
         ElHirBlockStmtNode block;
         ElHirWhileStmtNode while_;

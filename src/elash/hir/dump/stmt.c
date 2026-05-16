@@ -42,6 +42,13 @@ void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
         el_hir_dump_expr(node->as.assign.target, indent, out);
         fputs(" = ", out);
         el_hir_dump_expr(node->as.assign.value, 0, out);
+        fputs(";\n", out);
+        return;
+    case EL_HIR_STMT_COMPOUND_ASSIGN:
+        el_hir_dump_expr(node->as.cassign.target, indent, out);
+        fprintf(out, " "EL_SV_FMT"= ", EL_SV_FARG(el_sema_bin_op_to_string(node->as.cassign.op)));
+        el_hir_dump_expr(node->as.cassign.value, 0, out);
+        fputs(";\n", out);
         return;
 
     case EL_HIR_STMT_IF:
