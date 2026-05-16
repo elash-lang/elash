@@ -199,6 +199,33 @@ ElAstStmtNode* el_parser_parse_stmt(ElParser* parser) {
         return _el_parser_parse_block(parser, lbrace_tok);
     }
 
+    if (el_parser_check(parser, EL_TT_KW_BREAK)) {
+        ElToken break_tok = parser->current;
+        el_parser_advance(parser);
+
+        ElToken semi_tok = parser->current;
+        if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
+            el_parser_expect(parser, EL_TT_SEMICOLON);
+            return NULL;
+        }
+        el_parser_advance(parser);
+
+        return el_ast_new_break_stmt(parser->arena, el_source_span_merge(break_tok.span, semi_tok.span));
+    }
+    if (el_parser_check(parser, EL_TT_KW_CONTINUE)) {
+        ElToken continue_tok = parser->current;
+        el_parser_advance(parser);
+
+        ElToken semi_tok = parser->current;
+        if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
+            el_parser_expect(parser, EL_TT_SEMICOLON);
+            return NULL;
+        }
+        el_parser_advance(parser);
+
+        return el_ast_new_continue_stmt(parser->arena, el_source_span_merge(continue_tok.span, semi_tok.span));
+    }
+
     if (el_parser_check(parser, EL_TT_IDENT)) {
         ElTokenType next_type = el_parser_peek(parser).type;
         if (next_type == EL_TT_IDENT || next_type == EL_TT_STAR) {

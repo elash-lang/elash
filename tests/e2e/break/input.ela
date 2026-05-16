@@ -1,0 +1,8 @@
+int main() {
+    int ret = 0;
+    while (true) {
+        if (ret == 10) break;
+        ret = ret + 1;
+    }
+    return ret - 10;
+}
