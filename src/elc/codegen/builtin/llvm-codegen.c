@@ -1,5 +1,7 @@
 #include <elc/codegen/builtin/llvm-backend.h>
 
+#include <elash/sema/expr/bin-op.h>
+#include <elash/sema/expr/unary-op.h>
 #include <elash/util/dynarena.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
@@ -116,23 +118,34 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     LLVMValueRef lhs = elc_llvm_map_value(ctx, func, bin->lhs);
     LLVMValueRef rhs = elc_llvm_map_value(ctx, func, bin->rhs);
 
-    bool is_signed = elc_llvm_is_type_signed(instr->result->type);
+    bool is_signed = elc_llvm_is_type_signed(bin->lhs->type);
 
     LLVMValueRef res = NULL;
     switch (bin->op) {
     case EL_SEMA_BIN_OP_ADD: res = LLVMBuildAdd(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_SUB: res = LLVMBuildSub(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_MUL: res = LLVMBuildMul(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_DIV:
-        res = (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv)(ctx->builder, lhs, rhs, ""); break;
+
+    case EL_SEMA_BIN_OP_DIV: res = (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv)(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_MOD: res = (is_signed ? LLVMBuildSRem : LLVMBuildURem)(ctx->builder, lhs, rhs, ""); break;
+
+    case EL_SEMA_BIN_OP_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
+
+    case EL_SEMA_BIN_OP_BW_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_BW_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
+    case EL_SEMA_BIN_OP_BW_XOR: res = LLVMBuildXor(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_SHL:    res = LLVMBuildShl(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_SHR:
+        res = (is_signed ? LLVMBuildAShr : LLVMBuildLShr)(ctx->builder, lhs, rhs, ""); break;
+
     default:
         if (el_sema_bin_op_is_comparison(bin->op)) {
             LLVMIntPredicate pred = elc_llvm_get_predicate_of(bin->op, is_signed);
             res = LLVMBuildICmp(ctx->builder, pred, lhs, rhs, "");
             break;
         }
-
-        EL_TODO("binary op not implemented");
+        EL_UNREACHABLE_ENUM_VAL(ElSemaBinOp, bin->op);
     }
 
     ASSIGN_REG(func, instr->result, res, "binary");
@@ -142,11 +155,34 @@ void elc_llvm_compile_unary_instr(Context* ctx, FunctionContext* func, ElMirInst
     ElMirUnaryInstr* unary = &instr->as.unary;
 
     LLVMValueRef operand = elc_llvm_map_value(ctx, func, unary->operand);
+    LLVMValueRef zero = LLVMConstInt(LLVMTypeOf(operand), 0, false);
+
     LLVMValueRef res = NULL;
     switch (unary->op) {
-    case EL_SEMA_UNARY_OP_NEG: res = LLVMBuildNeg(ctx->builder, operand, ""); break;
+    case EL_SEMA_UNARY_OP_POS:
+        res = operand;
+        break;
+    case EL_SEMA_UNARY_OP_NEG:
+        res = LLVMBuildNeg(ctx->builder, operand, "");
+        break;
+    case EL_SEMA_UNARY_OP_NOT:
+        res = LLVMBuildICmp(ctx->builder, LLVMIntEQ, operand, zero, "");
+        break;
+    case EL_SEMA_UNARY_OP_BW_NOT:
+        res = LLVMBuildNot(ctx->builder, operand, "");
+        break;
+
+    case EL_SEMA_UNARY_OP_PRE_INC:
+    case EL_SEMA_UNARY_OP_PRE_DEC:
+    case EL_SEMA_UNARY_OP_POST_INC:
+    case EL_SEMA_UNARY_OP_POST_DEC:
+    case EL_SEMA_UNARY_OP_DEREF:
+    case EL_SEMA_UNARY_OP_ADDROF:
+        EL_UNREACHABLE("should be lowered before codegen");
+        break;
+
     default:
-        EL_TODO("unary op not implemented");
+        EL_UNREACHABLE_ENUM_VAL(ElSemaUnaryOp, unary->op);
     }
 
     ASSIGN_REG(func, instr->result, res, "unary");

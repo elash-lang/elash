@@ -1,9 +1,12 @@
 #include <elash/lowerer/lowerer.h>
 
+#include <elash/sema/expr/bin-op.h>
+#include <elash/sema/expr/unary-op.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
 
 #include <elash/mir/instr.h>
+#include <elash/mir/value/const.h>
 
 ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExprNode* hir) {
     switch (hir->kind) {
@@ -47,6 +50,31 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) 
     EL_UNREACHABLE_ENUM_VAL(ElSymbolKind, sym->kind);
 }
 
+static bool _el_lowerer_is_incdec(ElSemaUnaryOp op) {
+    return op >= EL_SEMA_UNARY_OP_PRE_INC && op <= EL_SEMA_UNARY_OP_POST_DEC;
+}
+
+static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExprNode* expr) {
+    ElMirValue* ptr = el_lowerer_get_lvalue(lw, expr->operand);
+    ElType*     val_type = expr->operand->type;
+
+    ElMirValue* current = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current, ptr));
+
+    ElHirLiteral one_lit = { .as.int_ = 1 };
+    ElMirValue* one = el_mir_new_const(lw->arena, val_type, one_lit);
+
+    ElSemaBinOp bin_op = (expr->op == EL_SEMA_UNARY_OP_PRE_INC || expr->op == EL_SEMA_UNARY_OP_POST_INC)
+        ? EL_SEMA_BIN_OP_ADD
+        : EL_SEMA_BIN_OP_SUB;
+
+    ElMirValue* updated = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, updated, bin_op, current, one));
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, updated));
+
+    return el_sema_unary_op_is_post(expr->op) ? current : updated;
+}
+
 // TODO: this function is too large; split it into smaller helpers
 //       before adding any new expression types
 ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
@@ -74,6 +102,10 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
             ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
             return reg;
+        }
+
+        if (_el_lowerer_is_incdec(expr->op)) {
+            return _el_lowerer_lower_incdec(lw, expr);
         }
 
         ElMirValue* operand = el_lowerer_lower_expr(lw, expr->operand);

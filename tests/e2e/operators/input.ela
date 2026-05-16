@@ -1,0 +1,88 @@
+void compoundViaPtr(int* p) {
+    *p += 10; // 10
+    *p -= 4;  // 6
+    *p *= 3;  // 18
+    *p /= 2;  // 9
+    *p %= 7;  // 2
+    *p &= 15; // 2
+    *p |= 8;  // 10
+    *p ^= 2;  // 8
+    *p <<= 1; // 16
+    *p >>= 2; // 4
+}
+
+int main() {
+    // arithmetic
+    if (17 + 5 != 22) return 1;
+    if (17 - 5 != 12) return 2;
+    if (17 * 5 != 85) return 3;
+    if (85 / 5 != 17) return 4;
+    if (17 % 5 != 2) return 5;
+    if ((-7) / 2 != -3) return 6;
+
+    // comparisons
+    if (!(10 < 20)) return 10;
+    if (!(10 <= 10)) return 11;
+    if (!(20 > 10)) return 12;
+    if (!(20 >= 20)) return 13;
+    if (!(10 == 10)) return 14;
+    if (!(10 != 11)) return 15;
+
+    // logical
+    if (!(1 && 1)) return 20;
+    if (0 && 1) return 21;
+    if (!(1 || 0)) return 22;
+    if (0 || 0) return 23;
+    if (!0 != 1) return 24;
+    if (!1 != 0) return 25;
+
+    // bitwise
+    if ((12 & 10) != 8) return 30;
+    if ((12 | 10) != 14) return 31;
+    if ((12 ^ 10) != 6) return 32;
+    if ((12 << 2) != 48) return 33;
+    if ((48 >> 2) != 12) return 34;
+    if (~0 != -1) return 35;
+    if ((-8 >> 1) != -4) return 36;
+
+    // unary +, -
+    if (+7 != 7) return 40;
+    if (-7 != -7) return 41;
+
+    // &, *
+    int x = 99;
+    int* px = &x;
+    if (*px != 99) return 50;
+    *px = 42;
+    if (x != 42) return 51;
+
+    // ++, --
+    int a = 10;
+    int post = a++;
+    if (post != 10 || a != 11) return 60;
+    int pre = ++a;
+    if (pre != 12 || a != 12) return 61;
+    a--;
+    if (a != 11) return 62;
+    int post2 = a--;
+    if (post2 != 11 || a != 10) return 63;
+
+    x = 100;
+    x += 5;  // 105
+    x -= 5;  // 100
+    x *= 2;  // 200
+    x /= 4;  // 50
+    x %= 17; // 16
+    x &= 31; // 16
+    x |= 1;  // 17
+    x ^= 3;  // 18
+    x <<= 1; // 36
+    x >>= 2; // 9
+    if (x != 9) return 70;
+
+    int n = 0;
+    compoundViaPtr(&n);
+    if (n != 4) return 71;
+
+    return 0;
+}
