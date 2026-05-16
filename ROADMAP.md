@@ -26,13 +26,13 @@
 - [x] Binary expressions (+, -, *, /, ==, ...)
 - [x] Unary expressions (-, !, ~, ...)
 - [x] Function calls
-- [ ] Pointer dereference operator
+- [x] Pointer dereference operator
 - [ ] Array subscript operator
 - [ ] Member access operator
-- [ ] Increment and decrement operators
+- [x] Increment and decrement operators
 - [ ] Pointer arithmetic
 - [x] Variable assignment operator
-- [ ] Compound assignment operators (+=, -=, ...)
+- [x] Compound assignment operators (+=, -=, ...)
 - [ ] String literals
 
 ### Compiler CLI
