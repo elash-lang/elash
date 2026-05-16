@@ -8,6 +8,7 @@
 #include <elc/driver/stages/lowerer-stage.h>
 #include <elc/driver/stages/codegen-stage.h>
 #include <elc/driver/stages/emit-obj-stage.h>
+#include <elc/driver/stages/emit-asm-stage.h>
 
 #include <elc/driver/observers/dump-ast.h>
 #include <elc/driver/observers/dump-hir.h>
@@ -35,6 +36,7 @@ bool elc_driver_register_stages(ElcDriver* driver) {
     elc_pipeline_add_stage(&driver->pipeline, elc_make_lowerer_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_codegen_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_emit_obj_stage());
+    elc_pipeline_add_stage(&driver->pipeline, elc_make_emit_asm_stage());
     return true;
 }
 
