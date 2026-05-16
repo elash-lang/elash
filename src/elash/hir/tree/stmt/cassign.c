@@ -1,6 +1,6 @@
 #include <elash/hir/tree/stmt.h>
 
-ElHirStmtNode* el_hir_new_cassign_stmt(
+ElHirStmtNode* el_hir_new_compound_assign_stmt(
     ElDynArena* arena, ElSemaBinOp op, ElHirExprNode* target, ElHirExprNode* value
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmtNode, {

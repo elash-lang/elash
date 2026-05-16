@@ -1,8 +1,8 @@
 int applydiv(int* n, int m) {
     *n /= m;
+}
 
-
-int main() 
+int main() {
     int n = 0;
     n += 10;         // 0
     n *= 5;          // 50

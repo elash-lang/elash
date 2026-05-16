@@ -104,13 +104,16 @@ ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* i
     return el_hir_new_var_def_stmt(binder->hir_arena, sym, init);
 }
 
+#define REPORT_ASSIGN_TO_RVALUE(BINDER, SPAN)                \
+    el_diag_report(                                          \
+        (BINDER)->diag, EL_DIAG_ERROR, "sema.assign-rvalue", \
+        (SPAN), "cannot assign to rvalue",                   \
+    )                                                        \
+
 ElHirStmtNode* _el_binder_bind_assign(ElBinder* binder, ElAstStmtNode* in, ElAstAssignStmtNode* assign) {
     ElHirExprNode* target = el_binder_bind_expr(binder, assign->target);
     if (!_el_binder_is_lvalue(target)) {
-         el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.assign-rvalue",
-            in->span, "cannot assign to rvalue",
-        );
+        REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
     }
 
@@ -118,6 +121,20 @@ ElHirStmtNode* _el_binder_bind_assign(ElBinder* binder, ElAstStmtNode* in, ElAst
         binder->hir_arena,
         target,
         el_binder_bind_expr(binder, assign->value)
+    );
+}
+
+ElHirStmtNode* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmtNode* in, ElAstCompoundAssignStmtNode* cassign) {
+    ElHirExprNode* target = el_binder_bind_expr(binder, cassign->target);
+    if (!_el_binder_is_lvalue(target)) {
+        REPORT_ASSIGN_TO_RVALUE(binder, in->span);
+        return NULL;
+    }
+
+    return el_hir_new_compound_assign_stmt(
+        binder->hir_arena,
+        cassign->op, target,
+        el_binder_bind_expr(binder, cassign->value)
     );
 }
 
@@ -175,6 +192,8 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
 
     case EL_AST_STMT_ASSIGN:
         return _el_binder_bind_assign(binder, in, &in->as.assign);
+    case EL_AST_STMT_COMPOUND_ASSIGN:
+        return _el_binder_bind_compound_assign(binder, in, &in->as.cassign);
     case EL_AST_STMT_VAR_DEF:
         return _el_binder_bind_var_definition(binder, in);
     }
