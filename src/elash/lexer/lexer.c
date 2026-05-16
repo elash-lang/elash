@@ -230,6 +230,10 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     case '&':
         if (peek(lexer) == '&') {
             next(lexer);
+            if (peek(lexer) == '=') {
+                next(lexer);
+                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_AND_ASSIGN, out);
+            }
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_AND, out);
         }
         if (peek(lexer) == '=') {
@@ -241,6 +245,10 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     case '|':
         if (peek(lexer) == '|') {
             next(lexer);
+            if (peek(lexer) == '=') {
+                next(lexer);
+                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_OR_ASSIGN, out);
+            }
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_OR, out);
         }
         if (peek(lexer) == '=') {

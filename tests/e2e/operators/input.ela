@@ -36,6 +36,12 @@ int main() {
     if (!0 != 1) return 24;
     if (!1 != 0) return 25;
 
+    bool b = true;
+    b &&= false;
+    if (b) return 26;
+    b ||= true;
+    if (!b) return 27;
+
     // bitwise
     if ((12 & 10) != 8) return 30;
     if ((12 | 10) != 14) return 31;

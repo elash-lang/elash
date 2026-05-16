@@ -91,6 +91,9 @@ typedef enum ElTokenType {
     EL_TT_LOGICAL_OR,           // ||
     EL_TT_LOGICAL_NOT,          // !
 
+    EL_TT_LOGICAL_AND_ASSIGN,   // &&=
+    EL_TT_LOGICAL_OR_ASSIGN,    // ||=
+
     EL_TT_BITWISE_AND,          // &
     EL_TT_BITWISE_OR,           // |
     EL_TT_BITWISE_XOR,          // ^

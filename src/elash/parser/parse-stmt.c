@@ -122,6 +122,8 @@ ElAstStmtNode* _el_parser_parse_expr_stmt(ElParser* parser) {
     else if (el_parser_match(parser, EL_TT_BITWISE_AND_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_AND; is_compound = true; }
     else if (el_parser_match(parser, EL_TT_BITWISE_OR_ASSIGN))  { op = EL_SEMA_BIN_OP_BW_OR;  is_compound = true; }
     else if (el_parser_match(parser, EL_TT_BITWISE_XOR_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_XOR; is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_AND_ASSIGN)) { op = EL_SEMA_BIN_OP_AND;    is_compound = true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_OR_ASSIGN))  { op = EL_SEMA_BIN_OP_OR;     is_compound = true; }
     else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { op = EL_SEMA_BIN_OP_SHL;    is_compound = true; }
     else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { op = EL_SEMA_BIN_OP_SHR;    is_compound = true; }
 
