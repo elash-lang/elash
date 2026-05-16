@@ -65,6 +65,15 @@ void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
         el_hir_dump_stmt(node->as.while_.body, indent + 1, out);
         return;
 
+    case EL_HIR_STMT_BREAK:
+        el_hir_dump_print_indent(indent, out);
+        fputs("break;", out);
+        return;
+    case EL_HIR_STMT_CONTINUE:
+        el_hir_dump_print_indent(indent, out);
+        fputs("continue;", out);
+        return;
+
     case EL_HIR_STMT_BLOCK:
         el_hir_dump_print_indent(indent, out);
         fputs("{\n", out);
