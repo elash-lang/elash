@@ -121,11 +121,34 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
                 : NULL
         );
     case EL_AST_STMT_WHILE:
+        binder->loop_depth++;
+        ElHirStmtNode* body = el_binder_bind_stmt(binder, in->as.while_.body);
+        binder->loop_depth--;
+
         return el_hir_new_while_stmt(
             binder->hir_arena,
             el_binder_bind_expr(binder, in->as.while_.cond),
-            el_binder_bind_stmt(binder, in->as.while_.body)
+            body
         );
+
+    case EL_AST_STMT_BREAK:
+        if (binder->loop_depth <= 0) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.break-outside-loop",
+                in->span, "'break' can only be used inside loops.",
+            );
+            return NULL;
+        }
+        return el_hir_new_break_stmt(binder->hir_arena);
+    case EL_AST_STMT_CONTINUE:
+        if (binder->loop_depth <= 0) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.continue-outside-loop",
+                in->span, "'continue' can only be used inside loops.",
+            );
+            return NULL;
+        }
+        return el_hir_new_continue_stmt(binder->hir_arena);
 
     case EL_AST_STMT_ASSIGN:
         return el_hir_new_assign_stmt(

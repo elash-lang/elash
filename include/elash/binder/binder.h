@@ -40,6 +40,7 @@ typedef struct ElBinder {
     ElSymbol* current_func;
 
     uint32_t sym_id_counter;
+    uint32_t loop_depth;
 } ElBinder;
 
 #define el_binder_init(BINDER, ...) \

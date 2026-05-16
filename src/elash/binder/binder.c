@@ -13,6 +13,7 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
     binder->builtins   = opts.builtins;
     binder->diag       = opts.diag;
 
+    binder->loop_depth = 0;
     binder->sym_id_counter = 0;
     binder->current_func = NULL;
 
