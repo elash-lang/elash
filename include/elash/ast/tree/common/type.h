@@ -13,8 +13,9 @@ typedef enum ElAstTypeKind {
     EL_AST_TYPE_NAME,
     EL_AST_TYPE_PTR,
     EL_AST_TYPE_ARRAY,
+    EL_AST_TYPE_SLICE,
+    EL_AST_TYPE_RAW_SLICE,
 } ElAstTypeKind;
-
 
 typedef struct ElAstArrayType {
     ElAstTypeNode* base;
@@ -26,15 +27,13 @@ struct ElAstTypeNode {
     ElSourceSpan span;
     union {
         ElAstIdentNode* name; // for EL_AST_TYPE_NAME
-        ElAstTypeNode* base;  // for EL_AST_TYPE_PTR
+        ElAstTypeNode* base;  // for EL_AST_TYPE_PTR, EL_AST_TYPE_SLICE, EL_AST_TYPE_RAW_SLICE
         ElAstArrayType array; // for EL_AST_TYPE_ARRAY
     };
 };
 
-ElAstTypeNode el_ast_type_name(ElSourceSpan span, ElAstIdentNode* name);
-ElAstTypeNode el_ast_type_ptr(ElSourceSpan span, ElAstTypeNode* base);
-ElAstTypeNode el_ast_type_array(ElSourceSpan span, ElAstTypeNode* base, ElAstExprNode* size);
-
 ElAstTypeNode* el_ast_new_type_name(ElDynArena* arena, ElSourceSpan span, ElAstIdentNode* name);
 ElAstTypeNode* el_ast_new_type_ptr(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base);
+ElAstTypeNode* el_ast_new_type_slice(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base);
+ElAstTypeNode* el_ast_new_type_raw_slice(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base);
 ElAstTypeNode* el_ast_new_type_array(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base, ElAstExprNode* size);
