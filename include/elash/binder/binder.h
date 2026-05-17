@@ -59,6 +59,8 @@ ElHirExprNode* el_binder_bind_builtin_call(
     ElBinder* binder, ElAstExprNode* in, ElAstCallExprNode* call, ElSymbol* builtin
 );
 
+ElHirExprNode* el_binder_bind_init(ElBinder* binder, ElAstInitializer* in, ElType* expected_type);
+
 ElHirExprNode*     el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in);
 ElHirStmtNode*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmtNode* in);
 ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in);

@@ -165,15 +165,23 @@ ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCa
     return el_hir_new_call_expr(binder->hir_arena, func->ret_type, callee, args, call->arg_count);
 }
 
+ElHirExprNode* _el_binder_bind_array_lit(ElBinder* binder, ElAstExprNode* _, ElAstArrayLitNode* array_lit) {
+    ElType* type = _el_binder_bind_type(binder, array_lit->type);
+    if (type == NULL) return NULL;
+
+    return el_binder_bind_init(binder, array_lit->init, type);
+}
+
 ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
     if (in == NULL) return NULL;
 
     switch (in->type) {
-    case EL_AST_EXPR_BINARY:  return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
-    case EL_AST_EXPR_UNARY:   return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
-    case EL_AST_EXPR_LITERAL: return _el_binder_bind_literal(binder, in, &in->as.literal);
-    case EL_AST_EXPR_IDENT:   return _el_binder_bind_ident(binder, in, &in->as.ident);
-    case EL_AST_EXPR_CALL:    return _el_binder_bind_call(binder, in, &in->as.call);
+    case EL_AST_EXPR_BINARY:        return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
+    case EL_AST_EXPR_UNARY:         return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
+    case EL_AST_EXPR_LITERAL:       return _el_binder_bind_literal(binder, in, &in->as.literal);
+    case EL_AST_EXPR_IDENT:         return _el_binder_bind_ident(binder, in, &in->as.ident);
+    case EL_AST_EXPR_CALL:          return _el_binder_bind_call(binder, in, &in->as.call);
+    case EL_AST_EXPR_ARRAY_LITERAL: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }
