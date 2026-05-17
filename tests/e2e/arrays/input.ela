@@ -9,7 +9,7 @@ int sumElements(int[] slice) {
 }
 
 int sumElementsRaw(int[*] raw, int size) {
-    return sumElement(sliceof(raw, size));
+    return sumElements(sliceof(raw, size));
 }
 
 int main() {

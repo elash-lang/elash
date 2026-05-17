@@ -9,19 +9,42 @@
 ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElAstBinExprNode* bin) {
     ElHirExprNode* left  = el_binder_bind_expr(binder, bin->left);
     ElHirExprNode* right = el_binder_bind_expr(binder, bin->right);
-
-    // TODO: simplified for now
-    if (!el_sema_type_eql(left->type, right->type)) {
-         el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-            in->span,
-            "invalid expression"
-        );
-    }
+    if (left == NULL || right == NULL) return NULL;
 
     ElType* type = left->type;
-    if (el_sema_bin_op_is_comparison(bin->op)) {
-        type = binder->builtins->type_bool;
+    if (bin->op != EL_SEMA_BIN_OP_INDEX) {
+        if (!el_sema_type_eql(left->type, right->type)) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                in->span,
+                "left and right operand types must be identical"
+            );
+            return NULL;
+        }
+
+        if (el_sema_bin_op_is_comparison(bin->op)) {
+            type = binder->builtins->type_bool;
+        }
+    } else {
+        if (!el_sema_type_eql(right->type, binder->builtins->type_int)) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.index-type",
+                bin->right->span, "index expression must be integer",
+            );
+            return NULL;
+        }
+
+        ElTypeKind k = left->type->kind;
+        if (k != EL_TYPE_ARRAY && k != EL_TYPE_SLICE && k != EL_TYPE_RAW_SLICE) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.sema.non-indexable",
+                bin->left->span, "cannot index into non-array, non-slice, or non-raw-slice type",
+            );
+        }
+
+        if (k == EL_TYPE_RAW_SLICE)  type = left->type->as.raw_slice.base;
+        else if (k == EL_TYPE_ARRAY) type = left->type->as.array.base;
+        else if (k == EL_TYPE_SLICE) type = left->type->as.slice.base;
     }
 
     return el_hir_new_bin_expr(binder->hir_arena, type, bin->op, left, right);
