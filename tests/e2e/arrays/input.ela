@@ -8,14 +8,20 @@ int sumArray(int[3] arr) {
 }
 
 int main() {
-    int[3] arr;
-    arr[0] = 10;
-    arr[1] = 20;
-    arr[2] = 30;
+    int[3] arr = { 10, 20, 30 };
     
     if (len(arr) != 3) return 1;
     if (sumArray(arr) != 60) return 2;
 
+    arr = int[3] { 1, 2, 3 };
+    if (sumArray(arr) != 6) return 3;
+
+    int[3] arr2 = int[3] { 4, 9, 2 };
+    arr = arr2;
+
+    if (sumArray(arr) != sumArray(arr2)) {
+        return 4;
+    }
     return 0;
 }
 
