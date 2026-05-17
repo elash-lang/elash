@@ -107,6 +107,17 @@ bool el_tkque_peek(const ElTokenQueue* tkque, ElToken* out_tok) {
     return true;
 }
 
+bool el_tkque_at(const ElTokenQueue* tkque, usize index, ElToken* out_tok) {
+    if (index >= tkque->len) {
+        return false;
+    }
+
+    if (out_tok) {
+        *out_tok = tkque->data[(tkque->head + index) % tkque->cap];
+    }
+    return true;
+}
+
 bool el_tkque_clear(ElTokenQueue* tkque) {
     tkque->head = 0;
     tkque->tail = 0;

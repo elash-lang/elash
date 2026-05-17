@@ -5,6 +5,8 @@
 #include <elash/defs/int-types.h>
 #include <elash/lexer/tokstream.h>
 
+#include <elash/lexer/tokque.h>
+
 #include <elash/ast/tree/expr.h>
 #include <elash/ast/tree/stmt.h>
 #include <elash/ast/tree/toplevel.h>
@@ -19,11 +21,11 @@ typedef struct ElParser {
     ElDynArena* arena;
 
     ElToken current;
-    ElToken lookahead;
-    bool has_lookahead;
+    ElTokenQueue lookahead;
 } ElParser;
 
 void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena);
+void el_parser_destroy(ElParser* parser);
 
 bool el_parser_has_errs(const ElParser* parser);
 uint el_parser_error_count(const ElParser* parser);
@@ -35,6 +37,7 @@ void el_parser_expect(ElParser* parser, ElTokenType type);
 bool    el_parser_match(ElParser* parser, ElTokenType type);
 bool    el_parser_check(ElParser* parser, ElTokenType type);
 ElToken el_parser_peek(ElParser* parser);
+ElToken el_parser_peek_at(ElParser* parser, usize n);
 
 void _el_parser_report_expected(ElParser* parser, ElTokenType expected);
 void _el_parser_report_unexpected(ElParser* parser, ElToken tok);

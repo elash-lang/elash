@@ -35,9 +35,8 @@ bool el_parser_had_new_errors(const ElParser* parser, uint error_count_before) {
 }
 
 void el_parser_advance(ElParser* parser) {
-    if (parser->has_lookahead) {
-        parser->current = parser->lookahead;
-        parser->has_lookahead = false;
+    if (parser->lookahead.len > 0) {
+        el_tkque_pop(&parser->lookahead, &parser->current);
     } else {
         parser->current = parser->tokens.next(&parser->tokens, parser->diag);
     }
@@ -48,11 +47,20 @@ void el_parser_advance(ElParser* parser) {
 }
 
 ElToken el_parser_peek(ElParser* parser) {
-    if (!parser->has_lookahead) {
-        parser->lookahead = parser->tokens.next(&parser->tokens, parser->diag);
-        parser->has_lookahead = true;
+    return el_parser_peek_at(parser, 1);
+}
+
+ElToken el_parser_peek_at(ElParser* parser, usize n) {
+    if (n == 0) return parser->current;
+
+    while (parser->lookahead.len < n) {
+        ElToken tok = parser->tokens.next(&parser->tokens, parser->diag);
+        el_tkque_push(&parser->lookahead, tok);
     }
-    return parser->lookahead;
+
+    ElToken out;
+    el_tkque_at(&parser->lookahead, n - 1, &out);
+    return out;
 }
 
 bool el_parser_match(ElParser* parser, ElTokenType type) {
@@ -80,7 +88,11 @@ void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine
     parser->diag = engine;
     parser->arena = arena;
     parser->current.type = EL_TT_UNKNOWN;
-    parser->has_lookahead = false;
+    el_tkque_init(&parser->lookahead);
 
     el_parser_advance(parser);
+}
+
+void el_parser_destroy(ElParser* parser) {
+    el_tkque_destroy(&parser->lookahead);
 }

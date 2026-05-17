@@ -207,6 +207,30 @@ static ElAstStmtNode* _el_parser_parse_var_def(ElParser* parser) {
     return el_ast_new_var_def_stmt(parser->arena, el_source_span_merge(type->span, semi_tok.span), type, name, init);
 }
 
+static bool _el_parser_is_var_def(ElParser* parser) {
+    if (!el_parser_check(parser, EL_TT_IDENT)) return false;
+
+    usize i = 1;
+    ElToken tok = el_parser_peek_at(parser, i++);
+
+    while (tok.type == EL_TT_STAR) {
+        tok = el_parser_peek_at(parser, i++);
+    }
+
+    while (tok.type == EL_TT_LBRACKET) {
+        int depth = 1;
+        while (depth > 0) {
+            tok = el_parser_peek_at(parser, i++);
+            if (tok.type == EL_TT_EOF) return false;
+            if (tok.type == EL_TT_LBRACKET) depth++;
+            if (tok.type == EL_TT_RBRACKET) depth--;
+        }
+        tok = el_parser_peek_at(parser, i++);
+    }
+
+    return tok.type == EL_TT_IDENT;
+}
+
 ElAstStmtNode* el_parser_parse_stmt(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_RETURN)) {
         ElToken return_tok = parser->current;
@@ -256,12 +280,8 @@ ElAstStmtNode* el_parser_parse_stmt(ElParser* parser) {
         return el_ast_new_continue_stmt(parser->arena, el_source_span_merge(continue_tok.span, semi_tok.span));
     }
 
-    if (el_parser_check(parser, EL_TT_IDENT)) {
-        ElTokenType next_type = el_parser_peek(parser).type;
-        // TODO: this hack is getting very ugly
-        if (next_type == EL_TT_IDENT || next_type == EL_TT_STAR || next_type == EL_TT_LBRACKET) {
-            return _el_parser_parse_var_def(parser);
-        }
+    if (_el_parser_is_var_def(parser)) {
+        return _el_parser_parse_var_def(parser);
     }
 
     return _el_parser_parse_expr_stmt(parser);

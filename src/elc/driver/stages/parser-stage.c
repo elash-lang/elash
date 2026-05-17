@@ -11,7 +11,10 @@ bool elc_parser_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
 
     ElAstModuleNode* mod = el_parser_parse_module(&parser);
 
-    if (el_diag_engine_has_errors(ctx->diag)) {
+    bool has_errs = el_diag_engine_has_errors(ctx->diag);
+    el_parser_destroy(&parser);
+
+    if (has_errs) {
         return false;
     }
 

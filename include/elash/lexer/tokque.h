@@ -24,6 +24,7 @@ bool el_tkque_push(ElTokenQueue* tkque, ElToken tok);
 bool el_tkque_pop(ElTokenQueue* tkque, ElToken* out_tok);
 
 bool el_tkque_peek(const ElTokenQueue* tkque, ElToken* out_tok);
+bool el_tkque_at(const ElTokenQueue* tkque, usize index, ElToken* out_tok);
 bool el_tkque_clear(ElTokenQueue* tkque);
 
 bool el_tkque_reserve(ElTokenQueue* tkque, usize min_additional_cap);
