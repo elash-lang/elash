@@ -52,13 +52,14 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
         LLVMTypeRef base_type = elc_llvm_map_type(ctx, type->as.array.base);
         return LLVMArrayType(base_type, (unsigned)type->as.array.size);
     }
+    case EL_TYPE_SLICE:
+        EL_TODO("implement slice type");
     case EL_TYPE_RAW_SLICE:
-        return LLVMPointerTypeInContext(ctx->context, 0);
     case EL_TYPE_PTR:
         return LLVMPointerTypeInContext(ctx->context, 0);
     }
 
-    EL_TODO("Unreachable or unhandled type");
+    EL_UNREACHABLE_ENUM_VAL(ElTypeKind, type->kind);
 }
 
 LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
