@@ -109,6 +109,8 @@ ElHirExprNode* _el_binder_bind_ident(ElBinder* binder, ElAstExprNode* in, ElAstI
         return el_hir_new_symbol_expr(binder->hir_arena, sym->as.var.type, sym);
     case EL_SYM_FUNC:
         return el_hir_new_symbol_expr(binder->hir_arena, sym->as.func.type, sym);
+    case EL_SYM_BUILTIN:
+        return el_hir_new_symbol_expr(binder->hir_arena, binder->builtins->type_void, sym);
     case EL_SYM_TYPE:
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.type-used-as-expr",
@@ -124,6 +126,10 @@ ElHirExprNode* _el_binder_bind_ident(ElBinder* binder, ElAstExprNode* in, ElAstI
 ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCallExprNode* call) {
     ElHirExprNode* callee = el_binder_bind_expr(binder, call->callee);
     if (!callee) return NULL;
+
+    if (callee->kind == EL_HIR_EXPR_SYMBOL && callee->as.symbol->kind == EL_SYM_BUILTIN) {
+        return el_binder_bind_builtin_call(binder, in, call, callee->as.symbol);
+    }
 
     if (callee->type->kind != EL_TYPE_FUNC) {
         el_diag_report(

@@ -12,6 +12,10 @@ int main() {
     arr[0] = 10;
     arr[1] = 20;
     arr[2] = 30;
-    return sumArray(arr) - 60;
+    
+    if (len(arr) != 3) return 1;
+    if (sumArray(arr) != 60) return 2;
+
+    return 0;
 }
 

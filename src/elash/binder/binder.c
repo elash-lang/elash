@@ -6,6 +6,11 @@ static void register_builtin_type(ElBinder* binder, ElStringView name, ElType* t
     (void) el_sema_scope_insert(binder->builtin_scope, sym);
 }
 
+static void register_builtin_func(ElBinder* binder, ElStringView name, ElBuiltinKind kind) {
+    ElSymbol* sym = el_sema_new_builtin_symbol(binder->sym_arena, binder->sym_id_counter++, name, kind);
+    (void) el_sema_scope_insert(binder->builtin_scope, sym);
+}
+
 void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
     binder->hir_arena  = opts.hir_arena;
     binder->sym_arena  = opts.sym_arena;
@@ -23,6 +28,8 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
     register_builtin_type(binder, EL_SV("uint"), binder->builtins->type_uint);
     register_builtin_type(binder, EL_SV("char"), binder->builtins->type_char);
     register_builtin_type(binder, EL_SV("bool"), binder->builtins->type_bool);
+
+    register_builtin_func(binder, EL_SV("len"), EL_BUILTIN_LEN);
 
     binder->global_scope = el_sema_scope_new(binder->builtin_scope);
     binder->current_scope = binder->global_scope;
