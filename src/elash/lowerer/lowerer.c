@@ -50,4 +50,39 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
     el_mir_ibuf_clear(&lw->ibuf);
 }
 
+ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExprNode* hir) {
+    switch (hir->kind) {
+    case EL_HIR_EXPR_SYMBOL: {
+        ElSymbol* sym = hir->as.symbol;
+        if (sym->kind == EL_SYM_VAR) {
+            if (lw->symbol_map && lw->symbol_map[sym->id]) {
+                return lw->symbol_map[sym->id];
+            }
+            EL_TODO("global variables not supported yet");
+        }
+        EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
+    }
+    
+    case EL_HIR_EXPR_BINARY:
+        if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
+             ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
+             ElMirValue* index = el_lowerer_lower_expr(lw, hir->as.binary.right);
 
+             ElType* result_ptr_type = el_sema_new_ptr_type(lw->arena, hir->type);
+             ElMirValue* res_reg = el_mir_new_reg(lw->arena, result_ptr_type, lw->current_func->reg_count++);
+             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, res_reg, ptr, index));
+             return res_reg;
+        }
+        break;
+
+    case EL_HIR_EXPR_UNARY:
+        if (hir->as.unary.op == EL_SEMA_UNARY_OP_DEREF) {
+            // from what i understand, lvalue of *p is effectively the value p
+            return el_lowerer_lower_expr(lw, hir->as.unary.operand);
+        }
+        break;
+
+    default: break;
+    }
+    EL_UNREACHABLE("expression is not an lvalue (this should be caught during semantic analysis)");
+}
