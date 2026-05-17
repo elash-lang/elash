@@ -28,6 +28,24 @@ ElAstTypeNode* _el_parser_parse_type(ElParser* parser) {
             type = el_ast_new_type_ptr(parser->arena, el_source_span_merge(type->span, star_tok.span), type);
         } else if (el_parser_check(parser, EL_TT_LBRACKET)) {
             el_parser_advance(parser); // '['
+
+            // T[]
+            if (el_parser_check(parser, EL_TT_RBRACKET)) {
+                ElToken rbracket_tok = parser->current;
+                el_parser_advance(parser);
+                type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, rbracket_tok.span), type);
+                continue;
+            }
+
+            // T[*]
+            if (el_parser_check(parser, EL_TT_STAR)) {
+                ElToken star_tok = parser->current;
+                el_parser_advance(parser);
+                type = el_ast_new_type_raw_slice(parser->arena, el_source_span_merge(type->span, star_tok.span), type);
+                el_parser_expect(parser, EL_TT_RBRACKET);
+                continue;
+            }
+
             ElAstExprNode* size = el_parser_parse_expr(parser);
             ElToken rbracket = parser->current;
             el_parser_expect(parser, EL_TT_RBRACKET);
