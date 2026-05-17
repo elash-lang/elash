@@ -11,6 +11,7 @@
 #include "instr/load.h"
 #include "instr/store.h"
 #include "instr/jump.h"
+#include "instr/gep.h"
 #include "instr/unreachable.h"
 
 typedef enum ElMirInstrKind {
@@ -21,6 +22,7 @@ typedef enum ElMirInstrKind {
     EL_MIR_INSTR_ALLOCA,
     EL_MIR_INSTR_LOAD,
     EL_MIR_INSTR_STORE,
+    EL_MIR_INSTR_GEP,
     EL_MIR_INSTR_JMP,
     EL_MIR_INSTR_JMPIF,
     EL_MIR_INSTR_UNREACHABLE,
@@ -40,6 +42,7 @@ struct ElMirInstr {
         ElMirAllocaInstr alloca;
         ElMirLoadInstr   load;
         ElMirStoreInstr  store;
+        ElMirGepInstr    gep;
         ElMirJmpInstr    jmp;
         ElMirJmpIfInstr  jmpif;
     } as;

@@ -1,3 +1,4 @@
+#include <elash/mir/instr/gep.h>
 #include <elc/codegen/builtin/llvm-backend.h>
 
 #include <elash/sema/expr/bin-op.h>
@@ -47,6 +48,12 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
         free(param_types);
         return func_type;
     }
+    case EL_TYPE_ARRAY: {
+        LLVMTypeRef base_type = elc_llvm_map_type(ctx, type->as.array.base);
+        return LLVMArrayType(base_type, (unsigned)type->as.array.size);
+    }
+    case EL_TYPE_RAW_SLICE:
+        return LLVMPointerTypeInContext(ctx->context, 0);
     case EL_TYPE_PTR:
         return LLVMPointerTypeInContext(ctx->context, 0);
     }
@@ -213,6 +220,32 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
     }
 }
 
+void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    ElMirGepInstr* gep = &instr->as.gep;
+    LLVMValueRef ptr = elc_llvm_map_value(ctx, func, gep->ptr);
+    LLVMValueRef index = elc_llvm_map_value(ctx, func, gep->index);
+
+    ElType* ptr_type = gep->ptr->type;
+    EL_ASSERT(ptr_type->kind == EL_TYPE_PTR, "GEP source must be a pointer");
+
+    ElType* base_type = ptr_type->as.ptr.base;
+    LLVMTypeRef llvm_base_type = elc_llvm_map_type(ctx, base_type);
+
+    LLVMValueRef res;
+    if (base_type->kind == EL_TYPE_ARRAY) {
+        LLVMValueRef indices[2] = {
+            LLVMConstInt(LLVMInt32TypeInContext(ctx->context), 0, false),
+            index
+        };
+        res = LLVMBuildGEP2(ctx->builder, llvm_base_type, ptr, indices, 2, "");
+    } else {
+        LLVMValueRef indices[1] = { index };
+        res = LLVMBuildGEP2(ctx->builder, llvm_base_type, ptr, indices, 1, "");
+    }
+
+    ASSIGN_REG(func, instr->result, res, "gep");
+}
+
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     switch (instr->kind) {
     case EL_MIR_INSTR_RET: {
@@ -255,7 +288,9 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         LLVMBuildStore(ctx->builder, val, ptr);
         return;
     }
-
+    case EL_MIR_INSTR_GEP:
+        elc_llvm_compile_gep_instr(ctx, func, instr);
+        return;
     case EL_MIR_INSTR_BIN:
         elc_llvm_compile_bin_instr(ctx, func, instr);
         return;
