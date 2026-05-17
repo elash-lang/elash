@@ -6,6 +6,7 @@
 
 #include <elash/util/dynarena.h>
 #include <elash/util/strconv.h>
+#include <elash/util/assert.h>
 
 #include <elash/ast/tree/expr.h>
 #include <elash/ast/tree/expr/bin.h>
@@ -13,10 +14,27 @@
 #include <elash/ast/tree/expr/literal.h>
 
 #include <elash/ast/tree/common/ident.h>
+#include <elash/ast/tree/common/init.h>
 
 static ElAstExprNode* _el_parser_parse_call(ElParser* parser, ElAstExprNode* callee);
 
+static bool _el_parser_is_type_literal(ElParser* parser) {
+    usize idx = 0;
+    if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
+    return el_parser_peek_at(parser, idx).type == EL_TT_LBRACE;
+}
+
+// TODO: split this function into smaller helpers
+//      "clang-tidy: Function '_el_parser_parse_primary' has cognitive complexity of 30 (threshold 25)" ~2026
 ElAstExprNode* _el_parser_parse_primary(ElParser* parser) {
+    if (_el_parser_is_type_literal(parser)) {
+        ElAstTypeNode* type = _el_parser_parse_type(parser);
+        ElAstInitializer* init = el_parser_parse_initializer(parser);
+        if (!init) return NULL;
+
+        return el_ast_new_array_lit(parser->arena, el_source_span_merge(type->span, init->span), type, init);
+    }
+
     if (el_parser_check(parser, EL_TT_IDENT)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);

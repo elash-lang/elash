@@ -3,6 +3,7 @@
 
 #include <elash/ast/dump/indent.h>
 #include <elash/ast/dump/expr.h>
+#include <elash/ast/dump/init.h>
 #include <elash/ast/dump/type.h>
 
 void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
@@ -103,7 +104,7 @@ void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
         if (node->as.var_def.init != NULL) {
             el_ast_dump_print_indent(indent + 1, out);
             fprintf(out, "init:\n");
-            el_ast_dump_expr(node->as.var_def.init, indent + 2, out);
+            el_ast_dump_init(node->as.var_def.init, indent + 2, out);
         }
         break;
     }

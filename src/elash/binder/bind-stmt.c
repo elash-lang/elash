@@ -97,7 +97,7 @@ ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* i
 
     ElHirExprNode* init = NULL;
     if (in->as.var_def.init) {
-        init = el_binder_bind_expr(binder, in->as.var_def.init);
+        //init = el_binder_bind_expr(binder, in->as.var_def.init);
         if (!init) return NULL;
         // TODO: implement type checking 
     }

@@ -2,6 +2,8 @@
 #include <elash/ast/tree/expr.h>
 
 #include <elash/ast/dump/indent.h>
+#include <elash/ast/dump/type.h>
+#include <elash/ast/dump/init.h>
 #include <inttypes.h>
 
 void el_ast_dump_expr_literal(ElAstLiteralNode* lit, usize indent, FILE* out) {
@@ -71,5 +73,15 @@ void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
         }
         break;
     }
+    case EL_AST_EXPR_ARRAY_LITERAL:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "ArrayLit:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "type:\n");
+        el_ast_dump_type(node->as.array_lit.type, indent + 2, out);
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "init:\n");
+        el_ast_dump_init(node->as.array_lit.init, indent + 2, out);
+        break;
     }
 }

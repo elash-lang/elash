@@ -191,9 +191,9 @@ static ElAstStmtNode* _el_parser_parse_var_def(ElParser* parser) {
     ElAstIdentNode* name = _el_parser_parse_ident(parser);
     if (name == NULL) return NULL;
 
-    ElAstExprNode* init = NULL;
+    ElAstInitializer* init = NULL;
     if (el_parser_match(parser, EL_TT_ASSIGN)) {
-        init = el_parser_parse_expr(parser);
+        init = el_parser_parse_initializer(parser);
         if (el_parser_had_new_errors(parser, errs_before)) return NULL;
     }
 
@@ -208,27 +208,9 @@ static ElAstStmtNode* _el_parser_parse_var_def(ElParser* parser) {
 }
 
 static bool _el_parser_is_var_def(ElParser* parser) {
-    if (!el_parser_check(parser, EL_TT_IDENT)) return false;
-
-    usize i = 1;
-    ElToken tok = el_parser_peek_at(parser, i++);
-
-    while (tok.type == EL_TT_STAR) {
-        tok = el_parser_peek_at(parser, i++);
-    }
-
-    while (tok.type == EL_TT_LBRACKET) {
-        int depth = 1;
-        while (depth > 0) {
-            tok = el_parser_peek_at(parser, i++);
-            if (tok.type == EL_TT_EOF) return false;
-            if (tok.type == EL_TT_LBRACKET) depth++;
-            if (tok.type == EL_TT_RBRACKET) depth--;
-        }
-        tok = el_parser_peek_at(parser, i++);
-    }
-
-    return tok.type == EL_TT_IDENT;
+    usize idx = 0;
+    if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
+    return el_parser_peek_at(parser, idx).type == EL_TT_IDENT;
 }
 
 ElAstStmtNode* el_parser_parse_stmt(ElParser* parser) {
