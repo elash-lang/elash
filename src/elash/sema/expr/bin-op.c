@@ -26,6 +26,8 @@ ElStringView el_sema_bin_op_to_string(ElSemaBinOp type) {
     case EL_SEMA_BIN_OP_BW_XOR: return EL_SV("^");
     case EL_SEMA_BIN_OP_SHL:    return EL_SV("<<");
     case EL_SEMA_BIN_OP_SHR:    return EL_SV(">>");
+
+    case EL_SEMA_BIN_OP_INDEX:  return EL_SV("[]");
     }
     EL_UNREACHABLE_ENUM_VAL(ElSemaBinOp, type);
 }

@@ -24,6 +24,8 @@ typedef enum ElSemaBinOp {
     EL_SEMA_BIN_OP_BW_XOR, // ^
     EL_SEMA_BIN_OP_SHL,    // <<
     EL_SEMA_BIN_OP_SHR,    // >>
+
+    EL_SEMA_BIN_OP_INDEX,  // []
 } ElSemaBinOp;
 
 ElStringView el_sema_bin_op_to_string(ElSemaBinOp type);

@@ -169,10 +169,36 @@ ElAstExprNode* _el_parser_parse_postfix(ElParser* parser) {
             el_parser_advance(parser);
             expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
         } else if (el_parser_match(parser, EL_TT_LPAREN)) {
-            return _el_parser_parse_call(parser, expr);
+            expr = _el_parser_parse_call(parser, expr);
+        } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
+            ElAstExprNode* index = el_parser_parse_expr(parser);
+            if (el_parser_has_errs(parser)) {
+                el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
+            }
+
+            ElToken rbracket = parser->current;
+            if (el_parser_check(parser, EL_TT_RBRACKET)) {
+                rbracket = parser->current;
+                el_parser_advance(parser);
+            } else {
+                el_parser_expect(parser, EL_TT_RBRACKET);
+                el_parser_skip_to(parser, EL_TT_RBRACKET);
+                if (el_parser_check(parser, EL_TT_RBRACKET)) {
+                    rbracket = parser->current;
+                    el_parser_advance(parser);
+                }
+            }
+
+            expr = el_ast_new_bin_expr(
+                parser->arena,
+                el_source_span_merge(expr->span, rbracket.span),
+                EL_SEMA_BIN_OP_INDEX, expr, index
+            );
         } else {
             break;
         }
+
+        if (el_parser_has_errs(parser)) return NULL;
     }
     return expr;
 }
