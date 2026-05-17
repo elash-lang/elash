@@ -17,8 +17,8 @@
 - [x] Pointer types
 - [x] Function types
 - [ ] Slice types
-- [ ] Raw slice types
-- [ ] Array types
+- [x] Raw slice types
+- [x] Array types
 - [ ] Struct types
 - [ ] Enum types
 
@@ -27,7 +27,7 @@
 - [x] Unary expressions (-, !, ~, ...)
 - [x] Function calls
 - [x] Pointer dereference operator
-- [ ] Array subscript operator
+- [x] Array subscript operator
 - [ ] Member access operator
 - [x] Increment and decrement operators
 - [ ] Pointer arithmetic
@@ -168,10 +168,10 @@
 
 ### 9. CLI
 
-- [ ] Implement command parsing
-- [ ] Implement useful flags
+- [x] Implement command parsing
+- [x] Implement useful flags
 - [ ] Implement optimization flags
-- [ ] Implement colored diagnostics
+- [x] Implement colored diagnostics
 - [ ] Return proper exit codes
 
 
