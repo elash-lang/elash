@@ -16,6 +16,18 @@ void el_sema_dump_type(const ElType* type, FILE* out) {
         el_sema_dump_type(type->as.ptr.base, out);
         fputs("*", out);
         return;
+    case EL_TYPE_ARRAY:
+        el_sema_dump_type(type->as.array.base, out);
+        fprintf(out, "[%zu]", type->as.array.size);
+        return;
+    case EL_TYPE_SLICE:
+        el_sema_dump_type(type->as.array.base, out);
+        fputs("[]", out);
+        return;
+    case EL_TYPE_RAW_SLICE:
+        el_sema_dump_type(type->as.array.base, out);
+        fputs("[*]", out);
+        return;
     case EL_TYPE_FUNC:
         el_sema_dump_type(type->as.func.ret_type, out);
         fputs("(", out);
@@ -38,6 +50,13 @@ bool el_sema_type_eql(const ElType* lhs, const ElType* rhs) {
         return lhs->as.prim.kind == rhs->as.prim.kind;
     case EL_TYPE_PTR:
         return el_sema_type_eql(lhs->as.ptr.base, rhs->as.ptr.base);
+    case EL_TYPE_SLICE:
+        return el_sema_type_eql(lhs->as.slice.base, rhs->as.slice.base);
+    case EL_TYPE_RAW_SLICE:
+        return el_sema_type_eql(lhs->as.raw_slice.base, rhs->as.raw_slice.base);
+    case EL_TYPE_ARRAY:
+        return lhs->as.array.size == rhs->as.array.size &&
+            el_sema_type_eql(lhs->as.array.base, rhs->as.array.base);
     case EL_TYPE_FUNC:
         if (lhs->as.func.param_count != rhs->as.func.param_count) {
             return false;
