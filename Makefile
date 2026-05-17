@@ -68,23 +68,29 @@ PIC_CFLAGS := -fPIC
 COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
 
 ifeq ($(BUILD),debug)
-	CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
-	LDFLAGS :=
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
+	DEFAULT_LDFLAGS :=
 else ifeq ($(BUILD),debug-san)
-	CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG -fsanitize=address,undefined
-	LDFLAGS := -fsanitize=address,undefined
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG -fsanitize=address,undefined
+	DEFAULT_LDFLAGS := -fsanitize=address,undefined
 else ifeq ($(BUILD),release)
-	CFLAGS := $(COMMON_CFLAGS) -O3 -DNDEBUG
-	LDFLAGS :=
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -DNDEBUG
+	DEFAULT_LDFLAGS :=
 else ifeq ($(BUILD),rel-debug)
-	CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
-	LDFLAGS :=
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
+	DEFAULT_LDFLAGS :=
 else ifeq ($(BUILD),rel-debug-san)
-	CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG -fsanitize=address,undefined
-	LDFLAGS := -fsanitize=address,undefined
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG -fsanitize=address,undefined
+	DEFAULT_LDFLAGS := -fsanitize=address,undefined
 else
 	$(error Unknown BUILD=$(BUILD))
 endif
+
+EXTRA_CFLAGS  ?=
+EXTRA_LDFLAGS ?=
+
+CFLAGS  ?= $(DEFAULT_CFLAGS) $(EXTRA_CFLAGS)
+LDFLAGS ?= $(DEFAULT_LDFLAGS) $(EXTRA_LDFLAGS)
 
 # LLVM Configuration
 LLVM_CONFIG ?= llvm-config
