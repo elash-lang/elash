@@ -258,7 +258,8 @@ ElAstStmtNode* el_parser_parse_stmt(ElParser* parser) {
 
     if (el_parser_check(parser, EL_TT_IDENT)) {
         ElTokenType next_type = el_parser_peek(parser).type;
-        if (next_type == EL_TT_IDENT || next_type == EL_TT_STAR) {
+        // TODO: this hack is getting very ugly
+        if (next_type == EL_TT_IDENT || next_type == EL_TT_STAR || next_type == EL_TT_LBRACKET) {
             return _el_parser_parse_var_def(parser);
         }
     }
