@@ -11,11 +11,10 @@
 #include <inttypes.h>
 #include <elash/defs/sv.h>
 
+// TODO: split this shit into smaller helper functions
+//       clang-tidy: Function 'el_hir_dump_expr' has cognitive complexity of 33 (threshold 25)
 void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
-    if (!node) return;
-
     el_hir_dump_print_indent(indent, out);
-
     fputs("(", out);
 
     switch (node->kind) {
@@ -63,6 +62,15 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
         fputs(")", out);
         break;
     }
+
+    case EL_HIR_EXPR_ARRAY_LITERAL:
+        fputs("{", out);
+        for (usize i = 0; i < node->as.array_lit.count; ++i) {
+            if (i > 0) fputs(", ", out);
+            el_hir_dump_expr(node->as.array_lit.values[i], 0, out);
+        }
+        fputs("}", out);
+        break;
     }
 
     fputs(" : ", out);

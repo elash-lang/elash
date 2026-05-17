@@ -8,6 +8,7 @@
 #include "expr/unary.h"
 #include "expr/literal.h"
 #include "expr/call.h"
+#include "expr/array-lit.h"
 
 typedef enum ElHirExprKind {
     EL_HIR_EXPR_BINARY,
@@ -15,6 +16,7 @@ typedef enum ElHirExprKind {
     EL_HIR_EXPR_LITERAL,
     EL_HIR_EXPR_SYMBOL, // resolved identifier
     EL_HIR_EXPR_CALL,
+    EL_HIR_EXPR_ARRAY_LITERAL,
 } ElHirExprKind;
 
 typedef struct ElHirExprNode {
@@ -26,6 +28,7 @@ typedef struct ElHirExprNode {
         ElHirLiteral literal;
         ElSymbol* symbol;
         ElHirCallExprNode call;
+        ElHirArrayLitNode array_lit;
     } as;
 } ElHirExprNode;
 
