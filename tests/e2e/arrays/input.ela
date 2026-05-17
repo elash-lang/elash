@@ -1,19 +1,21 @@
-int sumElements(int[] slice) {
-    int acc = 0;
+int sumArray(int[3] arr) {
+    int sum = 0;
     int i = 0;
-    while (i < len(slice)) {
-        acc += slice[i];
-        i = i + 1;
+    while (i < 3) {
+        sum += arr[i++];
     }
-    return acc;
-}
-
-int sumElementsRaw(int[*] raw, int size) {
-    return sumElements(sliceof(raw, size));
+    return sum;
 }
 
 int main() {
-    int[5] arr;// = { 10, 20, 30, 40, 50 };
-    int sum = sumElements(arr);
-    return sum - 150;
+    int[3] arr;
+    arr[0] = 10;
+    arr[1] = 20;
+    arr[2] = 30;
+    
+    if (len(arr) != 3) return 1;
+    if (sumArray(arr) != 60) return 2;
+
+    return 0;
 }
+
