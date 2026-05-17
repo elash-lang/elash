@@ -19,6 +19,9 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) 
     }
     case EL_SYM_FUNC:
         return el_mir_new_global(lw->arena, type, sym);
+    case EL_SYM_BUILTIN:
+        EL_UNREACHABLE("builtin functions cannot be used as values");
+        return NULL;
     case EL_SYM_TYPE:
         EL_UNREACHABLE("Type symbol in expression context (this should be caught during semantic analysis)");
         break;
@@ -107,15 +110,26 @@ ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExprNode* hir, ElHir
     return result;
 }
 
+ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExprNode* hir) {
+    ElType* ptr_type = el_sema_new_ptr_type(lw->arena, hir->type);
+    ElMirValue* ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ptr, hir->type));
+
+    _el_lowerer_lower_array_lit(lw, ptr, &hir->as.array_lit);
+
+    ElMirValue* res = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res, ptr));
+    return res;
+}
+
 ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
     switch (hir->kind) {
-    case EL_HIR_EXPR_BINARY:  return _el_lowerer_lower_bin_expr(lw, hir, &hir->as.binary);
-    case EL_HIR_EXPR_UNARY:   return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
-    case EL_HIR_EXPR_CALL:    return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
-    case EL_HIR_EXPR_SYMBOL:  return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
-    case EL_HIR_EXPR_LITERAL: return el_mir_new_const(lw->arena, hir->type, hir->as.literal);
-    case EL_HIR_EXPR_ARRAY_LITERAL:
-        EL_TODO("implement array literals");
+    case EL_HIR_EXPR_BINARY:        return _el_lowerer_lower_bin_expr(lw, hir, &hir->as.binary);
+    case EL_HIR_EXPR_UNARY:         return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
+    case EL_HIR_EXPR_CALL:          return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
+    case EL_HIR_EXPR_ARRAY_LITERAL: return _el_lowerer_lower_array_lit_expr(lw, hir);
+    case EL_HIR_EXPR_SYMBOL:        return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
+    case EL_HIR_EXPR_LITERAL:       return el_mir_new_const(lw->arena, hir->type, hir->as.literal);
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
 }

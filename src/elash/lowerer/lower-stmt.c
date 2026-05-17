@@ -140,9 +140,13 @@ void _el_lowerer_lower_vardef(ElLowerer* lw, ElHirVarDefStmtNode* var_def) {
     lw->symbol_map[sym->id] = ptr_reg;
 
     if (var_def->init) {
-        ElMirValue* init_val = el_lowerer_lower_expr(lw, var_def->init);
-        ElMirInstr* store_instr = el_mir_new_store_instr(lw->arena, ptr_reg, init_val);
-        el_mir_ibuf_push(&lw->ibuf, store_instr);
+        if (var_def->init->kind == EL_HIR_EXPR_ARRAY_LITERAL) {
+            _el_lowerer_lower_array_lit(lw, ptr_reg, &var_def->init->as.array_lit);
+        } else {
+            ElMirValue* init_val = el_lowerer_lower_expr(lw, var_def->init);
+            ElMirInstr* store_instr = el_mir_new_store_instr(lw->arena, ptr_reg, init_val);
+            el_mir_ibuf_push(&lw->ibuf, store_instr);
+        }
     }
 }
 

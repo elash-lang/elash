@@ -42,6 +42,7 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id);
 
 ElMirValue*  el_lowerer_get_lvalue(ElLowerer* lw, ElHirExprNode* hir);
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir);
+void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLitNode* array_lit);
 void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir);
 void         el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir);
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
