@@ -53,7 +53,9 @@ ElScope* _el_binder_push_scope(ElBinder* binder);
 ElScope* _el_binder_pop_scope(ElBinder* binder);
 
 ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in);
-ElType*            _el_binder_bind_type(ElBinder* binder, ElAstType* node);
+ElType*        _el_binder_bind_type(ElBinder* binder, ElAstType* node);
+
+ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr);
 
 ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElSymbol* builtin);
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected_type);
@@ -61,4 +63,4 @@ ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected
 ElHirExpr*     el_binder_bind_expr(ElBinder* binder,   ElAstExpr* in);
 ElHirStmt*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmt* in);
 ElHirTopLevel* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevel* in);
-ElHirModule*       el_binder_bind_module(ElBinder* binder, ElAstModule* in);
+ElHirModule*   el_binder_bind_module(ElBinder* binder, ElAstModule* in);

@@ -172,7 +172,7 @@ ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* _, ElAstArrayL
     return el_binder_bind_init(binder, array_lit->init, type);
 }
 
-ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
+ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     if (in == NULL) return NULL;
 
     switch (in->type) {
@@ -184,4 +184,10 @@ ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
     case EL_AST_EXPR_ARRAY_LITERAL: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
+}
+
+ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
+    ElHirExpr* expr = _el_binder_bind_expr_impl(binder, in);
+    if (expr == NULL) return NULL;
+    return _el_binder_simplify_expr(binder, expr);
 }
