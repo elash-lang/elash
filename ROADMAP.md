@@ -115,7 +115,7 @@
 - [x] Implement expression type checking
 - [x] Validate function calls
 - [x] Validate return types
-- [ ] Implement constant folding
+- [x] Implement constant folding
 - [ ] Check whether function returns in all execution paths
 - [ ] Implement implicit and explicit conversions
 - [x] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
