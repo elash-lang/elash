@@ -1,18 +1,27 @@
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional
+from typing import Literal, Optional
 
 import subprocess
 import sys
 import os
 import difflib
 
+type TestStage = Literal['compilation'] | Literal['linking'] | Literal['runtime'];
+
 @dataclass
-class TestOutput:
+class TestExpectation:
     exitcode:    int
     stdout:      str
     stderr:      str
-    error_stage: Optional[str] = None
+    diags: Optional[list[str]] = None
+
+@dataclass
+class TestResult:
+    exitcode:    int
+    stdout:      str
+    stderr:      str
+    stage:       TestStage
 
 script_dir = Path(__file__).resolve().parent
 
@@ -36,7 +45,7 @@ def error(*args):
     print(*args)
     sys.exit(1)
 
-def get_expected_output(path: Path, name: str) -> TestOutput:
+def get_expectation(path: Path, name: str) -> TestExpectation:
     exitcode: int = 0
     if (f := path.joinpath('exitcode.txt')).is_file():
         try:
@@ -52,7 +61,11 @@ def get_expected_output(path: Path, name: str) -> TestOutput:
     if (f := path.joinpath('stderr.txt')).is_file():
         stderr = f.read_text().strip()
 
-    return TestOutput(exitcode=exitcode, stdout=stdout, stderr=stderr)
+    diags = None
+    if (f := path.joinpath('diags.txt')).is_file():
+        diags = [line.strip() for line in f.read_text().splitlines() if line.strip()]
+
+    return TestExpectation(exitcode=exitcode, stdout=stdout, stderr=stderr, diags=diags)
 
 def print_diff(expected: str, actual: str, stream_name: str):
     diff = difflib.unified_diff(
@@ -64,53 +77,99 @@ def print_diff(expected: str, actual: str, stream_name: str):
     for line in diff:
         print_info(f'  {line.rstrip()}')
 
-def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str) -> TestOutput:
+def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult:
     input_file = path.joinpath('input.ela')
     if not input_file.is_file():
         error(f"ill-formed test case '{name}': no input.ela")
 
-    obj = work_dir.joinpath(f'{name}.o')
-    exe = work_dir.joinpath(name)
+    safe_name = name.replace(os.sep, '_')
+    obj = work_dir.joinpath(f'{safe_name}.o')
+    exe = work_dir.joinpath(safe_name)
 
     res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    if res.returncode != 0:
-        return TestOutput(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), error_stage='compilation')
+    if is_negative or res.returncode != 0:
+        return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
     
     res = subprocess.run(['cc', str(obj), '-o', str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
-        return TestOutput(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), error_stage='linking')
+        return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='linking')
     
     res = subprocess.run([str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    return TestOutput(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip())
+    return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='runtime')
 
-def report_failure(name: str, expected: TestOutput, actual: TestOutput):
+def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     print_fail(name)
-    if actual.error_stage:
-        print_info(f'  Error during {CLR_BOLD}{actual.error_stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
+    
+    is_unexpected_stage = False
+    if expected.diags is not None:
+        if actual.stage != 'compilation':
+            is_unexpected_stage = True
+    else:
+        if actual.stage != 'runtime':
+            is_unexpected_stage = True
+
+    if is_unexpected_stage:
+        print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
         for stream in ['stdout', 'stderr']:
             content = getattr(actual, stream)
             if content:
-                print_info(f'  {actual.error_stage} {stream}:')
+                print_info(f'  {actual.stage} {stream}:')
                 for line in content.splitlines():
                     print_info(f'    {line}')
     else:
         if actual.exitcode != expected.exitcode:
             print_info(f'  exitcode: expected {expected.exitcode}, actual {actual.exitcode}')
-        print_diff(expected.stdout, actual.stdout, 'stdout')
-        print_diff(expected.stderr, actual.stderr, 'stderr')
+        
+        if expected.diags:
+            combined_output = actual.stdout + actual.stderr
+            for code in expected.diags:
+                if code not in combined_output:
+                    print_info(f'  missing diag code: {CLR_BOLD}{code}{CLR_RESET}')
+
+        if expected.stdout or actual.stdout:
+            print_diff(expected.stdout, actual.stdout, 'stdout')
+        if expected.stderr or actual.stderr:
+            print_diff(expected.stderr, actual.stderr, 'stderr')
+
+def _collect_test_dirs():
+    return sorted({p.parent for p in script_dir.rglob('input.ela')})
+
+def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
+    if expected.diags is not None:
+        if actual.stage != 'compilation':
+            return False
+        if actual.exitcode == 0:
+            return False
+        if expected.exitcode != 0 and actual.exitcode != expected.exitcode:
+            return False
+        combined_output = actual.stdout + actual.stderr
+        for code in expected.diags:
+            if code not in combined_output:
+                return False
+        return True
+    else:
+        if actual.stage != 'runtime':
+            return False
+        if actual.exitcode != expected.exitcode:
+            return False
+        if actual.stdout != expected.stdout:
+            return False
+        if actual.stderr != expected.stderr:
+            return False
+        return True
 
 def run_suite(elc_bin: Path, work_dir: Path) -> bool:
     passed_count = 0
     failed_count = 0
 
-    for path in sorted(script_dir.iterdir()):
-        if not path.is_dir() or path.name.startswith('.'): continue
+    test_dirs = _collect_test_dirs()
 
-        name = path.name
-        expected = get_expected_output(path, name)
-        actual = run_test_case(elc_bin, work_dir, path, name)
-        
-        if actual.error_stage is None and actual == expected:
+    for path in test_dirs:
+        name = str(path.relative_to(script_dir))
+        expected = get_expectation(path, name)
+        actual = run_test_case(elc_bin, work_dir, path, name, expected.diags is not None)
+
+        if _is_success(expected, actual):
             print_pass(name)
             passed_count += 1
         else:
