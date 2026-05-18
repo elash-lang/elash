@@ -3,15 +3,15 @@
 #include <elash/util/dynarena.h>
 #include <elash/defs/int-types.h>
 
-typedef struct ElHirExprNode ElHirExprNode;
+typedef struct ElHirExpr ElHirExpr;
 typedef struct ElType ElType;
 
-typedef struct ElHirCallExprNode {
-    ElHirExprNode* callee;
-    ElHirExprNode** args;
+typedef struct ElHirCallExpr {
+    ElHirExpr* callee;
+    ElHirExpr** args;
     usize arg_count;
-} ElHirCallExprNode;
+} ElHirCallExpr;
 
-ElHirExprNode* el_hir_new_call_expr(
-    ElDynArena* arena, ElType* type, ElHirExprNode* callee, ElHirExprNode** args, usize arg_count
+ElHirExpr* el_hir_new_call_expr(
+    ElDynArena* arena, ElType* type, ElHirExpr* callee, ElHirExpr** args, usize arg_count
 );

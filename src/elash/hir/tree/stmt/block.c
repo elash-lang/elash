@@ -1,8 +1,8 @@
 #include <elash/hir/tree/stmt/block.h>
 #include <elash/hir/tree/stmt.h>
 
-ElHirStmtNode* el_hir_new_block_stmt(ElDynArena* arena, ElHirStmtNode* stmts) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmtNode, {
+ElHirStmt* el_hir_new_block_stmt(ElDynArena* arena, ElHirStmt* stmts) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmt, {
         .kind = EL_HIR_STMT_BLOCK,
         .next = NULL,
         .as.block = {

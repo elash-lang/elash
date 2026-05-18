@@ -2,12 +2,12 @@
 
 #include <elash/util/dynarena.h>
 
-typedef struct ElHirStmtNode ElHirStmtNode;
-typedef struct ElHirExprNode ElHirExprNode;
+typedef struct ElHirStmt ElHirStmt;
+typedef struct ElHirExpr ElHirExpr;
 
-typedef struct ElHirAssignStmtNode {
-    ElHirExprNode* target;
-    ElHirExprNode* value;
-} ElHirAssignStmtNode;
+typedef struct ElHirAssignStmt {
+    ElHirExpr* target;
+    ElHirExpr* value;
+} ElHirAssignStmt;
 
-ElHirStmtNode* el_hir_new_assign_stmt(ElDynArena* arena, ElHirExprNode* target, ElHirExprNode* value);
+ElHirStmt* el_hir_new_assign_stmt(ElDynArena* arena, ElHirExpr* target, ElHirExpr* value);

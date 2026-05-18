@@ -3,6 +3,5 @@
 #include <elash/defs/int-types.h>
 #include <stdio.h>
 
-typedef struct ElAstInitializer ElAstInitializer;
-void el_ast_dump_init(ElAstInitializer* init, usize indent, FILE* out);
-
+typedef struct ElAstInit ElAstInit;
+void el_ast_dump_init(ElAstInit* init, usize indent, FILE* out);

@@ -3,8 +3,8 @@
 
 #include <elash/util/assert.h>
 
-ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAstUnaryOp op, ElAstExprNode* operand) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElAstExprNode, {
+ElAstExpr* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAstUnaryOp op, ElAstExpr* operand) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstExpr, {
         .type = EL_AST_EXPR_UNARY,
         .next = NULL,
         .span = span,

@@ -2,14 +2,13 @@
 
 #include <elash/util/dynarena.h>
 
-typedef struct ElHirStmtNode ElHirStmtNode;
-typedef struct ElHirExprNode ElHirExprNode;
+typedef struct ElHirStmt ElHirStmt;
+typedef struct ElHirExpr ElHirExpr;
 
-typedef struct ElHirIfStmtNode {
-    ElHirExprNode* cond;
-    ElHirStmtNode* then;
-    ElHirStmtNode* else_; // nullable
-} ElHirIfStmtNode;
+typedef struct ElHirIfStmt {
+    ElHirExpr* cond;
+    ElHirStmt* then;
+    ElHirStmt* else_; // nullable
+} ElHirIfStmt;
 
-ElHirStmtNode* el_hir_new_if_stmt(ElDynArena* arena, ElHirExprNode* cond, ElHirStmtNode* then, ElHirStmtNode* else_);
-
+ElHirStmt* el_hir_new_if_stmt(ElDynArena* arena, ElHirExpr* cond, ElHirStmt* then, ElHirStmt* else_);

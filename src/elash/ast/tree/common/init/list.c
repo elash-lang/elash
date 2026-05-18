@@ -1,7 +1,7 @@
 #include <elash/ast/tree/common/init.h>
 
-ElAstInitializer* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInitializer* head, usize count) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElAstInitializer, {
+ElAstInit* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInit* head, usize count) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstInit, {
         .kind = EL_AST_INIT_LIST,
         .span = span,
         .list.head = head,
@@ -10,7 +10,7 @@ ElAstInitializer* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElA
     });
 }
 
-void el_ast_init_list_append(ElAstInitializer** head, ElAstInitializer** tail, ElAstInitializer* init) {
+void el_ast_init_list_append(ElAstInit** head, ElAstInit** tail, ElAstInit* init) {
     if (*tail) {
         (*tail)->next = init;
         *tail = init;

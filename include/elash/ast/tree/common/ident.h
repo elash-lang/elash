@@ -4,13 +4,13 @@
 #include <elash/srcdoc/span.h>
 #include <elash/util/dynarena.h>
 
-typedef struct ElAstExprNode ElAstExprNode;
+typedef struct ElAstExpr ElAstExpr;
 
-typedef struct ElAstIdentNode {
+typedef struct ElAstIdent {
     ElSourceSpan span;
     ElStringView name;
-} ElAstIdentNode;
+} ElAstIdent;
 
-ElAstIdentNode el_ast_ident_node(ElSourceSpan span, ElStringView name);
-ElAstIdentNode* el_ast_new_ident_node_raw(ElDynArena* arena, ElSourceSpan span, ElStringView name);
-ElAstExprNode* el_ast_new_ident_node(ElDynArena* arena, ElSourceSpan span, ElStringView name);
+ElAstIdent el_ast_ident(ElSourceSpan span, ElStringView name);
+ElAstIdent* el_ast_new_ident_raw(ElDynArena* arena, ElSourceSpan span, ElStringView name);
+ElAstExpr* el_ast_new_ident(ElDynArena* arena, ElSourceSpan span, ElStringView name);

@@ -1,10 +1,10 @@
 #include <elash/ast/tree/stmt.h>
 
-ElAstStmtNode* el_ast_new_compound_assign_stmt(
+ElAstStmt* el_ast_new_compound_assign_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElSemaBinOp op, ElAstExprNode* target, ElAstExprNode* value
+    ElSemaBinOp op, ElAstExpr* target, ElAstExpr* value
 ) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmtNode, {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmt, {
         .type = EL_AST_STMT_COMPOUND_ASSIGN,
         .span = span,
         .next = NULL,
@@ -15,4 +15,3 @@ ElAstStmtNode* el_ast_new_compound_assign_stmt(
         },
     });
 }
-

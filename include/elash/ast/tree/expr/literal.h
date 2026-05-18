@@ -4,7 +4,7 @@
 #include <elash/defs/sv.h>
 #include <elash/srcdoc/span.h>
 
-typedef struct ElAstExprNode ElAstExprNode;
+typedef struct ElAstExpr ElAstExpr;
 
 typedef enum ElAstLiteralType {
     EL_AST_LIT_INT,
@@ -15,47 +15,47 @@ typedef enum ElAstLiteralType {
     EL_AST_LIT_NULL,
 } ElAstLiteralType;
 
-typedef struct ElAstIntLiteralNode {
+typedef struct ElAstIntLiteral {
     int64_t value;
-} ElAstIntLiteralNode;
+} ElAstIntLiteral;
 
-typedef struct ElAstFloatLiteralNode {
+typedef struct ElAstFloatLiteral {
     long double value;
-} ElAstFloatLiteralNode;
+} ElAstFloatLiteral;
 
-typedef struct ElAstCharLiteralNode {
+typedef struct ElAstCharLiteral {
     char value;
-} ElAstCharLiteralNode;
+} ElAstCharLiteral;
 
-typedef struct ElAstStringLiteralNode {
+typedef struct ElAstStringLiteral {
     ElStringView value;
-} ElAstStringLiteralNode;
+} ElAstStringLiteral;
 
-typedef struct ElAstBoolLiteralNode {
+typedef struct ElAstBoolLiteral {
     bool value;
-} ElAstBoolLiteralNode;
+} ElAstBoolLiteral;
 
-typedef struct ElAstLiteralNode {
+typedef struct ElAstLiteral {
     ElAstLiteralType type;
     union {
-        ElAstIntLiteralNode int_;
-        ElAstFloatLiteralNode float_;
-        ElAstCharLiteralNode char_;
-        ElAstStringLiteralNode str_;
-        ElAstBoolLiteralNode bool_;
+        ElAstIntLiteral int_;
+        ElAstFloatLiteral float_;
+        ElAstCharLiteral char_;
+        ElAstStringLiteral str_;
+        ElAstBoolLiteral bool_;
     } of;
-} ElAstLiteralNode;
+} ElAstLiteral;
 
-ElAstLiteralNode el_ast_int_literal(int64_t value);
-ElAstLiteralNode el_ast_float_literal(long double value);
-ElAstLiteralNode el_ast_char_literal(char value);
-ElAstLiteralNode el_ast_string_literal(ElStringView value);
-ElAstLiteralNode el_ast_bool_literal(bool value);
-ElAstLiteralNode el_ast_null_literal();
+ElAstLiteral el_ast_int_literal(int64_t value);
+ElAstLiteral el_ast_float_literal(long double value);
+ElAstLiteral el_ast_char_literal(char value);
+ElAstLiteral el_ast_string_literal(ElStringView value);
+ElAstLiteral el_ast_bool_literal(bool value);
+ElAstLiteral el_ast_null_literal();
 
-ElAstExprNode* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, int64_t value);
-ElAstExprNode* el_ast_new_float_literal(ElDynArena* arena, ElSourceSpan span, long double value);
-ElAstExprNode* el_ast_new_char_literal(ElDynArena* arena, ElSourceSpan span, char value);
-ElAstExprNode* el_ast_new_string_literal(ElDynArena* arena, ElSourceSpan span, ElStringView value);
-ElAstExprNode* el_ast_new_bool_literal(ElDynArena* arena, ElSourceSpan span, bool value);
-ElAstExprNode* el_ast_new_null_literal(ElDynArena* arena, ElSourceSpan span);
+ElAstExpr* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, int64_t value);
+ElAstExpr* el_ast_new_float_literal(ElDynArena* arena, ElSourceSpan span, long double value);
+ElAstExpr* el_ast_new_char_literal(ElDynArena* arena, ElSourceSpan span, char value);
+ElAstExpr* el_ast_new_string_literal(ElDynArena* arena, ElSourceSpan span, ElStringView value);
+ElAstExpr* el_ast_new_bool_literal(ElDynArena* arena, ElSourceSpan span, bool value);
+ElAstExpr* el_ast_new_null_literal(ElDynArena* arena, ElSourceSpan span);

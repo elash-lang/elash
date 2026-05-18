@@ -10,7 +10,7 @@
 #include <elash/hir/tree/stmt/break.h>
 #include <elash/hir/tree/stmt/continue.h>
 
-void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmtNode* if_stmt) {
+void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
     ElMirValue* cond = el_lowerer_lower_expr(lw, if_stmt->cond);
 
     uint32_t then_id = lw->current_func->block_count++;
@@ -41,17 +41,17 @@ void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmtNode* if_stmt) {
     lw->current_block_id = merge_id;
 }
 
-void _el_lowerer_lower_break(ElLowerer* lw, ElHirBreakStmtNode* node) {
+void _el_lowerer_lower_break(ElLowerer* lw, ElHirBreakStmt* node) {
     (void) node;
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->break_target_id));
 }
 
-void _el_lowerer_lower_continue(ElLowerer* lw, ElHirContinueStmtNode* node) {
+void _el_lowerer_lower_continue(ElLowerer* lw, ElHirContinueStmt* node) {
     (void) node;
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->continue_target_id));
 }
 
-void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmtNode* while_stmt) {
+void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     uint32_t cond_id = lw->current_func->block_count++;
     uint32_t body_id = lw->current_func->block_count++;
     uint32_t exit_id = lw->current_func->block_count++;
@@ -96,13 +96,13 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmtNode* while_stmt) {
     lw->continue_target_id = prev_continue;
 }
 
-void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmtNode* assign) {
+void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmt* assign) {
     ElMirValue* value = el_lowerer_lower_expr(lw, assign->value);
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, assign->target);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
 }
 
-void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmtNode* cassign) {
+void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, cassign->target);
 
     // Load current value
@@ -120,7 +120,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmtNode* cassi
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, result));
 }
 
-void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmtNode* ret) {
+void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
     ElMirValue* ret_val = ret->value != NULL
         ? el_lowerer_lower_expr(lw, ret->value)
         : NULL;
@@ -128,7 +128,7 @@ void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmtNode* ret) {
     el_mir_ibuf_push(&lw->ibuf, ret_instr);
 }
 
-void _el_lowerer_lower_vardef(ElLowerer* lw, ElHirVarDefStmtNode* var_def) {
+void _el_lowerer_lower_vardef(ElLowerer* lw, ElHirVarDefStmt* var_def) {
     ElSymbol* sym = var_def->var;
 
     ElType* ptr_type = el_sema_new_ptr_type(lw->arena, sym->as.var.type);
@@ -150,11 +150,11 @@ void _el_lowerer_lower_vardef(ElLowerer* lw, ElHirVarDefStmtNode* var_def) {
     }
 }
 
-void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmtNode* hir) {
+void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
     switch (hir->kind) {
     case EL_HIR_STMT_EXPR: el_lowerer_lower_expr(lw, hir->as.expr); return;
     case EL_HIR_STMT_BLOCK:
-        for (ElHirStmtNode* node = hir->as.block.stmts; node != NULL; node = node->next) {
+        for (ElHirStmt* node = hir->as.block.stmts; node != NULL; node = node->next) {
             el_lowerer_lower_stmt(lw, node);
         }
         return;

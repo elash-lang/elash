@@ -33,7 +33,7 @@ static bool _el_lowerer_is_incdec(ElSemaUnaryOp op) {
     return op >= EL_SEMA_UNARY_OP_PRE_INC && op <= EL_SEMA_UNARY_OP_POST_DEC;
 }
 
-static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExprNode* expr) {
+static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr) {
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, expr->operand);
     ElType*     val_type = expr->operand->type;
 
@@ -54,7 +54,7 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExprNode* e
     return el_sema_unary_op_is_post(expr->op) ? current : updated;
 }
 
-ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExprNode* hir, ElHirBinExprNode* bin) {
+ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     if (bin->op == EL_SEMA_BIN_OP_INDEX) {
          ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir);
          ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
@@ -71,7 +71,7 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExprNode* hir, ElHirB
     return reg;
 }
 
-ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExprNode* hir, ElHirUnaryExprNode* unary) {
+ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExpr* hir, ElHirUnaryExpr* unary) {
     if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
         return el_lowerer_get_lvalue(lw, unary->operand);
     }
@@ -96,7 +96,7 @@ ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExprNode* hir, ElHi
     return reg;
 }
 
-ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExprNode* hir, ElHirCallExprNode* call) {
+ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExpr* hir, ElHirCallExpr* call) {
     ElMirValue* callee = el_lowerer_lower_expr(lw, call->callee);
     ElMirValue** args = EL_DYNARENA_NEW_ARR(lw->arena, ElMirValue*, call->arg_count);
     for (usize i = 0; i < call->arg_count; ++i) {
@@ -110,7 +110,7 @@ ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExprNode* hir, ElHir
     return result;
 }
 
-ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExprNode* hir) {
+ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElType* ptr_type = el_sema_new_ptr_type(lw->arena, hir->type);
     ElMirValue* ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ptr, hir->type));
@@ -122,7 +122,7 @@ ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExprNode* hir) 
     return res;
 }
 
-ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
+ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_BINARY:        return _el_lowerer_lower_bin_expr(lw, hir, &hir->as.binary);
     case EL_HIR_EXPR_UNARY:         return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
@@ -133,4 +133,3 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExprNode* hir) {
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
 }
-

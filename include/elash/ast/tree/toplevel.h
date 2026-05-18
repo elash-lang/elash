@@ -10,12 +10,12 @@ typedef enum ElAstTopLevelType {
     EL_AST_TOPLVL_FUNC_DEF,
 } ElAstTopLevelType;
 
-typedef struct ElAstTopLevelNode {
+typedef struct ElAstTopLevel {
     ElAstTopLevelType type;
     ElSourceSpan span;
     union {
         ElAstFuncDef  func_def;
         ElAstFuncDecl func_decl;
     } as;
-    ElAstTopLevelNode* next;
-} ElAstTopLevelNode;
+    ElAstTopLevel* next;
+} ElAstTopLevel;

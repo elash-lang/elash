@@ -3,14 +3,12 @@
 #include <elash/srcdoc/span.h>
 #include "toplevel.h"
 
-typedef struct ElAstModuleNode {
+typedef struct ElAstModule {
     ElSourceSpan span;
-    ElAstTopLevelNode* head;
-    ElAstTopLevelNode* tail;
+    ElAstTopLevel* head;
+    ElAstTopLevel* tail;
     usize count;
-} ElAstModuleNode;
+} ElAstModule;
 
-ElAstModuleNode* el_ast_new_module(ElDynArena* arena, ElSourceSpan span);
-
-void el_ast_module_append(ElAstModuleNode* module, ElAstTopLevelNode* node);
-
+ElAstModule* el_ast_new_module(ElDynArena* arena, ElSourceSpan span);
+void el_ast_module_append(ElAstModule* module, ElAstTopLevel* node);

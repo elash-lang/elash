@@ -2,9 +2,8 @@
 
 #include <elash/util/dynarena.h>
 
-typedef struct ElHirStmtNode ElHirStmtNode;
-typedef struct ElHirContinueStmtNode {
-} ElHirContinueStmtNode;
+typedef struct ElHirStmt ElHirStmt;
+typedef struct ElHirContinueStmt {
+} ElHirContinueStmt;
 
-ElHirStmtNode* el_hir_new_continue_stmt(ElDynArena* arena);
-
+ElHirStmt* el_hir_new_continue_stmt(ElDynArena* arena);

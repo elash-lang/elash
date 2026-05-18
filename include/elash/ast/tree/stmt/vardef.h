@@ -7,14 +7,12 @@
 #include <elash/ast/tree/common/type.h>
 #include <elash/ast/tree/common/init.h>
 
-typedef struct ElAstStmtNode ElAstStmtNode;
+typedef struct ElAstStmt ElAstStmt;
 
-typedef struct ElAstVarDefStmtNode {
-    ElAstTypeNode*    type;
-    ElAstIdentNode*   name;
-    ElAstInitializer* init; // nullable
-} ElAstVarDefStmtNode;
+typedef struct ElAstVarDefStmt {
+    ElAstType*  type;
+    ElAstIdent* name;
+    ElAstInit*  init; // nullable
+} ElAstVarDefStmt;
 
-ElAstStmtNode* el_ast_new_var_def_stmt(
-    ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name, ElAstInitializer* init
-);
+ElAstStmt* el_ast_new_var_def_stmt(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init);

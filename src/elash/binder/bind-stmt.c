@@ -8,31 +8,31 @@
 #include <elash/hir/tree/stmt/block.h>
 #include <elash/hir/tree/stmt/return.h>
 
-bool _el_binder_is_lvalue(ElHirExprNode* expr) {
+bool _el_binder_is_lvalue(ElHirExpr* expr) {
     // TODO: simplified
     return (expr->kind == EL_HIR_EXPR_UNARY && expr->as.unary.op == EL_SEMA_UNARY_OP_DEREF)
         || (expr->kind == EL_HIR_EXPR_BINARY && expr->as.binary.op == EL_SEMA_BIN_OP_INDEX)
         || (expr->kind == EL_HIR_EXPR_SYMBOL);
 }
 
-ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in) {
-    ElHirStmtNode* head = NULL;
-    ElHirStmtNode* tail = NULL;
+ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
+    ElHirStmt* head = NULL;
+    ElHirStmt* tail = NULL;
 
-    for (ElAstStmtNode* curr = in->stmts; curr != NULL; curr = curr->next) {
-        ElHirStmtNode* binded = el_binder_bind_stmt(binder, curr);
+    for (ElAstStmt* curr = in->stmts; curr != NULL; curr = curr->next) {
+        ElHirStmt* binded = el_binder_bind_stmt(binder, curr);
         if (binded) {
             el_hir_stmt_list_append(&head, &tail, binded);
         }
     }
 
-    return (ElHirBlockStmtNode) { .stmts = head };
+    return (ElHirBlockStmt) { .stmts = head };
 }
 
-ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
-    ElHirExprNode* val = el_binder_bind_expr(binder, in->as.return_.value);
+ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
+    ElHirExpr* val = el_binder_bind_expr(binder, in->as.return_.value);
     bool is_void_func = el_sema_type_eql(binder->current_func->as.func.ret_type, binder->builtins->type_void);
-        
+
     if (val == NULL) {
         if (!is_void_func) {
             el_diag_report(
@@ -71,7 +71,7 @@ ElHirStmtNode* _el_binder_bind_return(ElBinder* binder, ElAstStmtNode* in) {
     return el_hir_new_return_stmt(binder->hir_arena, val);
 }
 
-ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* in) {
+ElHirStmt* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmt* in) {
     ElType* type = _el_binder_bind_type(binder, in->as.var_def.type);
     if (!type) return NULL;
 
@@ -95,7 +95,7 @@ ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* i
         return NULL;
     }
 
-    ElHirExprNode* init = NULL;
+    ElHirExpr* init = NULL;
     if (in->as.var_def.init) {
         init = el_binder_bind_init(binder, in->as.var_def.init, type);
         if (!init) return NULL;
@@ -110,8 +110,8 @@ ElHirStmtNode* _el_binder_bind_var_definition(ElBinder* binder, ElAstStmtNode* i
         (SPAN), "cannot assign to rvalue",                   \
     )                                                        \
 
-ElHirStmtNode* _el_binder_bind_assign(ElBinder* binder, ElAstStmtNode* in, ElAstAssignStmtNode* assign) {
-    ElHirExprNode* target = el_binder_bind_expr(binder, assign->target);
+ElHirStmt* _el_binder_bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignStmt* assign) {
+    ElHirExpr* target = el_binder_bind_expr(binder, assign->target);
     if (!_el_binder_is_lvalue(target)) {
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
@@ -124,8 +124,8 @@ ElHirStmtNode* _el_binder_bind_assign(ElBinder* binder, ElAstStmtNode* in, ElAst
     );
 }
 
-ElHirStmtNode* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmtNode* in, ElAstCompoundAssignStmtNode* cassign) {
-    ElHirExprNode* target = el_binder_bind_expr(binder, cassign->target);
+ElHirStmt* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAstCompoundAssignStmt* cassign) {
+    ElHirExpr* target = el_binder_bind_expr(binder, cassign->target);
     if (!_el_binder_is_lvalue(target)) {
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
@@ -138,16 +138,16 @@ ElHirStmtNode* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmtNode* 
     );
 }
 
-ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
+ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
-        ElHirBlockStmtNode block = _el_binder_bind_block(binder, &in->as.block);
+        ElHirBlockStmt block = _el_binder_bind_block(binder, &in->as.block);
         return el_hir_new_block_stmt(binder->hir_arena, block.stmts);
     }
     case EL_AST_STMT_RETURN:
         return _el_binder_bind_return(binder, in);
     case EL_AST_STMT_EXPR: {
-        ElHirExprNode* expr = el_binder_bind_expr(binder, in->as.expr);
+        ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
         return el_hir_new_expr_stmt(binder->hir_arena, expr);
     }
 
@@ -156,13 +156,13 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
             binder->hir_arena,
             el_binder_bind_expr(binder, in->as.if_.cond),
             el_binder_bind_stmt(binder, in->as.if_.then),
-            in->as.if_.else_ != NULL 
+            in->as.if_.else_ != NULL
                 ? el_binder_bind_stmt(binder, in->as.if_.else_)
                 : NULL
         );
     case EL_AST_STMT_WHILE:
         binder->loop_depth++;
-        ElHirStmtNode* body = el_binder_bind_stmt(binder, in->as.while_.body);
+        ElHirStmt* body = el_binder_bind_stmt(binder, in->as.while_.body);
         binder->loop_depth--;
 
         return el_hir_new_while_stmt(
@@ -199,4 +199,3 @@ ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);
 }
-

@@ -18,7 +18,7 @@ static void _el_hir_dump_func_sig(ElSymbol* symbol, usize indent, FILE* out, con
     fputc(' ', out);
     el_sema_dump_symbol(symbol, out);
     fputc('(', out);
-    
+
     for (usize i = 0; i < sym->param_count; ++i) {
         ElSymbol* param = sym->params[i];
         if (i > 0) fputs(", ", out);
@@ -30,14 +30,14 @@ static void _el_hir_dump_func_sig(ElSymbol* symbol, usize indent, FILE* out, con
     fputs(")", out);
 }
 
-void el_hir_dump_toplevel(ElHirTopLevelNode* node, usize indent, FILE* out) {
+void el_hir_dump_toplevel(ElHirTopLevel* node, usize indent, FILE* out) {
    switch (node->kind) {
    case EL_HIR_TOPLVL_FUNC_DEF: {
-       ElHirFuncDef* func = &node->as.func_def; 
+       ElHirFuncDef* func = &node->as.func_def;
        _el_hir_dump_func_sig(func->symbol, indent, out, "define");
-       
+
        fputs(" {\n", out);
-       for (ElHirStmtNode* stmt = func->block.stmts; stmt; stmt = stmt->next) {
+       for (ElHirStmt* stmt = func->block.stmts; stmt; stmt = stmt->next) {
            el_hir_dump_stmt(stmt, indent + 1, out);
        }
        el_hir_dump_print_indent(indent, out);

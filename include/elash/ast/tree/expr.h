@@ -22,18 +22,18 @@ typedef enum ElAstExprType {
     EL_AST_EXPR_ARRAY_LITERAL,
 } ElAstExprType;
 
-typedef struct ElAstExprNode {
+typedef struct ElAstExpr {
     ElAstExprType type;
     ElSourceSpan span;
     union {
-        ElAstBinExprNode binary;
-        ElAstUnaryExprNode unary;
-        ElAstLiteralNode literal;
-        ElAstArrayLitNode array_lit;
-        ElAstIdentNode ident;
-        ElAstCallExprNode call;
+        ElAstBinExpr   binary;
+        ElAstUnaryExpr unary;
+        ElAstLiteral   literal;
+        ElAstArrayLit  array_lit;
+        ElAstIdent     ident;
+        ElAstCallExpr  call;
     } as;
-    ElAstExprNode* next;
-} ElAstExprNode;
+    ElAstExpr* next;
+} ElAstExpr;
 
-void el_ast_expr_list_append(ElAstExprNode** head, ElAstExprNode** tail, ElAstExprNode* expr);
+void el_ast_expr_list_append(ElAstExpr** head, ElAstExpr** tail, ElAstExpr* expr);

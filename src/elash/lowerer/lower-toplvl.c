@@ -11,11 +11,11 @@
 
 // TODO: this function is too large; split it into smaller helpers
 //       before adding any new top-level statement types
-void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
+void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevel* hir) {
     switch (hir->kind) {
     case EL_HIR_TOPLVL_FUNC_DEF: {
         ElHirFuncDef* hir_func = &hir->as.func_def;
-        ElHirBlockStmtNode* hir_block = &hir_func->block;
+        ElHirBlockStmt* hir_block = &hir_func->block;
 
         ElMirFunc* func = el_mir_new_func(lw->arena, hir->as.func_def.symbol);
         lw->current_func = func;
@@ -36,7 +36,7 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
             lw->symbol_map[param_sym->id] = ptr_reg;
         }
 
-        for (ElHirStmtNode* node = hir_block->stmts; node != NULL; node = node->next) {
+        for (ElHirStmt* node = hir_block->stmts; node != NULL; node = node->next) {
             el_lowerer_lower_stmt(lw, node);
         }
 
@@ -63,4 +63,3 @@ void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevelNode* hir) {
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirTopLevelKind, hir->kind);
 }
-

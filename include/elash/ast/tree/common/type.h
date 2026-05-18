@@ -6,8 +6,8 @@
 
 #include "ident.h"
 
-typedef struct ElAstExprNode ElAstExprNode;
-typedef struct ElAstTypeNode ElAstTypeNode;
+typedef struct ElAstExpr ElAstExpr;
+typedef struct ElAstType ElAstType;
 
 typedef enum ElAstTypeKind {
     EL_AST_TYPE_NAME,
@@ -18,22 +18,22 @@ typedef enum ElAstTypeKind {
 } ElAstTypeKind;
 
 typedef struct ElAstArrayType {
-    ElAstTypeNode* base;
-    ElAstExprNode* size;
+    ElAstType* base;
+    ElAstExpr* size;
 } ElAstArrayType;
 
-struct ElAstTypeNode {
+struct ElAstType {
     ElAstTypeKind kind;
     ElSourceSpan span;
     union {
-        ElAstIdentNode* name; // for EL_AST_TYPE_NAME
-        ElAstTypeNode* base;  // for EL_AST_TYPE_PTR, EL_AST_TYPE_SLICE, EL_AST_TYPE_RAW_SLICE
+        ElAstIdent* name; // for EL_AST_TYPE_NAME
+        ElAstType* base;  // for EL_AST_TYPE_PTR, EL_AST_TYPE_SLICE, EL_AST_TYPE_RAW_SLICE
         ElAstArrayType array; // for EL_AST_TYPE_ARRAY
     };
 };
 
-ElAstTypeNode* el_ast_new_type_name(ElDynArena* arena, ElSourceSpan span, ElAstIdentNode* name);
-ElAstTypeNode* el_ast_new_type_ptr(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base);
-ElAstTypeNode* el_ast_new_type_slice(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base);
-ElAstTypeNode* el_ast_new_type_raw_slice(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base);
-ElAstTypeNode* el_ast_new_type_array(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* base, ElAstExprNode* size);
+ElAstType* el_ast_new_type_name(ElDynArena* arena, ElSourceSpan span, ElAstIdent* name);
+ElAstType* el_ast_new_type_ptr(ElDynArena* arena, ElSourceSpan span, ElAstType* base);
+ElAstType* el_ast_new_type_slice(ElDynArena* arena, ElSourceSpan span, ElAstType* base);
+ElAstType* el_ast_new_type_raw_slice(ElDynArena* arena, ElSourceSpan span, ElAstType* base);
+ElAstType* el_ast_new_type_array(ElDynArena* arena, ElSourceSpan span, ElAstType* base, ElAstExpr* size);

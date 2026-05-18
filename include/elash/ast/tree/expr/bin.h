@@ -6,14 +6,14 @@
 
 #include <elash/sema/expr/bin-op.h>
 
-typedef struct ElAstExprNode ElAstExprNode;
+typedef struct ElAstExpr ElAstExpr;
 
 typedef ElSemaBinOp ElAstBinOp;
 
-typedef struct ElAstBinExprNode {
-    ElAstExprNode* left;
+typedef struct ElAstBinExpr {
+    ElAstExpr* left;
     ElAstBinOp op;
-    ElAstExprNode* right;
-} ElAstBinExprNode;
+    ElAstExpr* right;
+} ElAstBinExpr;
 
-ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElAstBinOp op, ElAstExprNode* left, ElAstExprNode* right);
+ElAstExpr* el_ast_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElAstBinOp op, ElAstExpr* left, ElAstExpr* right);

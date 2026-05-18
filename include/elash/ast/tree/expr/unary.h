@@ -6,14 +6,13 @@
 
 #include <elash/sema/expr/unary-op.h>
 
-typedef struct ElAstExprNode ElAstExprNode;
+typedef struct ElAstExpr ElAstExpr;
 
 typedef ElSemaUnaryOp ElAstUnaryOp;
 
-typedef struct ElAstUnaryExprNode {
+typedef struct ElAstUnaryExpr {
     ElAstUnaryOp op;
-    ElAstExprNode* operand;
-} ElAstUnaryExprNode;
+    ElAstExpr* operand;
+} ElAstUnaryExpr;
 
-ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAstUnaryOp op, ElAstExprNode* operand);
-
+ElAstExpr* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAstUnaryOp op, ElAstExpr* operand);

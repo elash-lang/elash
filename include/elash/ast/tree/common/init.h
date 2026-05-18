@@ -5,24 +5,24 @@
 
 #include "init/list.h"
 
-typedef struct ElAstExprNode ElAstExprNode;
+typedef struct ElAstExpr ElAstExpr;
 
-typedef enum ElAstInitializerKind {
+typedef enum ElAstInitKind {
     EL_AST_INIT_EXPR,
     EL_AST_INIT_LIST,
-} ElAstInitializerKind;
+} ElAstInitKind;
 
-typedef struct ElAstInitializer {
-    ElAstInitializerKind kind;
+typedef struct ElAstInit {
+    ElAstInitKind kind;
     ElSourceSpan span;
     union {
-        ElAstExprNode* expr;
+        ElAstExpr* expr;
         ElAstInitList list;
     };
-    struct ElAstInitializer* next;
-} ElAstInitializer;
+    struct ElAstInit* next;
+} ElAstInit;
 
-ElAstInitializer* el_ast_new_init_expr(ElDynArena* arena, ElAstExprNode* expr);
-ElAstInitializer* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInitializer* head, usize count);
+ElAstInit* el_ast_new_init_expr(ElDynArena* arena, ElAstExpr* expr);
+ElAstInit* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInit* head, usize count);
 
-void el_ast_init_list_append(ElAstInitializer** head, ElAstInitializer** tail, ElAstInitializer* init);
+void el_ast_init_list_append(ElAstInit** head, ElAstInit** tail, ElAstInit* init);

@@ -2,15 +2,15 @@
 
 #include <stddef.h>
 
-ElHirStmtNode* el_hir_new_expr_stmt(ElDynArena* arena, ElHirExprNode* expr) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmtNode, {
+ElHirStmt* el_hir_new_expr_stmt(ElDynArena* arena, ElHirExpr* expr) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmt, {
         .kind = EL_HIR_STMT_EXPR,
         .next = NULL,
         .as.expr = expr,
     });
 }
 
-void el_hir_stmt_list_append(ElHirStmtNode** head, ElHirStmtNode** tail, ElHirStmtNode* stmt) {
+void el_hir_stmt_list_append(ElHirStmt** head, ElHirStmt** tail, ElHirStmt* stmt) {
     if (*head == NULL) {
         *head = stmt;
         *tail = stmt;

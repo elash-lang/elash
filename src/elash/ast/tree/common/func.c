@@ -1,7 +1,7 @@
 #include <elash/ast/tree/common/func.h>
 #include <stddef.h>
 
-ElAstFuncParam el_ast_func_param(ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name) {
+ElAstFuncParam el_ast_func_param(ElSourceSpan span, ElAstType* type, ElAstIdent* name) {
     return (ElAstFuncParam) {
         .span = span,
         .type = type,
@@ -11,7 +11,7 @@ ElAstFuncParam el_ast_func_param(ElSourceSpan span, ElAstTypeNode* type, ElAstId
     };
 }
 
-ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name) {
+ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name) {
     ElAstFuncParam* param = EL_DYNARENA_NEW(arena, ElAstFuncParam);
     *param = el_ast_func_param(span, type, name);
     return param;
@@ -38,7 +38,7 @@ void el_ast_func_param_list_append(ElAstFuncParamList* list, ElAstFuncParam* par
 }
 
 ElAstFuncSignature el_ast_func_signature(
-    ElSourceSpan span, ElAstTypeNode* ret_type, ElAstIdentNode* name, ElAstFuncParamList params
+    ElSourceSpan span, ElAstType* ret_type, ElAstIdent* name, ElAstFuncParamList params
 ) {
     return (ElAstFuncSignature) {
         .span = span,

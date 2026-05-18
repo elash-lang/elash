@@ -30,28 +30,28 @@ typedef enum ElAstStmtType {
     EL_AST_STMT_CONTINUE,
 } ElAstStmtType;
 
-typedef struct ElAstStmtNode {
+typedef struct ElAstStmt {
     ElAstStmtType type;
     ElSourceSpan span;
     union {
-        ElAstExprNode* expr;
+        ElAstExpr* expr;
 
-        ElAstBlockStmtNode  block;
-        ElAstReturnStmtNode return_;
-        ElAstVarDefStmtNode var_def;
-        ElAstAssignStmtNode assign;
+        ElAstBlockStmt  block;
+        ElAstReturnStmt return_;
+        ElAstVarDefStmt var_def;
+        ElAstAssignStmt assign;
 
-        ElAstCompoundAssignStmtNode cassign;
+        ElAstCompoundAssignStmt cassign;
 
-        ElAstIfStmtNode    if_;
-        ElAstWhileStmtNode while_;
+        ElAstIfStmt    if_;
+        ElAstWhileStmt while_;
 
-        ElAstBreakStmtNode    break_;
-        ElAstContinueStmtNode continue_;
+        ElAstBreakStmt    break_;
+        ElAstContinueStmt continue_;
     } as;
-    ElAstStmtNode* next; // linked list; used in block stmt
-} ElAstStmtNode;
+    ElAstStmt* next; // linked list; used in block stmt
+} ElAstStmt;
 
-ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElSourceSpan span, ElAstExprNode* expr);
+ElAstStmt* el_ast_new_expr_stmt(ElDynArena* arena, ElSourceSpan span, ElAstExpr* expr);
 
-void el_ast_stmt_list_append(ElAstStmtNode** head, ElAstStmtNode** tail, ElAstStmtNode* stmt);
+void el_ast_stmt_list_append(ElAstStmt** head, ElAstStmt** tail, ElAstStmt* stmt);

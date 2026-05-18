@@ -5,17 +5,16 @@
 
 #include <elash/sema/expr/bin-op.h>
 
-typedef struct ElAstExprNode ElAstExprNode;
-typedef struct ElAstStmtNode ElAstStmtNode;
+typedef struct ElAstExpr ElAstExpr;
+typedef struct ElAstStmt ElAstStmt;
 
-typedef struct ElAstCompoundAssignStmtNode {
+typedef struct ElAstCompoundAssignStmt {
     ElSemaBinOp op;
-    ElAstExprNode* target;
-    ElAstExprNode* value;
-} ElAstCompoundAssignStmtNode;
+    ElAstExpr* target;
+    ElAstExpr* value;
+} ElAstCompoundAssignStmt;
 
-ElAstStmtNode* el_ast_new_compound_assign_stmt(
+ElAstStmt* el_ast_new_compound_assign_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElSemaBinOp op, ElAstExprNode* target, ElAstExprNode* value
+    ElSemaBinOp op, ElAstExpr* target, ElAstExpr* value
 );
-

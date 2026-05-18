@@ -4,4 +4,4 @@
 #include <elash/defs/int-types.h>
 #include <stdio.h>
 
-void el_ast_dump_type(ElAstTypeNode* node, usize indent, FILE* out);
+void el_ast_dump_type(ElAstType* node, usize indent, FILE* out);

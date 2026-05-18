@@ -4,7 +4,7 @@
 
 #include <elash/ast/tree/module.h>
 
-ElAstModuleNode* el_parser_parse_module(ElParser* parser) {
+ElAstModule* el_parser_parse_module(ElParser* parser) {
     ElSourceSpan module_span = EL_SOURCE_SPAN_NULL;
     bool first = true;
 
@@ -12,10 +12,10 @@ ElAstModuleNode* el_parser_parse_module(ElParser* parser) {
         module_span = parser->current.span;
     }
 
-    ElAstModuleNode* module = el_ast_new_module(parser->arena, module_span);
+    ElAstModule* module = el_ast_new_module(parser->arena, module_span);
 
     while (parser->current.type != EL_TT_EOF) {
-        ElAstTopLevelNode* node = el_parser_parse_toplevel(parser);
+        ElAstTopLevel* node = el_parser_parse_toplevel(parser);
         if (node == NULL) {
             continue;
         }

@@ -2,8 +2,8 @@
 
 #include <elash/util/dynarena.h>
 
-typedef struct ElHirStmtNode ElHirStmtNode;
-typedef struct ElHirBreakStmtNode {
-} ElHirBreakStmtNode;
+typedef struct ElHirStmt ElHirStmt;
+typedef struct ElHirBreakStmt {
+} ElHirBreakStmt;
 
-ElHirStmtNode* el_hir_new_break_stmt(ElDynArena* arena);
+ElHirStmt* el_hir_new_break_stmt(ElDynArena* arena);

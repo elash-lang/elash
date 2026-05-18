@@ -6,7 +6,7 @@
 
 #include <elash/hir/tree/expr/array-lit.h>
 
-ElHirExprNode* _el_binder_bind_init_list(ElBinder* binder, ElAstInitializer* in, ElType* expected_type) {
+ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElType* expected_type) {
     if (expected_type->kind != EL_TYPE_ARRAY) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.init-non-aggregate",
@@ -27,20 +27,20 @@ ElHirExprNode* _el_binder_bind_init_list(ElBinder* binder, ElAstInitializer* in,
         return NULL;
     }
 
-    ElHirExprNode** values = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExprNode*, in->list.count);
+    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, in->list.count);
     usize i = 0;
-    for (ElAstInitializer* node = in->list.head; node != NULL; node = node->next, i++) {
+    for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
         values[i] = el_binder_bind_init(binder, node, base_type);
         if (values[i] == NULL) return NULL;
     }
-        
+
     return el_hir_new_array_lit(binder->hir_arena, expected_type, values, in->list.count);
 }
 
-ElHirExprNode* el_binder_bind_init(ElBinder* binder, ElAstInitializer* in, ElType* expected_type) {
+ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected_type) {
     switch (in->kind) {
     case EL_AST_INIT_EXPR: {
-        ElHirExprNode* expr = el_binder_bind_expr(binder, in->expr);
+        ElHirExpr* expr = el_binder_bind_expr(binder, in->expr);
         if (expr == NULL) return NULL;
 
         if (!el_sema_type_eql(expr->type, expected_type)) {
@@ -56,5 +56,5 @@ ElHirExprNode* el_binder_bind_init(ElBinder* binder, ElAstInitializer* in, ElTyp
     case EL_AST_INIT_LIST:
         return _el_binder_bind_init_list(binder, in, expected_type);
     }
-    EL_UNREACHABLE_ENUM_VAL(ElAstInitializerKind, in->kind);
+    EL_UNREACHABLE_ENUM_VAL(ElAstInitKind, in->kind);
 }

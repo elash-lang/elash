@@ -6,7 +6,7 @@
 #include <elash/ast/dump/init.h>
 #include <elash/ast/dump/type.h>
 
-void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
+void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
     switch (node->type) {
     case EL_AST_STMT_EXPR:
         el_ast_dump_print_indent(indent, out);
@@ -65,7 +65,7 @@ void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
     case EL_AST_STMT_BLOCK:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "BlockStmt:\n");
-        for (ElAstStmtNode* stmt = node->as.block.stmts; stmt; stmt = stmt->next) {
+        for (ElAstStmt* stmt = node->as.block.stmts; stmt; stmt = stmt->next) {
             el_ast_dump_stmt(stmt, indent + 1, out);
         }
         break;

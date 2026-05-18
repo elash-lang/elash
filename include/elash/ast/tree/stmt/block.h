@@ -3,11 +3,11 @@
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
 
-typedef struct ElAstStmtNode ElAstStmtNode;
+typedef struct ElAstStmt ElAstStmt;
 
-typedef struct ElAstBlockStmtNode {
-    ElAstStmtNode* stmts;
-} ElAstBlockStmtNode;
+typedef struct ElAstBlockStmt {
+    ElAstStmt* stmts;
+} ElAstBlockStmt;
 
-ElAstBlockStmtNode el_ast_block_stmt(ElAstStmtNode* stmts);
-ElAstStmtNode* el_ast_new_block_stmt(ElDynArena* arena, ElSourceSpan span, ElAstStmtNode* stmts);
+ElAstBlockStmt el_ast_block_stmt(ElAstStmt* stmts);
+ElAstStmt* el_ast_new_block_stmt(ElDynArena* arena, ElSourceSpan span, ElAstStmt* stmts);

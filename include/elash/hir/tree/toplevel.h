@@ -8,12 +8,12 @@ typedef enum ElHirTopLevelKind {
     EL_HIR_TOPLVL_FUNC_DECL,
 } ElHirTopLevelKind;
 
-typedef struct ElHirTopLevelNode ElHirTopLevelNode;
-struct ElHirTopLevelNode {
+typedef struct ElHirTopLevel ElHirTopLevel;
+struct ElHirTopLevel {
     ElHirTopLevelKind kind;
     union {
         ElHirFuncDef func_def;
         ElHirFuncDecl func_decl;
     } as;
-    ElHirTopLevelNode* next;
+    ElHirTopLevel* next;
 };

@@ -11,7 +11,7 @@ ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     ElType* base = _el_binder_bind_type(binder, array->base);
     if (base == NULL) return NULL;
 
-    ElHirExprNode* size_hir = el_binder_bind_expr(binder, array->size);
+    ElHirExpr* size_hir = el_binder_bind_expr(binder, array->size);
     if (size_hir == NULL) return NULL;
 
     if (size_hir->kind != EL_HIR_EXPR_LITERAL || size_hir->type->kind != EL_TYPE_PRIM || size_hir->type->as.prim.kind != EL_PRIMTYPE_INT) {
@@ -31,7 +31,7 @@ ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     return el_sema_new_array_type(binder->type_arena, base, (usize)size_val);
 }
 
-ElType* _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node) {
+ElType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
     switch (node->kind) {
     case EL_AST_TYPE_PTR: {
         ElType* base = _el_binder_bind_type(binder ,node->base);

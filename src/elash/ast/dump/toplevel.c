@@ -30,14 +30,14 @@ void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, FILE* out
     }
 }
 
-void el_ast_dump_toplevel(ElAstTopLevelNode* node, usize indent, FILE* out) {
+void el_ast_dump_toplevel(ElAstTopLevel* node, usize indent, FILE* out) {
     switch (node->type) {
     case EL_AST_TOPLVL_FUNC_DEF:
         el_ast_dump_func_sig(&node->as.func_def.sig, indent, out, "FuncDef");
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "body:\n");
         if (node->as.func_def.block) {
-            for (ElAstStmtNode* stmt = node->as.func_def.block->stmts; stmt; stmt = stmt->next) {
+            for (ElAstStmt* stmt = node->as.func_def.block->stmts; stmt; stmt = stmt->next) {
                 el_ast_dump_stmt(stmt, indent + 2, out);
             }
         }

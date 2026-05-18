@@ -3,6 +3,6 @@
 #include <elash/defs/int-types.h>
 #include <stdio.h>
 
-typedef struct ElHirStmtNode ElHirStmtNode;
+typedef struct ElHirStmt ElHirStmt;
 
-void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out);
+void el_hir_dump_stmt(ElHirStmt* node, usize indent, FILE* out);

@@ -1,24 +1,24 @@
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/expr.h>
 
-ElAstIdentNode el_ast_ident_node(ElSourceSpan span, ElStringView name) {
-    return (ElAstIdentNode) {
+ElAstIdent el_ast_ident(ElSourceSpan span, ElStringView name) {
+    return (ElAstIdent) {
         .span = span,
         .name = name,
     };
 }
 
-ElAstIdentNode* el_ast_new_ident_node_raw(ElDynArena* arena, ElSourceSpan span, ElStringView name) {
-    ElAstIdentNode* node = EL_DYNARENA_NEW(arena, ElAstIdentNode);
-    *node = el_ast_ident_node(span, name);
+ElAstIdent* el_ast_new_ident_raw(ElDynArena* arena, ElSourceSpan span, ElStringView name) {
+    ElAstIdent* node = EL_DYNARENA_NEW(arena, ElAstIdent);
+    *node = el_ast_ident(span, name);
     return node;
 }
 
-ElAstExprNode* el_ast_new_ident_node(ElDynArena* arena, ElSourceSpan span, ElStringView name) {
-    ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
+ElAstExpr* el_ast_new_ident(ElDynArena* arena, ElSourceSpan span, ElStringView name) {
+    ElAstExpr* node = EL_DYNARENA_NEW(arena, ElAstExpr);
     node->type = EL_AST_EXPR_IDENT;
     node->span = span;
-    node->as.ident = el_ast_ident_node(span, name);
+    node->as.ident = el_ast_ident(span, name);
     node->next = NULL;
     return node;
 }

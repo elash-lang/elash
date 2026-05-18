@@ -45,11 +45,12 @@ void _el_parser_report_unexpected(ElParser* parser, ElToken tok);
 
 bool _el_parser_lookahead_skip_type(ElParser* parser, usize* idx);
 
-ElAstStmtNode*  _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok);
-ElAstIdentNode* _el_parser_parse_ident(ElParser* parser);
-ElAstTypeNode*  _el_parser_parse_type(ElParser* parser);
-ElAstInitializer*  el_parser_parse_initializer(ElParser* parser);
-ElAstExprNode*     el_parser_parse_expr(ElParser* parser);
-ElAstStmtNode*     el_parser_parse_stmt(ElParser* parser);
-ElAstTopLevelNode* el_parser_parse_toplevel(ElParser* parser);
-ElAstModuleNode*   el_parser_parse_module(ElParser* parser);
+ElAstStmt*  _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok);
+ElAstIdent* _el_parser_parse_ident(ElParser* parser);
+ElAstType*  _el_parser_parse_type(ElParser* parser);
+
+ElAstInit*     el_parser_parse_init(ElParser* parser);
+ElAstExpr*     el_parser_parse_expr(ElParser* parser);
+ElAstStmt*     el_parser_parse_stmt(ElParser* parser);
+ElAstTopLevel* el_parser_parse_toplevel(ElParser* parser);
+ElAstModule*   el_parser_parse_module(ElParser* parser);

@@ -29,26 +29,26 @@ typedef enum ElHirStmtKind {
     EL_HIR_STMT_CONTINUE,
 } ElHirStmtKind;
 
-typedef struct ElHirStmtNode {
+typedef struct ElHirStmt {
     ElHirStmtKind kind;
     union {
-        ElHirExprNode* expr;
+        ElHirExpr* expr;
 
-        ElHirReturnStmtNode return_;
-        ElHirVarDefStmtNode var_def;
-        ElHirAssignStmtNode assign;
+        ElHirReturnStmt return_;
+        ElHirVarDefStmt var_def;
+        ElHirAssignStmt assign;
 
-        ElHirCompoundAssignStmtNode cassign;
-        
-        ElHirBlockStmtNode block;
-        ElHirWhileStmtNode while_;
-        ElHirIfStmtNode    if_;
+        ElHirCompoundAssignStmt cassign;
 
-        ElHirContinueStmtNode continue_;
-        ElHirBreakStmtNode    break_;
+        ElHirBlockStmt block;
+        ElHirWhileStmt while_;
+        ElHirIfStmt    if_;
+
+        ElHirContinueStmt continue_;
+        ElHirBreakStmt    break_;
     } as;
-    ElHirStmtNode* next;
-} ElHirStmtNode;
+    ElHirStmt* next;
+} ElHirStmt;
 
-ElHirStmtNode* el_hir_new_expr_stmt(ElDynArena* arena, ElHirExprNode* expr);
-void el_hir_stmt_list_append(ElHirStmtNode** head, ElHirStmtNode** tail, ElHirStmtNode* stmt);
+ElHirStmt* el_hir_new_expr_stmt(ElDynArena* arena, ElHirExpr* expr);
+void el_hir_stmt_list_append(ElHirStmt** head, ElHirStmt** tail, ElHirStmt* stmt);

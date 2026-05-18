@@ -3,6 +3,5 @@
 #include <elash/defs/int-types.h>
 #include <stdio.h>
 
-typedef struct ElAstTopLevelNode ElAstTopLevelNode;
-void el_ast_dump_toplevel(ElAstTopLevelNode* node, usize indent, FILE* out);
-
+typedef struct ElAstTopLevel ElAstTopLevel;
+void el_ast_dump_toplevel(ElAstTopLevel* node, usize indent, FILE* out);

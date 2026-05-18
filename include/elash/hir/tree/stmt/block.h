@@ -2,11 +2,10 @@
 
 #include <elash/util/dynarena.h>
 
-typedef struct ElHirStmtNode ElHirStmtNode;
+typedef struct ElHirStmt ElHirStmt;
 
-typedef struct ElHirBlockStmtNode {
-    ElHirStmtNode* stmts;
-} ElHirBlockStmtNode;
+typedef struct ElHirBlockStmt {
+    ElHirStmt* stmts;
+} ElHirBlockStmt;
 
-ElHirStmtNode* el_hir_new_block_stmt(ElDynArena* arena, ElHirStmtNode* stmts);
-
+ElHirStmt* el_hir_new_block_stmt(ElDynArena* arena, ElHirStmt* stmts);

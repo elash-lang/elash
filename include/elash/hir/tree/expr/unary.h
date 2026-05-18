@@ -3,13 +3,12 @@
 #include <elash/sema/expr/unary-op.h>
 #include <elash/util/dynarena.h>
 
-typedef struct ElHirExprNode ElHirExprNode;
+typedef struct ElHirExpr ElHirExpr;
 typedef struct ElType ElType;
 
-typedef struct ElHirUnaryExprNode {
+typedef struct ElHirUnaryExpr {
     ElSemaUnaryOp op;
-    ElHirExprNode* operand;
-} ElHirUnaryExprNode;
+    ElHirExpr* operand;
+} ElHirUnaryExpr;
 
-ElHirExprNode* el_hir_new_unary_expr(ElDynArena* arena, ElType* type, ElSemaUnaryOp op, ElHirExprNode* operand);
-
+ElHirExpr* el_hir_new_unary_expr(ElDynArena* arena, ElType* type, ElSemaUnaryOp op, ElHirExpr* operand);

@@ -6,7 +6,7 @@
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
 
-ElHirExprNode* _el_binder_bind_len_call(ElBinder* binder, ElAstExprNode* in, ElAstCallExprNode* call) {
+ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     if (call->arg_count != 1) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.arg-count-mismatch",
@@ -17,7 +17,7 @@ ElHirExprNode* _el_binder_bind_len_call(ElBinder* binder, ElAstExprNode* in, ElA
         return NULL;
     }
 
-    ElHirExprNode* arg = el_binder_bind_expr(binder, call->args);
+    ElHirExpr* arg = el_binder_bind_expr(binder, call->args);
     if (!arg) return NULL;
 
     if (arg->type->kind == EL_TYPE_ARRAY) {
@@ -35,8 +35,8 @@ ElHirExprNode* _el_binder_bind_len_call(ElBinder* binder, ElAstExprNode* in, ElA
     return NULL;
 }
 
-ElHirExprNode* el_binder_bind_builtin_call(
-    ElBinder* binder, ElAstExprNode* in, ElAstCallExprNode* call, ElSymbol* builtin
+ElHirExpr* el_binder_bind_builtin_call(
+    ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElSymbol* builtin
 ) {
     switch (builtin->as.builtin.kind) {
     case EL_BUILTIN_LEN:
@@ -44,5 +44,3 @@ ElHirExprNode* el_binder_bind_builtin_call(
     }
     EL_UNREACHABLE_ENUM_VAL(ElBuiltinKind, builtin->as.builtin.kind);
 }
-
-

@@ -7,7 +7,7 @@
 
 #include <elash/util/assert.h>
 
-void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
+void el_hir_dump_stmt(ElHirStmt* node, usize indent, FILE* out) {
     switch (node->kind) {
     case EL_HIR_STMT_EXPR:
         el_hir_dump_expr(node->as.expr, indent, out);
@@ -25,7 +25,7 @@ void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
         return;
 
     case EL_HIR_STMT_VAR_DEF: {
-        ElHirVarDefStmtNode* var_def = &node->as.var_def;
+        ElHirVarDefStmt* var_def = &node->as.var_def;
         el_hir_dump_print_indent(indent, out);
         el_sema_dump_type(var_def->var->as.var.type, out);
         fputc(' ', out);
@@ -84,7 +84,7 @@ void el_hir_dump_stmt(ElHirStmtNode* node, usize indent, FILE* out) {
     case EL_HIR_STMT_BLOCK:
         el_hir_dump_print_indent(indent, out);
         fputs("{\n", out);
-        for (ElHirStmtNode* curr = node->as.block.stmts; curr; curr = curr->next) {
+        for (ElHirStmt* curr = node->as.block.stmts; curr; curr = curr->next) {
             el_hir_dump_stmt(curr, indent + 1, out);
         }
         el_hir_dump_print_indent(indent, out);

@@ -13,7 +13,7 @@ typedef enum ElcArtifactKind {
     ELC_ART_SOURCE_TEXT,    // ElSourceDocument
     ELC_ART_TOKENS,         // ElTokenStream
     ELC_ART_PP_TOKENS,      // ElTokenStream (Post-Preprocessor)
-    ELC_ART_AST,            // ElAstModuleNode
+    ELC_ART_AST,            // ElAstModule
     ELC_ART_HIR,            // ElHirModule
     ELC_ART_MIR,            // ElMirModule
     ELC_ART_LIR,            // ElcLirHandle
@@ -28,7 +28,7 @@ typedef struct ElcArtifact {
     union {
         ElSourceDocument*   source;
         ElTokenStream*      tokens;
-        ElAstModuleNode*    ast;
+        ElAstModule*        ast;
         ElHirModule*        hir;
         ElMirModule*        mir;
         ElcLirHandle        lir;

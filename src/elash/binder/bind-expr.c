@@ -6,9 +6,9 @@
 
 #include <elash/sema/type/prim.h>
 
-ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElAstBinExprNode* bin) {
-    ElHirExprNode* left  = el_binder_bind_expr(binder, bin->left);
-    ElHirExprNode* right = el_binder_bind_expr(binder, bin->right);
+ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
+    ElHirExpr* left  = el_binder_bind_expr(binder, bin->left);
+    ElHirExpr* right = el_binder_bind_expr(binder, bin->right);
     if (left == NULL || right == NULL) return NULL;
 
     ElType* type = left->type;
@@ -50,8 +50,8 @@ ElHirExprNode* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExprNode* in, ElA
     return el_hir_new_bin_expr(binder->hir_arena, type, bin->op, left, right);
 }
 
-ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExprNode* in, ElAstUnaryExprNode* unary) {
-    ElHirExprNode* operand = el_binder_bind_expr(binder, unary->operand);
+ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* unary) {
+    ElHirExpr* operand = el_binder_bind_expr(binder, unary->operand);
     if (!operand) return NULL;
 
     ElType* type = operand->type;
@@ -73,7 +73,7 @@ ElHirExprNode* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExprNode* in, E
     return el_hir_new_unary_expr(binder->hir_arena, type, unary->op, operand);
 }
 
-ElHirExprNode* _el_binder_bind_literal(ElBinder* binder, ElAstExprNode* in, ElAstLiteralNode* lit) {
+ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral* lit) {
     switch (lit->type) {
     case EL_AST_LIT_INT:
         return el_hir_new_int_literal(binder->hir_arena, binder->builtins->type_int, lit->of.int_.value);
@@ -92,7 +92,7 @@ ElHirExprNode* _el_binder_bind_literal(ElBinder* binder, ElAstExprNode* in, ElAs
     }
 }
 
-ElHirExprNode* _el_binder_bind_ident(ElBinder* binder, ElAstExprNode* in, ElAstIdentNode* ident) {
+ElHirExpr* _el_binder_bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* ident) {
     ElSymbol* sym = el_sema_scope_lookup(binder->current_scope, ident->name);
     if (sym == NULL) {
         el_diag_report(
@@ -123,8 +123,8 @@ ElHirExprNode* _el_binder_bind_ident(ElBinder* binder, ElAstExprNode* in, ElAstI
     return NULL;
 }
 
-ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCallExprNode* call) {
-    ElHirExprNode* callee = el_binder_bind_expr(binder, call->callee);
+ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
+    ElHirExpr* callee = el_binder_bind_expr(binder, call->callee);
     if (!callee) return NULL;
 
     if (callee->kind == EL_HIR_EXPR_SYMBOL && callee->as.symbol->kind == EL_SYM_BUILTIN) {
@@ -153,9 +153,9 @@ ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCa
         return NULL;
     }
 
-    ElHirExprNode** args = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExprNode*, call->arg_count);
+    ElHirExpr** args = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, call->arg_count);
     usize i = 0;
-    for (ElAstExprNode* curr = call->args; curr != NULL; curr = curr->next) {
+    for (ElAstExpr* curr = call->args; curr != NULL; curr = curr->next) {
         args[i] = el_binder_bind_expr(binder, curr);
         if (!args[i]) return NULL;
         // TODO: implement argument type checking
@@ -165,14 +165,14 @@ ElHirExprNode* _el_binder_bind_call(ElBinder* binder, ElAstExprNode* in, ElAstCa
     return el_hir_new_call_expr(binder->hir_arena, func->ret_type, callee, args, call->arg_count);
 }
 
-ElHirExprNode* _el_binder_bind_array_lit(ElBinder* binder, ElAstExprNode* _, ElAstArrayLitNode* array_lit) {
+ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* _, ElAstArrayLit* array_lit) {
     ElType* type = _el_binder_bind_type(binder, array_lit->type);
     if (type == NULL) return NULL;
 
     return el_binder_bind_init(binder, array_lit->init, type);
 }
 
-ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
+ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
     if (in == NULL) return NULL;
 
     switch (in->type) {
@@ -185,4 +185,3 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }
-

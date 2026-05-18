@@ -13,7 +13,7 @@
 
 // TODO: split this shit into smaller helper functions
 //       clang-tidy: Function 'el_hir_dump_expr' has cognitive complexity of 33 (threshold 25)
-void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
+void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
     el_hir_dump_print_indent(indent, out);
     fputs("(", out);
 

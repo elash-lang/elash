@@ -9,7 +9,7 @@ bool elc_parser_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
     ElParser parser;
     el_parser_init(&parser, *input->as.tokens, ctx->diag, ctx->arena);
 
-    ElAstModuleNode* mod = el_parser_parse_module(&parser);
+    ElAstModule* mod = el_parser_parse_module(&parser);
 
     bool has_errs = el_diag_engine_has_errors(ctx->diag);
     el_parser_destroy(&parser);

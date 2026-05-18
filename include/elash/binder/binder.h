@@ -52,16 +52,13 @@ void el_binder_free(ElBinder* binder);
 ElScope* _el_binder_push_scope(ElBinder* binder);
 ElScope* _el_binder_pop_scope(ElBinder* binder);
 
-ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in);
-ElType*            _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node);
+ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in);
+ElType*            _el_binder_bind_type(ElBinder* binder, ElAstType* node);
 
-ElHirExprNode* el_binder_bind_builtin_call(
-    ElBinder* binder, ElAstExprNode* in, ElAstCallExprNode* call, ElSymbol* builtin
-);
+ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElSymbol* builtin);
+ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected_type);
 
-ElHirExprNode* el_binder_bind_init(ElBinder* binder, ElAstInitializer* in, ElType* expected_type);
-
-ElHirExprNode*     el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in);
-ElHirStmtNode*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmtNode* in);
-ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in);
-ElHirModule*       el_binder_bind_module(ElBinder* binder, ElAstModuleNode* in);
+ElHirExpr*     el_binder_bind_expr(ElBinder* binder,   ElAstExpr* in);
+ElHirStmt*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmt* in);
+ElHirTopLevel* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevel* in);
+ElHirModule*       el_binder_bind_module(ElBinder* binder, ElAstModule* in);

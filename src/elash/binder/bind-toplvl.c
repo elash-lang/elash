@@ -72,7 +72,7 @@ ElSymbol* _el_binder_bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     usize param_count = 0;
     if (!_el_binder_bind_param_types(binder, &sig->params, &param_types, &param_count))
         return NULL;
-    
+
     ElType* func_type = el_sema_new_func_type(
         binder->type_arena, ret_type, param_types, param_count
     );
@@ -114,7 +114,7 @@ ElSymbol* _el_binder_bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     return sym;
 }
 
-ElHirTopLevelNode* _el_binder_bind_func_def(ElBinder* binder, ElAstFuncDef* def) {
+ElHirTopLevel* _el_binder_bind_func_def(ElBinder* binder, ElAstFuncDef* def) {
     ElSymbol* sym = _el_binder_bind_func_sig(binder, &def->sig);
     if (sym == NULL) return NULL;
 
@@ -136,13 +136,13 @@ ElHirTopLevelNode* _el_binder_bind_func_def(ElBinder* binder, ElAstFuncDef* def)
         (void) el_sema_scope_insert(binder->current_scope, sym->as.func.params[i]);
     }
 
-    ElHirBlockStmtNode block = _el_binder_bind_block(binder, def->block);
+    ElHirBlockStmt block = _el_binder_bind_block(binder, def->block);
     _el_binder_pop_scope(binder);
 
     return el_hir_new_func_def(binder->hir_arena, sym, block);
 }
 
-ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in) {
+ElHirTopLevel* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevel* in) {
     switch (in->type) {
     case EL_AST_TOPLVL_FUNC_DECL: {
         ElSymbol* sym = _el_binder_bind_func_sig(binder, &in->as.func_decl.sig);

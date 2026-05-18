@@ -19,18 +19,17 @@ typedef enum ElHirExprKind {
     EL_HIR_EXPR_ARRAY_LITERAL,
 } ElHirExprKind;
 
-typedef struct ElHirExprNode {
+typedef struct ElHirExpr {
     ElHirExprKind kind;
     ElType* type;
     union {
-        ElHirBinExprNode binary;
-        ElHirUnaryExprNode unary;
+        ElHirBinExpr binary;
+        ElHirUnaryExpr unary;
         ElHirLiteral literal;
         ElSymbol* symbol;
-        ElHirCallExprNode call;
-        ElHirArrayLitNode array_lit;
+        ElHirCallExpr call;
+        ElHirArrayLit array_lit;
     } as;
-} ElHirExprNode;
+} ElHirExpr;
 
-ElHirExprNode* el_hir_new_symbol_expr(ElDynArena* arena, ElType* type, ElSymbol* symbol);
-
+ElHirExpr* el_hir_new_symbol_expr(ElDynArena* arena, ElType* type, ElSymbol* symbol);

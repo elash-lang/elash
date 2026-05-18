@@ -1,18 +1,18 @@
 #include <elash/parser/parser.h>
 #include <elash/ast/tree/common/init.h>
 
-ElAstInitializer* el_parser_parse_initializer(ElParser* parser) {
+ElAstInit* el_parser_parse_init(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         ElToken lbrace = parser->current;
         el_parser_advance(parser);
 
-        ElAstInitializer* head = NULL;
-        ElAstInitializer* tail = NULL;
+        ElAstInit* head = NULL;
+        ElAstInit* tail = NULL;
         usize count = 0;
 
         if (!el_parser_check(parser, EL_TT_RBRACE)) {
             while (true) {
-                ElAstInitializer* init = el_parser_parse_initializer(parser);
+                ElAstInit* init = el_parser_parse_init(parser);
                 if (!init) break;
 
                 el_ast_init_list_append(&head, &tail, init);
@@ -28,8 +28,7 @@ ElAstInitializer* el_parser_parse_initializer(ElParser* parser) {
         return el_ast_new_init_list(parser->arena, el_source_span_merge(lbrace.span, rbrace.span), head, count);
     }
 
-    ElAstExprNode* expr = el_parser_parse_expr(parser);
+    ElAstExpr* expr = el_parser_parse_expr(parser);
     if (!expr) return NULL;
     return el_ast_new_init_expr(parser->arena, expr);
 }
-

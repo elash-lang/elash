@@ -2,7 +2,7 @@
 #include <elash/ast/dump/indent.h>
 #include <elash/ast/dump/expr.h>
 
-void el_ast_dump_type(ElAstTypeNode* node, usize indent, FILE* out) {
+void el_ast_dump_type(ElAstType* node, usize indent, FILE* out) {
     el_ast_dump_print_indent(indent, out);
     switch (node->kind) {
     case EL_AST_TYPE_NAME:

@@ -50,7 +50,7 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
     el_mir_ibuf_clear(&lw->ibuf);
 }
 
-ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExprNode* hir) {
+ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_SYMBOL: {
         ElSymbol* sym = hir->as.symbol;
@@ -62,7 +62,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExprNode* hir) {
         }
         EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
     }
-    
+
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
              ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);

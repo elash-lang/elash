@@ -6,7 +6,7 @@
 #include <elash/ast/dump/init.h>
 #include <inttypes.h>
 
-void el_ast_dump_expr_literal(ElAstLiteralNode* lit, usize indent, FILE* out) {
+void el_ast_dump_expr_literal(ElAstLiteral* lit, usize indent, FILE* out) {
     el_ast_dump_print_indent(indent, out);
     switch (lit->type) {
     case EL_AST_LIT_BOOL:
@@ -30,12 +30,12 @@ void el_ast_dump_expr_literal(ElAstLiteralNode* lit, usize indent, FILE* out) {
     }
 }
 
-void el_ast_dump_expr_ident(ElAstIdentNode* node, usize indent, FILE* out) {
+void el_ast_dump_expr_ident(ElAstIdent* node, usize indent, FILE* out) {
     el_ast_dump_print_indent(indent, out);
     fprintf(out, "IdentExpr(\""EL_SV_FMT"\")\n", EL_SV_FARG(node->name));
 }
 
-void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
+void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
     switch (node->type) {
     case EL_AST_EXPR_BINARY: {
         ElStringView op = el_sema_bin_op_to_string(node->as.binary.op);
@@ -66,7 +66,7 @@ void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
         el_ast_dump_expr(node->as.call.callee, indent + 2, out);
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "args:\n");
-        ElAstExprNode* arg = node->as.call.args;
+        ElAstExpr* arg = node->as.call.args;
         while (arg) {
             el_ast_dump_expr(arg, indent + 2, out);
             arg = arg->next;

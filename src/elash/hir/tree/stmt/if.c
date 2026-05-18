@@ -1,7 +1,7 @@
 #include <elash/hir/tree/stmt.h>
 
-ElHirStmtNode* el_hir_new_if_stmt(ElDynArena* arena, ElHirExprNode* cond, ElHirStmtNode* then, ElHirStmtNode* else_) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmtNode, {
+ElHirStmt* el_hir_new_if_stmt(ElDynArena* arena, ElHirExpr* cond, ElHirStmt* then, ElHirStmt* else_) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmt, {
         .kind = EL_HIR_STMT_IF,
         .next = NULL,
         .as.if_ = {

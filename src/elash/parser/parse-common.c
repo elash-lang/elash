@@ -3,7 +3,7 @@
 #include <elash/ast/tree/common/type.h>
 #include <elash/ast/tree/common/ident.h>
 
-ElAstIdentNode* _el_parser_parse_ident(ElParser* parser) {
+ElAstIdent* _el_parser_parse_ident(ElParser* parser) {
     if (!el_parser_check(parser, EL_TT_IDENT)) {
         el_parser_expect(parser, EL_TT_IDENT);
         return NULL;
@@ -12,14 +12,14 @@ ElAstIdentNode* _el_parser_parse_ident(ElParser* parser) {
     ElToken tok = parser->current;
     el_parser_advance(parser);
 
-    return el_ast_new_ident_node_raw(parser->arena, tok.span, tok.lexeme);
+    return el_ast_new_ident_raw(parser->arena, tok.span, tok.lexeme);
 }
 
-ElAstTypeNode* _el_parser_parse_type(ElParser* parser) {
-    ElAstIdentNode* name = _el_parser_parse_ident(parser);
+ElAstType* _el_parser_parse_type(ElParser* parser) {
+    ElAstIdent* name = _el_parser_parse_ident(parser);
     if (name == NULL) return NULL;
 
-    ElAstTypeNode* type = el_ast_new_type_name(parser->arena, name->span, name);
+    ElAstType* type = el_ast_new_type_name(parser->arena, name->span, name);
 
     while (true) {
         if (el_parser_check(parser, EL_TT_STAR)) {
@@ -46,7 +46,7 @@ ElAstTypeNode* _el_parser_parse_type(ElParser* parser) {
                 continue;
             }
 
-            ElAstExprNode* size = el_parser_parse_expr(parser);
+            ElAstExpr* size = el_parser_parse_expr(parser);
             ElToken rbracket = parser->current;
             el_parser_expect(parser, EL_TT_RBRACKET);
             type = el_ast_new_type_array(parser->arena, el_source_span_merge(type->span, rbracket.span), type, size);

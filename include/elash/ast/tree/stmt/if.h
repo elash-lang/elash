@@ -3,16 +3,16 @@
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
 
-typedef struct ElAstExprNode ElAstExprNode;
-typedef struct ElAstStmtNode ElAstStmtNode;
+typedef struct ElAstExpr ElAstExpr;
+typedef struct ElAstStmt ElAstStmt;
 
-typedef struct ElAstIfStmtNode {
-    ElAstExprNode* cond;
-    ElAstStmtNode* then;
-    ElAstStmtNode* else_; // nullable
-} ElAstIfStmtNode;
+typedef struct ElAstIfStmt {
+    ElAstExpr* cond;
+    ElAstStmt* then;
+    ElAstStmt* else_; // nullable
+} ElAstIfStmt;
 
-ElAstStmtNode* el_ast_new_if_stmt(
+ElAstStmt* el_ast_new_if_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElAstExprNode* cond, ElAstStmtNode* then, ElAstStmtNode* else_
+    ElAstExpr* cond, ElAstStmt* then, ElAstStmt* else_
 );

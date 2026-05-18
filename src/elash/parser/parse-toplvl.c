@@ -12,13 +12,13 @@ static ElAstFuncParamList _el_parser_parse_func_params(ElParser* parser) {
     ElAstFuncParamList params = el_ast_make_func_param_list();
 
     while (parser->current.type != EL_TT_RPAREN) {
-        ElAstTypeNode* p_type = _el_parser_parse_type(parser);
+        ElAstType* p_type = _el_parser_parse_type(parser);
         if (el_parser_has_errs(parser)) {
             el_parser_skip_to(parser, EL_TT_RPAREN);
             return params;
         }
 
-        ElAstIdentNode* p_name = _el_parser_parse_ident(parser);
+        ElAstIdent* p_name = _el_parser_parse_ident(parser);
         if (el_parser_has_errs(parser)) {
             el_parser_skip_to(parser, EL_TT_RPAREN);
             return params;
@@ -51,10 +51,10 @@ static ElAstFuncSignature _el_parser_parse_func_sig(ElParser* parser) {
     ElAstFuncSignature sig = {0};
     uint errs_before = el_parser_error_count(parser);
 
-    ElAstTypeNode* ret_type = _el_parser_parse_type(parser);
+    ElAstType* ret_type = _el_parser_parse_type(parser);
     if (el_parser_had_new_errors(parser, errs_before)) return sig;
 
-    ElAstIdentNode* name = _el_parser_parse_ident(parser);
+    ElAstIdent* name = _el_parser_parse_ident(parser);
     if (el_parser_had_new_errors(parser, errs_before)) return sig;
 
     el_parser_expect(parser, EL_TT_LPAREN);
@@ -78,7 +78,7 @@ static ElAstFuncSignature _el_parser_parse_func_sig(ElParser* parser) {
     return el_ast_func_signature(span, ret_type, name, params);
 }
 
-ElAstTopLevelNode* el_parser_parse_toplevel(ElParser* parser) {
+ElAstTopLevel* el_parser_parse_toplevel(ElParser* parser) {
     bool is_extern = false;
     ElToken extern_tok;
     if (el_parser_check(parser, EL_TT_KW_EXTERN)) {
@@ -112,7 +112,7 @@ ElAstTopLevelNode* el_parser_parse_toplevel(ElParser* parser) {
         ElToken lbrace_tok = parser->current;
         el_parser_advance(parser);
 
-        ElAstStmtNode* body_stmt = _el_parser_parse_block(parser, lbrace_tok);
+        ElAstStmt* body_stmt = _el_parser_parse_block(parser, lbrace_tok);
 
         ElSourceSpan span = el_source_span_merge(sig.span, body_stmt->span);
         return el_ast_new_func_def(parser->arena, span, sig, &body_stmt->as.block);
