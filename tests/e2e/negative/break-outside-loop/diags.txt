@@ -1,0 +1,1 @@
+error[sema.break-outside-loop]
