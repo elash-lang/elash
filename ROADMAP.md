@@ -90,7 +90,7 @@
 
 - [x] Define AST node structures
 - [x] Implement expression parser with precedence handling
-- [ ] Implement variable definitions
+- [x] Implement variable definitions
 - [x] Implement function definitions
 - [ ] Implement variable declarations (extern)
 - [x] Implement function declarations (extern)
@@ -107,14 +107,16 @@
 
 - [x] Implement symbol table (scope)
 - [x] Implement scope handling
-- [ ] Implement built-in functions
+- [x] Implement built-in functions
 - [x] Perform name resolution
 - [x] Detect duplicate declarations
 - [x] Detect undefined identifiers
 - [x] Define internal type representation
-- [ ] Implement expression type checking
-- [ ] Validate function calls
+- [x] Implement expression type checking
+- [x] Validate function calls
 - [x] Validate return types
+- [ ] Implement constant folding
+- [ ] Check whether function returns in all execution paths
 - [ ] Implement implicit and explicit conversions
 - [x] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
 - [ ] Add semantic & ELHIR test suite
@@ -123,11 +125,10 @@
 ### 5. ELHIR -> ELMIR Lowering
 
 - [x] Define ELMIR (Elash Mid-level Intermediate Representation) structure
-- [ ] Implement Control Flow Graph (CFG) construction
 - [ ] Lower structured control flow (if, loops) into basic blocks and jumps
 - [x] Flatten nested expressions into linear ELMIR instructions
 - [x] Implement temporary variable generation
-- [ ] Perform early ELMIR optimizations (constant folding, dead code elimination)
+- [ ] Perform early ELMIR optimizations (e.g., dead code elimination)
 
 
 ### 6. ELMIR -> LLVM IR Lowering
@@ -170,7 +171,7 @@
 
 - [x] Implement command parsing
 - [x] Implement useful flags
-- [ ] Implement optimization flags
+- [ ] ~~Implement optimization flags~~ *(moved to 0.2.0)*
 - [x] Implement colored diagnostics
 - [ ] Return proper exit codes
 
@@ -201,5 +202,5 @@
 - [x] End-to-end compilation tests
 - [ ] Invalid program test suite
 - [ ] Large file compilation test
-- [ ] Memory usage checks
-- [ ] Regression tests
+- [ ] ~~Memory usage checks~~ *(moved to 0.2.0 or later)*
+- [ ] ~~Regression tests~~ *(moved to 0.2.0 or later)*
