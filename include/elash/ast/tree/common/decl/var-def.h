@@ -7,12 +7,12 @@
 #include <elash/ast/tree/common/type.h>
 #include <elash/ast/tree/common/init.h>
 
-typedef struct ElAstStmt ElAstStmt;
+typedef struct ElAstDecl ElAstDecl;
 
-typedef struct ElAstVarDefStmt {
+typedef struct ElAstVarDef {
     ElAstType*  type;
     ElAstIdent* name;
     ElAstInit*  init; // nullable
-} ElAstVarDefStmt;
+} ElAstVarDef;
 
-ElAstStmt* el_ast_new_var_def_stmt(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init);
+ElAstDecl* el_ast_new_var_def(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init);

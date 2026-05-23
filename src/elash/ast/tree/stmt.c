@@ -9,6 +9,15 @@ ElAstStmt* el_ast_new_expr_stmt(ElDynArena* arena, ElSourceSpan span, ElAstExpr*
     });
 }
 
+ElAstStmt* el_ast_new_decl_stmt(ElDynArena* arena, ElSourceSpan span, ElAstDecl* decl) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmt, {
+        .type = EL_AST_STMT_DECL,
+        .span = span,
+        .as.decl = decl,
+        .next = NULL,
+    });
+}
+
 void el_ast_stmt_list_append(ElAstStmt** head, ElAstStmt** tail, ElAstStmt* stmt) {
     if (*head == NULL) {
         *head = stmt;

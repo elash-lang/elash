@@ -6,6 +6,8 @@
 #include <elash/ast/dump/init.h>
 #include <elash/ast/dump/type.h>
 
+#include <elash/ast/dump/decl.h>
+
 void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
     switch (node->type) {
     case EL_AST_STMT_EXPR:
@@ -93,19 +95,8 @@ void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
         el_ast_dump_expr(node->as.cassign.value, indent + 2, out);
         break;
 
-    case EL_AST_STMT_VAR_DEF:
-        el_ast_dump_print_indent(indent, out);
-        fprintf(out, "VarDefStmt:\n");
-        el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "type:\n");
-        el_ast_dump_type(node->as.var_def.type, indent + 2, out);
-        el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.var_def.name->name));
-        if (node->as.var_def.init != NULL) {
-            el_ast_dump_print_indent(indent + 1, out);
-            fprintf(out, "init:\n");
-            el_ast_dump_init(node->as.var_def.init, indent + 2, out);
-        }
+    case EL_AST_STMT_DECL:
+        el_ast_dump_decl(node->as.decl, indent, out);
         break;
     }
 }

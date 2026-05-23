@@ -5,11 +5,12 @@
 
 #include "expr.h"
 
+#include "common/decl.h"
+#include "common/block.h"
+
 #include "stmt/cassign.h"
-#include "stmt/vardef.h"
 #include "stmt/assign.h"
 #include "stmt/return.h"
-#include "stmt/block.h"
 
 #include "stmt/while.h"
 #include "stmt/if.h"
@@ -20,7 +21,7 @@
 typedef enum ElAstStmtType {
     EL_AST_STMT_EXPR,
     EL_AST_STMT_RETURN,
-    EL_AST_STMT_VAR_DEF,
+    EL_AST_STMT_DECL,
     EL_AST_STMT_ASSIGN,
     EL_AST_STMT_BLOCK,
     EL_AST_STMT_COMPOUND_ASSIGN,
@@ -38,7 +39,7 @@ typedef struct ElAstStmt {
 
         ElAstBlockStmt  block;
         ElAstReturnStmt return_;
-        ElAstVarDefStmt var_def;
+        ElAstDecl*      decl;
         ElAstAssignStmt assign;
 
         ElAstCompoundAssignStmt cassign;
@@ -53,5 +54,6 @@ typedef struct ElAstStmt {
 } ElAstStmt;
 
 ElAstStmt* el_ast_new_expr_stmt(ElDynArena* arena, ElSourceSpan span, ElAstExpr* expr);
+ElAstStmt* el_ast_new_decl_stmt(ElDynArena* arena, ElSourceSpan span, ElAstDecl* decl);
 
 void el_ast_stmt_list_append(ElAstStmt** head, ElAstStmt** tail, ElAstStmt* stmt);

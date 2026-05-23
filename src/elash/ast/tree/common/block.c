@@ -1,3 +1,4 @@
+#include <elash/ast/tree/common/block.h>
 #include <elash/ast/tree/stmt.h>
 
 ElAstBlockStmt el_ast_block_stmt(ElAstStmt* stmts) {

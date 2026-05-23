@@ -2,20 +2,19 @@
 
 #include <elash/srcdoc/span.h>
 
-#include "toplevel/func-decl.h"
-#include "toplevel/func-def.h"
+#include "common/decl.h"
 
 typedef enum ElAstTopLevelType {
-    EL_AST_TOPLVL_FUNC_DECL,
-    EL_AST_TOPLVL_FUNC_DEF,
+    EL_AST_TOPLVL_DECL,
 } ElAstTopLevelType;
 
 typedef struct ElAstTopLevel {
     ElAstTopLevelType type;
     ElSourceSpan span;
     union {
-        ElAstFuncDef  func_def;
-        ElAstFuncDecl func_decl;
+        ElAstDecl* decl;
     } as;
     ElAstTopLevel* next;
 } ElAstTopLevel;
+
+ElAstTopLevel* el_ast_new_toplevel_decl(ElDynArena* arena, ElAstDecl* decl);
