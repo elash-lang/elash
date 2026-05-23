@@ -182,37 +182,6 @@ ElAstStmt* _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok) {
     return el_ast_new_block_stmt(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span), head);
 }
 
-static ElAstStmt* _el_parser_parse_var_def(ElParser* parser) {
-    uint errs_before = el_parser_error_count(parser);
-
-    ElAstType* type = _el_parser_parse_type(parser);
-    if (type == NULL) return NULL;
-
-    ElAstIdent* name = _el_parser_parse_ident(parser);
-    if (name == NULL) return NULL;
-
-    ElAstInit* init = NULL;
-    if (el_parser_match(parser, EL_TT_ASSIGN)) {
-        init = el_parser_parse_init(parser);
-        if (el_parser_had_new_errors(parser, errs_before)) return NULL;
-    }
-
-    ElToken semi_tok = parser->current;
-    if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
-        el_parser_expect(parser, EL_TT_SEMICOLON);
-        return NULL;
-    }
-    el_parser_advance(parser);
-
-    return el_ast_new_var_def_stmt(parser->arena, el_source_span_merge(type->span, semi_tok.span), type, name, init);
-}
-
-static bool _el_parser_is_var_def(ElParser* parser) {
-    usize idx = 0;
-    if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
-    return el_parser_peek_at(parser, idx).type == EL_TT_IDENT;
-}
-
 ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_RETURN)) {
         ElToken return_tok = parser->current;
@@ -240,11 +209,7 @@ ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
         el_parser_advance(parser);
 
         ElToken semi_tok = parser->current;
-        if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
-            el_parser_expect(parser, EL_TT_SEMICOLON);
-            return NULL;
-        }
-        el_parser_advance(parser);
+        el_parser_expect(parser, EL_TT_SEMICOLON);
 
         return el_ast_new_break_stmt(parser->arena, el_source_span_merge(break_tok.span, semi_tok.span));
     }
@@ -253,17 +218,21 @@ ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
         el_parser_advance(parser);
 
         ElToken semi_tok = parser->current;
-        if (!el_parser_check(parser, EL_TT_SEMICOLON)) {
-            el_parser_expect(parser, EL_TT_SEMICOLON);
-            return NULL;
-        }
-        el_parser_advance(parser);
+        el_parser_expect(parser, EL_TT_SEMICOLON);
 
         return el_ast_new_continue_stmt(parser->arena, el_source_span_merge(continue_tok.span, semi_tok.span));
     }
 
-    if (_el_parser_is_var_def(parser)) {
-        return _el_parser_parse_var_def(parser);
+    usize lookahead_idx = 0;
+    bool is_decl = el_parser_check(parser, EL_TT_KW_EXTERN);
+    if (!is_decl && _el_parser_lookahead_skip_type(parser, &lookahead_idx)) {
+        is_decl = el_parser_peek_at(parser, lookahead_idx).type == EL_TT_IDENT;
+    }
+
+    if (is_decl) {
+        ElAstDecl* decl = el_parser_parse_decl(parser);
+        if (decl == NULL) return NULL;
+        return el_ast_new_decl_stmt(parser->arena, decl->span, decl);
     }
 
     return _el_parser_parse_expr_stmt(parser);

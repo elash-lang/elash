@@ -1,9 +1,9 @@
 #pragma once
 
 #include <elash/ast/tree/common/ident.h>
+#include <elash/ast/tree/common/block.h>
 #include <elash/ast/tree/common/type.h>
 
-#include <elash/ast/tree/stmt/block.h>
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
 

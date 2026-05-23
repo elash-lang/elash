@@ -13,6 +13,7 @@
 #include <elash/ast/tree/module.h>
 #include <elash/ast/tree/common/type.h>
 #include <elash/ast/tree/common/init.h>
+#include <elash/ast/tree/common/decl.h>
 
 #include <elash/diag/engine.h>
 
@@ -49,6 +50,7 @@ ElAstStmt*  _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok);
 ElAstIdent* _el_parser_parse_ident(ElParser* parser);
 ElAstType*  _el_parser_parse_type(ElParser* parser);
 
+ElAstDecl*     el_parser_parse_decl(ElParser* parser);
 ElAstInit*     el_parser_parse_init(ElParser* parser);
 ElAstExpr*     el_parser_parse_expr(ElParser* parser);
 ElAstStmt*     el_parser_parse_stmt(ElParser* parser);
