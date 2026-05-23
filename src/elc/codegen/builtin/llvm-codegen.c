@@ -9,6 +9,7 @@
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
+#include <llvm-c/Analysis.h>
 
 #include <stdlib.h>
 
@@ -346,6 +347,8 @@ ElcCodegenResult elc_llvm_compile(
     for (ElMirFunc* func = input->first_func; func != NULL; func = func->next) {
         elc_llvm_compile_func(ctx, lir_data->module, func);
     }
+
+    LLVMVerifyModule(lir_data->module, LLVMPrintMessageAction, NULL);
 
     *output = elc_llvm_make_lir_handle(lir_data);
     return ELC_CODEGEN_OK;
