@@ -61,6 +61,7 @@ ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCal
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected_type);
 
 ElHirExpr*     el_binder_bind_expr(ElBinder* binder,   ElAstExpr* in);
+ElHirDecl*     el_binder_bind_decl(ElBinder* binder,   ElAstDecl* in);
 ElHirStmt*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmt* in);
 ElHirTopLevel* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevel* in);
 ElHirModule*   el_binder_bind_module(ElBinder* binder, ElAstModule* in);

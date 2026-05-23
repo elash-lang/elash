@@ -4,11 +4,11 @@
 
 #include <elash/hir/tree/stmt/block.h>
 
-typedef struct ElHirTopLevel ElHirTopLevel;
+typedef struct ElHirDecl ElHirDecl;
 
 typedef struct ElHirFuncDef {
     ElSymbol* symbol;
     ElHirBlockStmt block;
 } ElHirFuncDef;
 
-ElHirTopLevel* el_hir_new_func_def(ElDynArena* arena, ElSymbol* symbol, ElHirBlockStmt block);
+ElHirDecl* el_hir_new_func_def(ElDynArena* arena, ElSymbol* symbol, ElHirBlockStmt block);

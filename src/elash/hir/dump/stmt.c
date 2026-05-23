@@ -1,6 +1,7 @@
 #include <elash/hir/dump/stmt.h>
 #include <elash/hir/dump/expr.h>
 #include <elash/hir/dump/indent.h>
+#include <elash/hir/dump/decl.h>
 
 #include <elash/sema/type.h>
 #include <elash/hir/tree/stmt.h>
@@ -24,19 +25,9 @@ void el_hir_dump_stmt(ElHirStmt* node, usize indent, FILE* out) {
         fputs(";\n", out);
         return;
 
-    case EL_HIR_STMT_VAR_DEF: {
-        ElHirVarDefStmt* var_def = &node->as.var_def;
-        el_hir_dump_print_indent(indent, out);
-        el_sema_dump_type(var_def->var->as.var.type, out);
-        fputc(' ', out);
-        el_sv_print(var_def->var->name, out);
-        if (var_def->init != NULL) {
-            fputs(" = ", out);
-            el_hir_dump_expr(var_def->init, 0, out);
-        }
-        fputs(";\n", out);
+    case EL_HIR_STMT_DECL:
+        el_hir_dump_decl(node->as.decl, indent, out);
         return;
-    }
 
     case EL_HIR_STMT_ASSIGN:
         el_hir_dump_expr(node->as.assign.target, indent, out);

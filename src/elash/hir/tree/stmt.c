@@ -10,6 +10,14 @@ ElHirStmt* el_hir_new_expr_stmt(ElDynArena* arena, ElHirExpr* expr) {
     });
 }
 
+ElHirStmt* el_hir_new_decl_stmt(ElDynArena* arena, ElHirDecl* decl) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmt, {
+        .kind = EL_HIR_STMT_DECL,
+        .next = NULL,
+        .as.decl = decl,
+    });
+}
+
 void el_hir_stmt_list_append(ElHirStmt** head, ElHirStmt** tail, ElHirStmt* stmt) {
     if (*head == NULL) {
         *head = stmt;

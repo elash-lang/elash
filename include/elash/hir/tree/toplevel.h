@@ -1,19 +1,18 @@
 #pragma once
 
-#include "toplevel/func-def.h"
-#include "toplevel/func-decl.h"
+#include "decl.h"
 
 typedef enum ElHirTopLevelKind {
-    EL_HIR_TOPLVL_FUNC_DEF,
-    EL_HIR_TOPLVL_FUNC_DECL,
+    EL_HIR_TOPLVL_DECL,
 } ElHirTopLevelKind;
 
 typedef struct ElHirTopLevel ElHirTopLevel;
 struct ElHirTopLevel {
     ElHirTopLevelKind kind;
     union {
-        ElHirFuncDef func_def;
-        ElHirFuncDecl func_decl;
+        ElHirDecl* decl;
     } as;
     ElHirTopLevel* next;
 };
+
+ElHirTopLevel* el_hir_new_toplevel_decl(ElDynArena* arena, ElHirDecl* decl);
