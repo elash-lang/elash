@@ -6,7 +6,7 @@
 - [x] Function definitions
 - [x] Function declarations (extern)
 - [x] Variable definitions
-- [ ] Variable declarations (extern)
+- [x] Variable declarations (extern)
 
 ### Control Flow
 - [x] If statement
@@ -125,7 +125,7 @@
 ### 5. ELHIR -> ELMIR Lowering
 
 - [x] Define ELMIR (Elash Mid-level Intermediate Representation) structure
-- [ ] Lower structured control flow (if, loops) into basic blocks and jumps
+- [x] Lower structured control flow (if, loops) into basic blocks and jumps
 - [x] Flatten nested expressions into linear ELMIR instructions
 - [x] Implement temporary variable generation
 - [ ] Perform early ELMIR optimizations (e.g., dead code elimination)
@@ -144,7 +144,7 @@
 - [x] Lower function calls
 - [x] Lower return instructions
 - [x] Handle global variables
-- [ ] Verify LLVM module
+- [x] Verify LLVM module
 - [x] Emit LLVM IR (.ll)
 - [x] Emit object file
 
@@ -200,7 +200,7 @@
 ### 12. Stability & Hardening
 
 - [x] End-to-end compilation tests
-- [ ] Invalid program test suite
-- [ ] Large file compilation test
+- [x] Invalid program test suite
+- [ ] ~~Large file compilation test~~ *(moved to 0.2.0 or later)*
 - [ ] ~~Memory usage checks~~ *(moved to 0.2.0 or later)*
 - [ ] ~~Regression tests~~ *(moved to 0.2.0 or later)*
