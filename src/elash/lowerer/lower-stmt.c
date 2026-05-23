@@ -128,28 +128,6 @@ void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
     el_mir_ibuf_push(&lw->ibuf, ret_instr);
 }
 
-void _el_lowerer_lower_vardef(ElLowerer* lw, ElHirVarDefStmt* var_def) {
-    ElSymbol* sym = var_def->var;
-
-    ElType* ptr_type = el_sema_new_ptr_type(lw->arena, sym->as.var.type);
-    ElMirValue* ptr_reg = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
-
-    ElMirInstr* alloca_instr = el_mir_new_alloca_instr(lw->arena, ptr_reg, sym->as.var.type);
-    el_mir_ibuf_push(&lw->ibuf, alloca_instr);
-
-    lw->symbol_map[sym->id] = ptr_reg;
-
-    if (var_def->init) {
-        if (var_def->init->kind == EL_HIR_EXPR_ARRAY_LITERAL) {
-            _el_lowerer_lower_array_lit(lw, ptr_reg, &var_def->init->as.array_lit);
-        } else {
-            ElMirValue* init_val = el_lowerer_lower_expr(lw, var_def->init);
-            ElMirInstr* store_instr = el_mir_new_store_instr(lw->arena, ptr_reg, init_val);
-            el_mir_ibuf_push(&lw->ibuf, store_instr);
-        }
-    }
-}
-
 void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
     switch (hir->kind) {
     case EL_HIR_STMT_EXPR: el_lowerer_lower_expr(lw, hir->as.expr); return;
@@ -161,7 +139,7 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
 
     case EL_HIR_STMT_ASSIGN:  return _el_lowerer_lower_assign(lw, &hir->as.assign);
     case EL_HIR_STMT_RETURN:  return _el_lowerer_lower_return(lw, &hir->as.return_);
-    case EL_HIR_STMT_VAR_DEF: return _el_lowerer_lower_vardef(lw, &hir->as.var_def);
+    case EL_HIR_STMT_DECL:    return _el_lowerer_lower_local_decl(lw, hir->as.decl);
 
     case EL_HIR_STMT_COMPOUND_ASSIGN: return _el_lowerer_lower_cassign(lw, &hir->as.cassign);
 

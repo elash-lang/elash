@@ -1,0 +1,27 @@
+int global;
+
+int getGlobal() {
+    return global;
+}
+
+int assignGlobal() {
+    global = 21;
+}
+
+int shadow() {
+    int global = 321;
+    return global;
+}
+
+int main() {
+    global = 47;
+    if (global != 47) return 1;
+    if (getGlobal() != 47) return 2;
+    if (shadow() != 321) return 3;
+    
+    assignGlobal();
+    if (global != 21) return 4;
+    if (getGlobal() != 21) return 5;
+
+    return 0;
+}

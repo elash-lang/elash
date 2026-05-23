@@ -10,15 +10,31 @@
 #include <elash/mir/value/const.h>
 
 ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) {
+    if (lw->symbol_map && lw->symbol_map[sym->id]) {
+        ElMirValue* val = lw->symbol_map[sym->id];
+        if (sym->kind == EL_SYM_VAR) {
+            ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, val));
+            return reg;
+        }
+        return val;
+    }
+
     switch (sym->kind) {
     case EL_SYM_VAR: {
-        ElMirValue* ptr = lw->symbol_map[sym->id];
+        ElType* ptr_type = el_sema_new_ptr_type(lw->arena, type);
+        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, sym);
+        if (lw->symbol_map) lw->symbol_map[sym->id] = glob;
+
         ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, glob));
         return reg;
     }
-    case EL_SYM_FUNC:
-        return el_mir_new_global(lw->arena, type, sym);
+    case EL_SYM_FUNC: {
+        ElMirValue* glob = el_mir_new_global(lw->arena, type, sym);
+        if (lw->symbol_map) lw->symbol_map[sym->id] = glob;
+        return glob;
+    }
     case EL_SYM_BUILTIN:
         EL_UNREACHABLE("builtin functions cannot be used as values");
         return NULL;

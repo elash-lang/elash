@@ -94,6 +94,11 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
                 glob = LLVMAddFunction(ctx->current_mod, name, type);
             } else {
                 glob = LLVMGetNamedGlobal(ctx->current_mod, name);
+                if (glob == NULL) {
+                    LLVMTypeRef type = elc_llvm_map_type(ctx, value->as.global.sym->as.var.type);
+                    glob = LLVMAddGlobal(ctx->current_mod, type, name);
+                    LLVMSetInitializer(glob, LLVMConstNull(type));
+                }
             }
         }
         return glob;
