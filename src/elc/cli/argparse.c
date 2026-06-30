@@ -1,4 +1,4 @@
-#include <elc/cli/parser.h>
+#include <elc/cli/argparse.h>
 #include <elash/defs/sv.h>
 
 static ElStringView get_value(ElcArgParseContext* p, ElStringView arg, ElStringView flag_name) {
@@ -38,13 +38,13 @@ static ElcCliParseResult handle_artifact_flag(
     ElStringView val = get_value(p, arg, flag);
     if (val.len == 0) {
         return (ElcCliParseResult) {
-            .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag 
+            .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag
         };
     }
     *out = elc_artifact_kind_from_string(val);
     if (*out == ELC_ART_NONE) {
         return (ElcCliParseResult) {
-            .code = ELC_CLI_PARSE_UNKNOWN_ARTIFACT, .ctx.str = val 
+            .code = ELC_CLI_PARSE_UNKNOWN_ARTIFACT, .ctx.str = val
         };
     }
     return ELC_CLI_PARSE_RESULT_OK;

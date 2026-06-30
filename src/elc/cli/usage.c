@@ -1,4 +1,4 @@
-#include <elc/cli/parser.h>
+#include <elc/cli/argparse.h>
 
 #include <stdio.h>
 
