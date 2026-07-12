@@ -1,19 +1,15 @@
-#include std "io.elh"
+#include std:io
 
 #define A 123
 #note "hello"
 
 #if defined(A)
-    #assign bool A_IS_123: A == 123 
+    #assign bool A_IS_123: A == 123
 #else
     #assign bool A_IS_123: false
-#end 
-
-#if A_IS_123
-    #include . "a-is-123.h"
 #end
 
-#macro CREATE_ENUM(str NAME, list ENUMERATORS):
+#macro CREATE_ENUM(str NAME, list ENUMERATORS)
     #emit enum #{tokens::IDENT(NAME)} {
     #foreach E in ENUMERATORS
         #emit #{tokens::IDENT(E)},
@@ -31,7 +27,7 @@
     #emit }
 #end
 
-const byte[...] binary_file = #embed assets "file.bin";
+const byte[...] binary_file = #embed assets:file.bin;
 const usize binary_file_size = sizeof(binary_file);
 
 // expands to:
@@ -50,8 +46,8 @@ const usize binary_file_size = sizeof(binary_file);
 // }
 CREATE_ENUM("Color", ("Red", "Green", "Blue"));
 
-int main() { 
+int main() {
     Color color = Color::Red;
-    printf("color = %s", Color_to_string(color));
+    io::printf("color = %s", Color_to_string(color));
     return 0;
 }

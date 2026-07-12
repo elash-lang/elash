@@ -52,7 +52,7 @@ def get_expectation(path: Path, name: str) -> TestExpectation:
             exitcode = int(f.read_text())
         except ValueError:
             error(f"ill-formed test case '{name}': {f.joinpath('exitcode.txt')} should contain a valid integer")
-    
+
     stdout: str = ''
     if (f := path.joinpath('stdout.txt')).is_file():
         stdout = f.read_text().strip()
@@ -78,9 +78,9 @@ def print_diff(expected: str, actual: str, stream_name: str):
         print_info(f'  {line.rstrip()}')
 
 def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult:
-    input_file = path.joinpath('input.ela')
+    input_file = path.joinpath('input.ei')
     if not input_file.is_file():
-        error(f"ill-formed test case '{name}': no input.ela")
+        error(f"ill-formed test case '{name}': no input.ei")
 
     safe_name = name.replace(os.sep, '_')
     obj = work_dir.joinpath(f'{safe_name}.o')
@@ -89,17 +89,17 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negat
     res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if is_negative or res.returncode != 0:
         return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
-    
+
     res = subprocess.run(['cc', str(obj), '-o', str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
         return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='linking')
-    
+
     res = subprocess.run([str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='runtime')
 
 def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     print_fail(name)
-    
+
     is_unexpected_stage = False
     if expected.diags is not None:
         if actual.stage != 'compilation':
@@ -119,7 +119,7 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     else:
         if actual.exitcode != expected.exitcode:
             print_info(f'  exitcode: expected {expected.exitcode}, actual {actual.exitcode}')
-        
+
         if expected.diags:
             combined_output = actual.stdout + actual.stderr
             for code in expected.diags:
@@ -132,7 +132,7 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
             print_diff(expected.stderr, actual.stderr, 'stderr')
 
 def _collect_test_dirs():
-    return sorted({p.parent for p in script_dir.rglob('input.ela')})
+    return sorted({p.parent for p in script_dir.rglob('input.ei')})
 
 def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
     if expected.diags is not None:
@@ -182,13 +182,13 @@ def run_suite(elc_bin: Path, work_dir: Path) -> bool:
     print(f'| Passing: {CLR_GREEN}{passed_count}{CLR_RESET}{CLR_BOLD} ', end='')
     print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD}', end='')
     print()
-    
+
     return failed_count == 0
 
 def main():
     if len(sys.argv) <= 2:
         error('expected argument\nusage: python runner.py <path-to-elc-binary> <work-dir>')
-    
+
     elc_bin  = Path(sys.argv[1]).resolve()
     work_dir = Path(sys.argv[2]).resolve()
 
