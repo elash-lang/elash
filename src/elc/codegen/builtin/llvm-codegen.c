@@ -157,10 +157,12 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
 
     case EL_SEMA_BIN_OP_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
+    case EL_SEMA_BIN_OP_IMP: res = LLVMBuildOr(ctx->builder, LLVMBuildNot(ctx->builder, lhs, ""), rhs, ""); break;
 
     case EL_SEMA_BIN_OP_BW_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_BW_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
     case EL_SEMA_BIN_OP_BW_XOR: res = LLVMBuildXor(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_BW_IMP: res = LLVMBuildOr(ctx->builder, LLVMBuildNot(ctx->builder, lhs, ""), rhs, ""); break;
     case EL_SEMA_BIN_OP_SHL:    res = LLVMBuildShl(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_SHR:
         res = (is_signed ? LLVMBuildAShr : LLVMBuildLShr)(ctx->builder, lhs, rhs, ""); break;

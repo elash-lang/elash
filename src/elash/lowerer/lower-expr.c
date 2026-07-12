@@ -77,6 +77,53 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
          el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
          return reg;
     }
+
+    // to support short circuit here we need to implement these operators manually. so bad.
+    // at high level, this works like this:
+    //  bool my_variable = x && stuff();
+    // lowers to:
+    //  bool my_variable = x;
+    //  if (x) x = stuff();
+    if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_OR || bin->op == EL_SEMA_BIN_OP_IMP) {
+        ElType* ptr_type = el_sema_new_ptr_type(lw->arena, hir->type);
+        ElMirValue* res_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, res_ptr, hir->type));
+
+        ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
+
+        if (bin->op == EL_SEMA_BIN_OP_IMP) {
+            ElMirValue* true_val = el_mir_new_const(lw->arena, hir->type, (ElHirLiteral) { .as.bool_ = true });
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, true_val));
+        } else {
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, lhs));
+        }
+
+        uint32_t rhs_id = lw->current_func->block_count++;
+        uint32_t merge_id = lw->current_func->block_count++;
+
+        if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_IMP) {
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, rhs_id, merge_id));
+        } else {
+            // `or` short circuits when the cond is true, so we would emit additional not operation
+            // BUT there is a cool trick (isn't cool at all), swapping then and else branches
+            // actually does the same thing and is probably faster (it isn't, llvm optimization passes
+            // handles this anyway).
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, merge_id, rhs_id));
+        }
+        el_lowerer_emit_block(lw, lw->current_block_id);
+
+        lw->current_block_id = rhs_id;
+        ElMirValue* rhs = el_lowerer_lower_expr(lw, bin->right);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, rhs));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+        el_lowerer_emit_block(lw, lw->current_block_id);
+
+        lw->current_block_id = merge_id;
+        ElMirValue* res_val = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res_val, res_ptr));
+        return res_val;
+    }
+
     ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
     ElMirValue* rhs = el_lowerer_lower_expr(lw, bin->right);
 

@@ -430,12 +430,27 @@ ElAstExpr* _el_parser_parse_bitwise_or(ElParser* parser) {
     return expr;
 }
 
-ElAstExpr* _el_parser_parse_logical_and(ElParser* parser) {
+ElAstExpr* _el_parser_parse_bitwise_imp(ElParser* parser) {
     ElAstExpr* expr = _el_parser_parse_bitwise_or(parser);
     if (el_parser_has_errs(parser)) return NULL;
 
-    while (el_parser_match(parser, EL_TT_LOGICAL_AND)) {
+    while (el_parser_match(parser, EL_TT_BITWISE_IMP)) {
         ElAstExpr* right = _el_parser_parse_bitwise_or(parser);
+        if (el_parser_has_errs(parser)) {
+            el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
+            break;
+        }
+        expr = el_ast_new_bin_expr(parser->arena, el_source_span_merge(expr->span, right->span), EL_SEMA_BIN_OP_BW_IMP, expr, right);
+    }
+    return expr;
+}
+
+ElAstExpr* _el_parser_parse_logical_and(ElParser* parser) {
+    ElAstExpr* expr = _el_parser_parse_bitwise_imp(parser);
+    if (el_parser_has_errs(parser)) return NULL;
+
+    while (el_parser_match(parser, EL_TT_LOGICAL_AND)) {
+        ElAstExpr* right = _el_parser_parse_bitwise_imp(parser);
         if (el_parser_has_errs(parser)) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
@@ -460,6 +475,21 @@ ElAstExpr* _el_parser_parse_logical_or(ElParser* parser) {
     return expr;
 }
 
+ElAstExpr* _el_parser_parse_logical_imp(ElParser* parser) {
+    ElAstExpr* expr = _el_parser_parse_logical_or(parser);
+    if (el_parser_has_errs(parser)) return NULL;
+
+    while (el_parser_match(parser, EL_TT_LOGICAL_IMP)) {
+        ElAstExpr* right = _el_parser_parse_logical_or(parser);
+        if (el_parser_has_errs(parser)) {
+            el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
+            break;
+        }
+        expr = el_ast_new_bin_expr(parser->arena, el_source_span_merge(expr->span, right->span), EL_SEMA_BIN_OP_IMP, expr, right);
+    }
+    return expr;
+}
+
 ElAstExpr* el_parser_parse_expr(ElParser* parser) {
-    return _el_parser_parse_logical_or(parser);
+    return _el_parser_parse_logical_imp(parser);
 }

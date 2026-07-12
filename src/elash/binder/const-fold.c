@@ -10,6 +10,7 @@
     case EL_SEMA_BIN_OP_BW_AND: return NEW_LIT(binder->hir_arena, lhs->type, (a) & (b));                         \
     case EL_SEMA_BIN_OP_BW_OR:  return NEW_LIT(binder->hir_arena, lhs->type, (a) | (b));                         \
     case EL_SEMA_BIN_OP_BW_XOR: return NEW_LIT(binder->hir_arena, lhs->type, (a) ^ (b));                         \
+    case EL_SEMA_BIN_OP_BW_IMP: return NEW_LIT(binder->hir_arena, lhs->type, ~(a) | (b));                        \
     case EL_SEMA_BIN_OP_SHL:    return NEW_LIT(binder->hir_arena, lhs->type, (a) << (b));                        \
     case EL_SEMA_BIN_OP_SHR:    return NEW_LIT(binder->hir_arena, lhs->type, (a) >> (b));
 
@@ -63,6 +64,7 @@ static ElHirExpr* apply_binary_operator(ElBinder* binder, ElHirExpr* lhs, ElSema
             case EL_SEMA_BIN_OP_NEQ: return el_hir_new_bool_literal(binder->hir_arena, binder->builtins->type_bool, a != b);
             case EL_SEMA_BIN_OP_AND: return el_hir_new_bool_literal(binder->hir_arena, binder->builtins->type_bool, a && b);
             case EL_SEMA_BIN_OP_OR:  return el_hir_new_bool_literal(binder->hir_arena, binder->builtins->type_bool, a || b);
+            case EL_SEMA_BIN_OP_IMP: return el_hir_new_bool_literal(binder->hir_arena, binder->builtins->type_bool, !a || b);
             default: return NULL;
             }
         }
