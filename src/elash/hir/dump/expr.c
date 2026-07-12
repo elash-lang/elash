@@ -38,7 +38,6 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         if (node->type->kind == EL_TYPE_PRIM) {
             switch (node->type->as.prim.kind) {
             case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.literal.as.int_);        break;
-            case EL_PRIMTYPE_UINT:  fprintf(out, "%"PRIu64, node->as.literal.as.uint_);       break;
             case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.literal.as.char_);          break;
             case EL_PRIMTYPE_BOOL:  fputs(node->as.literal.as.bool_ ? "true" : "false", out); break;
             case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                           break;

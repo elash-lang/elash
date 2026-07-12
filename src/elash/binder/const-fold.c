@@ -49,7 +49,6 @@
 // i love X-macros
 #define EL_FOR_EACH_INTEGER_TYPE(X)                   \
     X(INT,  int64_t,  int_,  el_hir_new_int_literal)  \
-    X(UINT, uint64_t, uint_, el_hir_new_uint_literal) \
     X(CHAR, char,     char_, el_hir_new_char_literal)
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy is so stupid that it don't understand macros ig

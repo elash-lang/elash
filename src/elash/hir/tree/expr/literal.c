@@ -9,14 +9,6 @@ ElHirExpr* el_hir_new_int_literal(ElDynArena* arena, ElType* type, int64_t value
     });
 }
 
-ElHirExpr* el_hir_new_uint_literal(ElDynArena* arena, ElType* type, uint64_t value) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
-        .kind = EL_HIR_EXPR_LITERAL,
-        .type = type,
-        .as.literal.as.uint_ = value,
-    });
-}
-
 ElHirExpr* el_hir_new_char_literal(ElDynArena* arena, ElType* type, char value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_LITERAL,

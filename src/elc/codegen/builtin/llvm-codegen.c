@@ -26,9 +26,23 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
     switch (type->kind) {
     case EL_TYPE_PRIM:
         switch (type->as.prim.kind) {
-        case EL_PRIMTYPE_INT:
-        case EL_PRIMTYPE_UINT:
-            return LLVMInt32TypeInContext(ctx->context);
+        case EL_PRIMTYPE_INT: {
+            unsigned width;
+            // NOLINTBEGIN(readability-magic-numbers)
+            switch (type->as.prim.as.integral.width) {
+            // TODO: don't hardcode this
+            case EL_INT_WIDTH_NATIVE:    width = 64; break;
+            case EL_INT_WIDTH_EFFICIENT: width = 32; break;
+
+            case EL_INT_WIDTH_8:         width = 8;  break;
+            case EL_INT_WIDTH_16:        width = 16; break;
+            case EL_INT_WIDTH_32:        width = 32; break;
+            case EL_INT_WIDTH_64:        width = 64; break;
+            case EL_INT_WIDTH_128:       width = 128; break;
+            }
+            // NOLINTEND(readability-magic-numbers)
+            return LLVMIntTypeInContext(ctx->context, width);
+        }
         case EL_PRIMTYPE_CHAR:
             return LLVMInt8TypeInContext(ctx->context);
         case EL_PRIMTYPE_BOOL:
@@ -70,8 +84,6 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
         switch (value->type->as.prim.kind) {
         case EL_PRIMTYPE_INT:
             return LLVMConstInt(type, value->as.constant.lit.as.int_, true);
-        case EL_PRIMTYPE_UINT:
-            return LLVMConstInt(type, value->as.constant.lit.as.uint_, false);
         case EL_PRIMTYPE_CHAR:
             return LLVMConstInt(type, value->as.constant.lit.as.char_, false);
         case EL_PRIMTYPE_BOOL:
@@ -121,9 +133,9 @@ LLVMIntPredicate elc_llvm_get_predicate_of(ElSemaBinOp op, bool is_signed) {
 }
 
 bool elc_llvm_is_type_signed(const ElType* type) {
-    if (type->kind == EL_TYPE_PRIM) {
-        return type->as.prim.kind == EL_PRIMTYPE_INT;
-    }
+    if (type->kind == EL_TYPE_PRIM)
+        if (type->as.prim.kind == EL_PRIMTYPE_INT)
+            return type->as.prim.as.integral.is_signed;
     return false;
 }
 
@@ -214,7 +226,7 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
     }
 
     LLVMValueRef result = LLVMBuildCall2(
-        ctx->builder, 
+        ctx->builder,
         func_type, callee,
         args,
         call->arg_count,
