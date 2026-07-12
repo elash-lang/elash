@@ -65,5 +65,5 @@ ElLexerErrorCode _el_lexer_ret_token(ElLexer* lexer, ElTokenType type, ElToken* 
 ElLexerErrorCode _el_lexer_ret_token_with_lexeme(ElLexer* lexer, ElTokenType type, ElStringView lexeme, ElToken* out_tok);
 
 ElLexerErrorCode _el_lexer_lex_op2(ElLexer* lexer, char expect, ElTokenType single, ElTokenType dbl, ElToken* out);
-ElLexerErrorCode _el_lexer_lex_op3(ElLexer* lexer, char first, char second, ElTokenType single, ElTokenType dbl, ElTokenType thrd, ElToken* out);
+ElLexerErrorCode _el_lexer_lex_op3(ElLexer* lexer, char expect1, char expect2, ElTokenType single, ElTokenType dbl, ElTokenType triple, ElToken* out);
 ///////////////////////////////////////////////////

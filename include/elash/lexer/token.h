@@ -46,6 +46,9 @@ typedef enum ElTokenType {
 
     EL_TT_KW_VOLATILE,          // volatile
     EL_TT_KW_CONST,             // const
+    EL_TT_KW_WRITE,             // write
+
+    EL_TT_KW_AS,                // as
 
     EL_TT_KW_ENUM,              // enum
     EL_TT_KW_UNION,             // union
@@ -89,26 +92,31 @@ typedef enum ElTokenType {
 
     EL_TT_LOGICAL_AND,          // &&
     EL_TT_LOGICAL_OR,           // ||
+    EL_TT_LOGICAL_XOR,          // ^^
     EL_TT_LOGICAL_NOT,          // !
+    EL_TT_LOGICAL_IMP,          // =>
 
     EL_TT_LOGICAL_AND_ASSIGN,   // &&=
     EL_TT_LOGICAL_OR_ASSIGN,    // ||=
+    EL_TT_LOGICAL_XOR_ASSIGN,   // ^^=
+    EL_TT_LOGICAL_IMP_ASSIGN,   // =>=
 
     EL_TT_BITWISE_AND,          // &
     EL_TT_BITWISE_OR,           // |
     EL_TT_BITWISE_XOR,          // ^
     EL_TT_BITWISE_NOT,          // ~
+    EL_TT_BITWISE_IMP,          // ~>
 
     EL_TT_BITWISE_AND_ASSIGN,   // &=
     EL_TT_BITWISE_OR_ASSIGN,    // |=
     EL_TT_BITWISE_XOR_ASSIGN,   // ^=
+    EL_TT_BITWISE_IMP_ASSIGN,   // ~>=
 
     EL_TT_SHL,                  // <<
     EL_TT_SHR,                  // >>
-
     EL_TT_SHL_ASSIGN,           // <<=
     EL_TT_SHR_ASSIGN,           // >>=
- 
+
     EL_TT_LPAREN,               // (
     EL_TT_RPAREN,               // )
     EL_TT_LBRACKET,             // [
@@ -147,19 +155,19 @@ typedef enum ElTokenType {
     EL_TT_PP_NOTE,                 // (contextual) note
     EL_TT_PP_DEBUG,                // (contextual) debug
 
-    EL_TT_PP_EMIT,                 // (contextual) emit 
+    EL_TT_PP_EMIT,                 // (contextual) emit
 
     EL_TT_PP_DEFINE,               // (contextual) define
-    EL_TT_PP_MACRO,                // (contextual) macro 
+    EL_TT_PP_MACRO,                // (contextual) macro
     EL_TT_PP_ASSIGN,               // (contextual) assign
     EL_TT_PP_UNDEF,                // (contextual) undef
     EL_TT_PP_DEC,                  // (contextual) dec
     EL_TT_PP_INC,                  // (contextual) inc
-    
+
     EL_TT_PP_IF,                   // (contextual) if
     EL_TT_PP_ELIF,                 // (contextual) elif
     EL_TT_PP_ELSE,                 // (contextual) else
-    
+
     EL_TT_PP_WHILE,                // (contextual) while
     EL_TT_PP_FOR,                  // (contextual) for
     EL_TT_PP_FOREACH,              // (contextual) foreach

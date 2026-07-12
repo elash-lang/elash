@@ -50,7 +50,7 @@ static inline char next(ElLexer* lexer) {
 }
 
 static inline ElStringView el_make_lexeme_from_token_start(ElLexer* lexer) {
-    return 
+    return
         el_sv_slice(el_srcdoc_content(lexer->doc), lexer->token_start_loc.offset, lexer->current_loc.offset);
 }
 
@@ -123,6 +123,8 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
         { EL_SV("true"),     EL_TT_TRUE_LITERAL  },
         { EL_SV("break"),    EL_TT_KW_BREAK      },
         { EL_SV("const"),    EL_TT_KW_CONST      },
+        { EL_SV("write"),    EL_TT_KW_WRITE      },
+        { EL_SV("as"),       EL_TT_KW_AS         },
         { EL_SV("false"),    EL_TT_FALSE_LITERAL },
         { EL_SV("union"),    EL_TT_KW_UNION      },
         { EL_SV("while"),    EL_TT_KW_WHILE      },
@@ -179,7 +181,7 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
 }
 
 static inline ElLexerErrorCode _el_lexer_ret_tok_with_lexeme_auto(ElLexer* lexer, ElTokenType t, ElToken* out) {
-    return 
+    return
         _el_lexer_ret_token_with_lexeme(lexer, t, el_make_lexeme_from_token_start(lexer), out);
 }
 
@@ -189,8 +191,21 @@ ElLexerErrorCode _el_lexer_lex_op2(ElLexer* lexer, char expect, ElTokenType sing
         return _el_lexer_ret_tok_with_lexeme_auto(lexer, dbl, out);
     }
 
-    return 
+    return
         _el_lexer_ret_tok_with_lexeme_auto(lexer, single, out);
+}
+
+ElLexerErrorCode _el_lexer_lex_op3(ElLexer* lexer, char expect1, char expect2, ElTokenType single, ElTokenType dbl, ElTokenType triple, ElToken* out) {
+    if (peek(lexer) == expect1) {
+        next(lexer);
+        if (peek(lexer) == expect2) {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, triple, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, dbl, out);
+    }
+
+    return _el_lexer_ret_tok_with_lexeme_auto(lexer, single, out);
 }
 
 static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
@@ -222,72 +237,53 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
 
     case '*': return _el_lexer_lex_op2(lexer, '=', EL_TT_STAR, EL_TT_MUL_ASSIGN, out);
     case '%': return _el_lexer_lex_op2(lexer, '=', EL_TT_PERCENT, EL_TT_MOD_ASSIGN, out);
-    case '=': return _el_lexer_lex_op2(lexer, '=', EL_TT_ASSIGN, EL_TT_EQL, out);
+    case '=':
+        if (peek(lexer) == '=') {
+            next(lexer);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_EQL, out);
+        }
+        if (peek(lexer) == '>') {
+            next(lexer);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_IMP, EL_TT_LOGICAL_IMP_ASSIGN, out);
+        }
+        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ASSIGN, out);
     case '!': return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_NOT, EL_TT_NEQ, out);
+    case '^':
+        if (peek(lexer) == '^') {
+            next(lexer);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_XOR, EL_TT_LOGICAL_XOR_ASSIGN, out);
+        }
+        return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_XOR, EL_TT_BITWISE_XOR_ASSIGN, out);
 
     case ':': return _el_lexer_lex_op2(lexer, ':', EL_TT_COLON, EL_TT_DOUBLECOLON, out);
 
     case '&':
         if (peek(lexer) == '&') {
             next(lexer);
-            if (peek(lexer) == '=') {
-                next(lexer);
-                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_AND_ASSIGN, out);
-            }
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_AND, out);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_AND, EL_TT_LOGICAL_AND_ASSIGN, out);
         }
-        if (peek(lexer) == '=') {
-            next(lexer);
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_AND_ASSIGN, out);
-        }
-        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_AND, out);
+        return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_AND, EL_TT_BITWISE_AND_ASSIGN, out);
 
     case '|':
         if (peek(lexer) == '|') {
             next(lexer);
-            if (peek(lexer) == '=') {
-                next(lexer);
-                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_OR_ASSIGN, out);
-            }
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LOGICAL_OR, out);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_OR, EL_TT_LOGICAL_OR_ASSIGN, out);
         }
-        if (peek(lexer) == '=') {
-            next(lexer);
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_OR_ASSIGN, out);
-        }
-        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_OR, out);
-
-    case '^': return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_XOR, EL_TT_BITWISE_XOR_ASSIGN, out);
+        return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_OR, EL_TT_BITWISE_OR_ASSIGN, out);
 
     case '<':
         if (peek(lexer) == '<') {
             next(lexer);
-            if (peek(lexer) == '=') {
-                next(lexer);
-                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHL_ASSIGN, out);
-            }
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHL, out);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_SHL, EL_TT_SHL_ASSIGN, out);
         }
-        if (peek(lexer) == '=') {
-            next(lexer);
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LTE, out);
-        }
-        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LT, out);
+        return _el_lexer_lex_op2(lexer, '=', EL_TT_LT, EL_TT_LTE, out);
 
     case '>':
         if (peek(lexer) == '>') {
             next(lexer);
-            if (peek(lexer) == '=') {
-                next(lexer);
-                return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHR_ASSIGN, out);
-            }
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SHR, out);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_SHR, EL_TT_SHR_ASSIGN, out);
         }
-        if (peek(lexer) == '=') {
-            next(lexer);
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_GTE, out);
-        }
-        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_GT, out);
+        return _el_lexer_lex_op2(lexer, '=', EL_TT_GT, EL_TT_GTE, out);
 
     case '(': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LPAREN, out);
     case ')': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_RPAREN, out);
@@ -304,7 +300,7 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
         }
         return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DOT, out);
     case ',': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_COMMA, out);
-    case '~': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_BITWISE_NOT, out);
+    case '~': return _el_lexer_lex_op3(lexer, '>', '=', EL_TT_BITWISE_NOT, EL_TT_BITWISE_IMP, EL_TT_BITWISE_IMP_ASSIGN, out);
 
     case '#':
         lexer->ctx = EL_LEXER_CTX_PP;
