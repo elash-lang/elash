@@ -83,5 +83,15 @@ void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
         fprintf(out, "init:\n");
         el_ast_dump_init(node->as.array_lit.init, indent + 2, out);
         break;
+    case EL_AST_EXPR_CAST:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "CastExpr:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "expr:\n");
+        el_ast_dump_expr(node->as.cast.expr, indent + 2, out);
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "type:\n");
+        el_ast_dump_type(node->as.cast.type, indent + 2, out);
+        break;
     }
 }

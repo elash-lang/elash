@@ -12,6 +12,7 @@
 #include <elash/ast/tree/expr/bin.h>
 #include <elash/ast/tree/expr/unary.h>
 #include <elash/ast/tree/expr/literal.h>
+#include <elash/ast/tree/expr/cast.h>
 
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/common/init.h>
@@ -221,6 +222,18 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
     return expr;
 }
 
+ElAstExpr* _el_parser_parse_cast(ElParser* parser) {
+    ElAstExpr* expr = _el_parser_parse_postfix(parser);
+    if (el_parser_has_errs(parser)) return NULL;
+
+    while (el_parser_match(parser, EL_TT_KW_AS)) {
+        ElAstType* type = _el_parser_parse_type(parser);
+        if (type == NULL) return NULL;
+        expr = el_ast_new_cast_expr(parser->arena, el_source_span_merge(expr->span, type->span), expr, type);
+    }
+    return expr;
+}
+
 ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_PLUS)) {
         ElToken tok = parser->current;
@@ -279,7 +292,7 @@ ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_ADDROF, operand);
     }
 
-    return _el_parser_parse_postfix(parser);
+    return _el_parser_parse_cast(parser);
 }
 
 ElAstExpr* _el_parser_parse_multiplicative(ElParser* parser) {

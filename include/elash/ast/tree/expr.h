@@ -5,6 +5,7 @@
 #include "expr/literal.h"
 #include "expr/array-lit.h"
 #include "expr/call.h"
+#include "expr/cast.h"
 
 #include "common/ident.h"
 #include "common/type.h"
@@ -20,6 +21,7 @@ typedef enum ElAstExprType {
     EL_AST_EXPR_IDENT,
     EL_AST_EXPR_CALL,
     EL_AST_EXPR_ARRAY_LITERAL,
+    EL_AST_EXPR_CAST,
 } ElAstExprType;
 
 typedef struct ElAstExpr {
@@ -32,6 +34,7 @@ typedef struct ElAstExpr {
         ElAstArrayLit  array_lit;
         ElAstIdent     ident;
         ElAstCallExpr  call;
+        ElAstCastExpr  cast;
     } as;
     ElAstExpr* next;
 } ElAstExpr;
