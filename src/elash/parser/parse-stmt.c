@@ -99,7 +99,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
     if (expr == NULL) return NULL;
 
     if (el_parser_match(parser, EL_TT_ASSIGN)) {
-        ElAstExpr* value = el_parser_parse_expr(parser);
+        ElAstInit* value = el_parser_parse_init(parser);
         if (value == NULL) return NULL;
 
         ElToken semi_tok = parser->current;
@@ -130,7 +130,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
     else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { op = EL_SEMA_BIN_OP_SHR;    is_compound = true; }
 
     if (is_compound) {
-        ElAstExpr* value = el_parser_parse_expr(parser);
+        ElAstInit* value = el_parser_parse_init(parser);
         if (value == NULL) return NULL;
 
         ElToken semi_tok = parser->current;

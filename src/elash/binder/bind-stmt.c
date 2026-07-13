@@ -84,10 +84,12 @@ ElHirStmt* _el_binder_bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignSt
         return NULL;
     }
 
+    ElHirExpr* value = el_binder_bind_init(binder, assign->value, target->type);
+    if (value == NULL) return NULL;
+
     return el_hir_new_assign_stmt(
         binder->hir_arena,
-        target,
-        el_binder_bind_expr(binder, assign->value)
+        target, value
     );
 }
 
@@ -98,10 +100,12 @@ ElHirStmt* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAs
         return NULL;
     }
 
+    ElHirExpr* value = el_binder_bind_init(binder, cassign->value, target->type);
+    if (value == NULL) return NULL;
+
     return el_hir_new_compound_assign_stmt(
         binder->hir_arena,
-        cassign->op, target,
-        el_binder_bind_expr(binder, cassign->value)
+        cassign->op, target, value
     );
 }
 

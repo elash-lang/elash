@@ -130,13 +130,13 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
 }
 
 static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
-    ElAstExpr* args_head = NULL;
-    ElAstExpr* args_tail = NULL;
+    ElAstInit* args_head = NULL;
+    ElAstInit* args_tail = NULL;
     usize arg_count = 0;
 
     if (!el_parser_check(parser, EL_TT_RPAREN)) {
         while (true) {
-            ElAstExpr* arg = el_parser_parse_expr(parser);
+            ElAstInit* arg = el_parser_parse_init(parser);
             if (el_parser_has_errs(parser)) {
                 el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
                 if (!el_parser_check(parser, EL_TT_COMMA)) {
@@ -145,7 +145,7 @@ static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
                 continue;
             }
 
-            el_ast_expr_list_append(&args_head, &args_tail, arg);
+            el_ast_init_list_append(&args_head, &args_tail, arg);
             arg_count++;
 
             if (!el_parser_match(parser, EL_TT_COMMA)) {

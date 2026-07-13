@@ -66,10 +66,8 @@ void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
         el_ast_dump_expr(node->as.call.callee, indent + 2, out);
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "args:\n");
-        ElAstExpr* arg = node->as.call.args;
-        while (arg) {
-            el_ast_dump_expr(arg, indent + 2, out);
-            arg = arg->next;
+        for (ElAstInit* arg = node->as.call.args; arg != NULL; arg = arg->next) {
+            el_ast_dump_init(arg, indent + 2, out);
         }
         break;
     }

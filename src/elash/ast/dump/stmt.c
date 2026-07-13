@@ -80,7 +80,7 @@ void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
         el_ast_dump_expr(node->as.assign.target, indent + 2, out);
         el_ast_dump_print_indent(indent + 1, out);
         fputs("value:\n", out);
-        el_ast_dump_expr(node->as.assign.value, indent + 2, out);
+        el_ast_dump_init(node->as.assign.value, indent + 2, out);
         break;
     case EL_AST_STMT_COMPOUND_ASSIGN:
         el_ast_dump_print_indent(indent, out);
@@ -92,7 +92,7 @@ void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
         el_ast_dump_expr(node->as.cassign.target, indent + 2, out);
         el_ast_dump_print_indent(indent + 1, out);
         fputs("value:\n", out);
-        el_ast_dump_expr(node->as.cassign.value, indent + 2, out);
+        el_ast_dump_init(node->as.cassign.value, indent + 2, out);
         break;
 
     case EL_AST_STMT_DECL:

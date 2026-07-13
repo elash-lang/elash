@@ -155,10 +155,9 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
 
     ElHirExpr** args = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, call->arg_count);
     usize i = 0;
-    for (ElAstExpr* curr = call->args; curr != NULL; curr = curr->next) {
-        args[i] = el_binder_bind_expr(binder, curr);
+    for (ElAstInit* curr = call->args; curr != NULL; curr = curr->next) {
+        args[i] = el_binder_bind_init(binder, curr, func->params[i]);
         if (!args[i]) return NULL;
-        // TODO: implement argument type checking
         i++;
     }
 

@@ -2,7 +2,7 @@
 
 ElAstStmt* el_ast_new_compound_assign_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElSemaBinOp op, ElAstExpr* target, ElAstExpr* value
+    ElSemaBinOp op, ElAstExpr* target, ElAstInit* value
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmt, {
         .type = EL_AST_STMT_COMPOUND_ASSIGN,

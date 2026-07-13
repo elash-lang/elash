@@ -1,0 +1,16 @@
+int takeArray(int[3] theArrayArgumentPassedToThisFunction) {
+    return theArrayArgumentPassedToThisFunction[1];
+}
+
+int main() {
+    int[4] arr = { 1, 2, 3, 4 };
+    if (arr[2] != 3) return 1;
+
+    if (takeArray({ 8, 1, 3 }) != 1)
+        return 2;
+
+    arr = { 8, 4, 1, arr[0] };
+    if (arr[3] != 1) return 3;
+
+    return 0;
+}

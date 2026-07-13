@@ -17,7 +17,16 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
         return NULL;
     }
 
-    ElHirExpr* arg = el_binder_bind_expr(binder, call->args);
+    if (call->args[0].kind != EL_AST_INIT_EXPR) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-builtin-call",
+            in->span,
+            "an expression was expected as an argument to the len function",
+        );
+    }
+
+
+    ElHirExpr* arg = el_binder_bind_expr(binder, call->args[0].expr);
     if (!arg) return NULL;
 
     if (arg->type->kind == EL_TYPE_ARRAY) {
