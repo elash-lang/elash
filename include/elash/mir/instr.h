@@ -5,6 +5,8 @@
 
 #include "instr/binary.h"
 #include "instr/unary.h"
+#include "instr/intcast.h"
+#include "instr/bitcast.h"
 #include "instr/return.h"
 #include "instr/call.h"
 #include "instr/alloca.h"
@@ -17,6 +19,8 @@
 typedef enum ElMirInstrKind {
     EL_MIR_INSTR_BIN,
     EL_MIR_INSTR_UNARY,
+    EL_MIR_INSTR_INTCAST,
+    EL_MIR_INSTR_BITCAST,
     EL_MIR_INSTR_RET,
     EL_MIR_INSTR_CALL,
     EL_MIR_INSTR_ALLOCA,
@@ -32,25 +36,27 @@ typedef struct ElMirInstr ElMirInstr;
 
 struct ElMirInstr {
     ElMirInstrKind kind;
-    ElMirValue* result; 
-    
+    ElMirValue* result;
+
     union {
-        ElMirBinInstr    bin;
-        ElMirUnaryInstr  unary;
-        ElMirRetInstr    return_;
-        ElMirCallInstr   call;
-        ElMirAllocaInstr alloca;
-        ElMirLoadInstr   load;
-        ElMirStoreInstr  store;
-        ElMirGepInstr    gep;
-        ElMirJmpInstr    jmp;
-        ElMirJmpIfInstr  jmpif;
+        ElMirBinInstr     bin;
+        ElMirUnaryInstr   unary;
+        ElMirIntCastInstr intcast;
+        ElMirBitCastInstr bitcast;
+        ElMirRetInstr     return_;
+        ElMirCallInstr    call;
+        ElMirAllocaInstr  alloca;
+        ElMirLoadInstr    load;
+        ElMirStoreInstr   store;
+        ElMirGepInstr     gep;
+        ElMirJmpInstr     jmp;
+        ElMirJmpIfInstr   jmpif;
     } as;
 };
 
 static inline bool el_mir_instr_is_terminator(ElMirInstr* instr) {
-    return instr->kind == EL_MIR_INSTR_RET || 
-           instr->kind == EL_MIR_INSTR_JMP || 
+    return instr->kind == EL_MIR_INSTR_RET ||
+           instr->kind == EL_MIR_INSTR_JMP ||
            instr->kind == EL_MIR_INSTR_JMPIF ||
            instr->kind == EL_MIR_INSTR_UNREACHABLE;
 }

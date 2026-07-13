@@ -37,7 +37,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
         ElTypeKind k = left->type->kind;
         if (k != EL_TYPE_ARRAY && k != EL_TYPE_SLICE && k != EL_TYPE_RAW_SLICE) {
             el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.sema.non-indexable",
+                binder->diag, EL_DIAG_ERROR, "sema.non-indexable",
                 bin->left->span, "cannot index into non-array, non-slice, or non-raw-slice type",
             );
         }
@@ -165,6 +165,13 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
     return el_hir_new_call_expr(binder->hir_arena, func->ret_type, callee, args, call->arg_count);
 }
 
+ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* cast) {
+    ElHirExpr* expr = el_binder_bind_expr(binder, cast->expr);
+    ElType*    type = _el_binder_bind_type(binder, cast->type);
+
+    return _el_binder_explicit_cast(binder, in->span, expr, type);
+}
+
 ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* _, ElAstArrayLit* array_lit) {
     ElType* type = _el_binder_bind_type(binder, array_lit->type);
     if (type == NULL) return NULL;
@@ -181,6 +188,7 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     case EL_AST_EXPR_LITERAL:       return _el_binder_bind_literal(binder, in, &in->as.literal);
     case EL_AST_EXPR_IDENT:         return _el_binder_bind_ident(binder, in, &in->as.ident);
     case EL_AST_EXPR_CALL:          return _el_binder_bind_call(binder, in, &in->as.call);
+    case EL_AST_EXPR_CAST:          return _el_binder_bind_cast(binder, in, &in->as.cast);
     case EL_AST_EXPR_ARRAY_LITERAL: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);

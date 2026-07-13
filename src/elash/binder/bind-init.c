@@ -43,15 +43,15 @@ ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected
         ElHirExpr* expr = el_binder_bind_expr(binder, in->expr);
         if (expr == NULL) return NULL;
 
-        if (!el_sema_type_eql(expr->type, expected_type)) {
-            el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-                in->span,
-                "incompatible type in initializer"
-            );
-            return NULL;
-        }
-        return expr;
+        //if (!el_sema_type_eql(expr->type, expected_type)) {
+        //    el_diag_report(
+        //        binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+        //        in->span,
+        //        "incompatible type in initializer"
+        //    );
+        //    return NULL;
+        //}
+        return _el_binder_implicit_cast(binder, in->span, expr, expected_type);
     }
     case EL_AST_INIT_LIST:
         return _el_binder_bind_init_list(binder, in, expected_type);

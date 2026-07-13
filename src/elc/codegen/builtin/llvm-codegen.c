@@ -27,7 +27,7 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
     case EL_TYPE_PRIM:
         switch (type->as.prim.kind) {
         case EL_PRIMTYPE_INT: {
-            unsigned width;
+            unsigned width = 0;
             // NOLINTBEGIN(readability-magic-numbers)
             switch (type->as.prim.as.integral.width) {
             // TODO: don't hardcode this
@@ -247,9 +247,9 @@ void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     LLVMValueRef index = elc_llvm_map_value(ctx, func, gep->index);
 
     ElType* ptr_type = gep->ptr->type;
-    EL_ASSERT(ptr_type->kind == EL_TYPE_PTR, "GEP source must be a pointer");
+    EL_ASSERT(ptr_type->kind == EL_TYPE_RAW_SLICE, "gep source must be a raw slice");
 
-    ElType* base_type = ptr_type->as.ptr.base;
+    ElType* base_type = ptr_type->as.raw_slice.base;
     LLVMTypeRef llvm_base_type = elc_llvm_map_type(ctx, base_type);
 
     LLVMValueRef res;
@@ -265,6 +265,31 @@ void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     }
 
     ASSIGN_REG(func, instr->result, res, "gep");
+}
+
+void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    LLVMValueRef operand = elc_llvm_map_value(ctx, func, instr->kind == EL_MIR_INSTR_INTCAST ? instr->as.intcast.operand : instr->as.bitcast.operand);
+    LLVMTypeRef  to_type = elc_llvm_map_type(ctx, instr->result->type);
+    LLVMTypeRef  from_type = LLVMTypeOf(operand);
+
+    LLVMValueRef res = NULL;
+    if (instr->kind == EL_MIR_INSTR_INTCAST) {
+        bool is_signed = elc_llvm_is_type_signed(instr->result->type);
+        unsigned from_width = LLVMGetIntTypeWidth(from_type);
+        unsigned to_width = LLVMGetIntTypeWidth(to_type);
+
+        if (to_width > from_width) {
+            res = is_signed ? LLVMBuildSExt(ctx->builder, operand, to_type, "")
+                            : LLVMBuildZExt(ctx->builder, operand, to_type, "");
+        } else if (to_width < from_width) {
+            res = LLVMBuildTrunc(ctx->builder, operand, to_type, "");
+        } else {
+            res = operand;
+        }
+    } else {
+        res = LLVMBuildBitCast(ctx->builder, operand, to_type, "");
+    }
+    ASSIGN_REG(func, instr->result, res, instr->kind == EL_MIR_INSTR_INTCAST ? "intcast" : "bitcast");
 }
 
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
@@ -312,6 +337,10 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
     case EL_MIR_INSTR_GEP:
         elc_llvm_compile_gep_instr(ctx, func, instr);
         return;
+    case EL_MIR_INSTR_INTCAST:
+    case EL_MIR_INSTR_BITCAST:
+        elc_llvm_compile_cast_instr(ctx, func, instr);
+        return;
     case EL_MIR_INSTR_BIN:
         elc_llvm_compile_bin_instr(ctx, func, instr);
         return;
@@ -322,8 +351,7 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         elc_llvm_compile_call_instr(ctx, func, instr);
         return;
     }
-
-    EL_TODO("implement codegen for all instructions");
+    EL_UNREACHABLE_ENUM_VAL(ElMirInstrKind, instr->kind);
 }
 
 void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_func) {

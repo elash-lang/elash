@@ -56,6 +56,8 @@ ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in);
 ElType*        _el_binder_bind_type(ElBinder* binder, ElAstType* node);
 
 ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr);
+ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElType* to);
+ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElType* to);
 
 ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElSymbol* builtin);
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected_type);

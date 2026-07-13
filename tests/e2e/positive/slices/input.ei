@@ -9,11 +9,11 @@ int sumElements(int[] slice) {
 }
 
 int sumElementsRaw(int[*] raw, int size) {
-    return sumElements(sliceof(raw, size));
+    return sumElements(mkslice(raw, size));
 }
 
 int main() {
-    int[5] arr;// = { 10, 20, 30, 40, 50 };
+    int[5] arr = { 10, 20, 30, 40, 50 };
     int sum = sumElements(arr);
     return sum - 150;
 }

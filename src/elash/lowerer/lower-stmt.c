@@ -176,6 +176,8 @@ void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
 }
 
 void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
+    if (el_lowerer_has_terminator(lw)) return;
+
     switch (hir->kind) {
     case EL_HIR_STMT_EXPR: el_lowerer_lower_expr(lw, hir->as.expr); return;
     case EL_HIR_STMT_BLOCK:

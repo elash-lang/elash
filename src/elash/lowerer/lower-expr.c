@@ -9,6 +9,28 @@
 #include <elash/mir/instr.h>
 #include <elash/mir/value/const.h>
 
+static inline bool is_int_or_char(ElType* type) {
+    return type->kind == EL_TYPE_PRIM &&
+        (type->as.prim.kind == EL_PRIMTYPE_INT || type->as.prim.kind == EL_PRIMTYPE_CHAR);
+}
+
+ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
+    ElMirValue* operand = el_lowerer_lower_expr(lw, hir->as.cast.expr);
+    ElMirValue* result = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+
+    bool from_is_integral = is_int_or_char(hir->as.cast.expr->type);
+    bool to_is_integral = is_int_or_char(hir->type);
+
+    if (from_is_integral && to_is_integral) {
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_intcast_instr(lw->arena, result, operand));
+    } else {
+        // TODO: implement sizeof
+        /* EL_ASSERT(sizeof hir->type == sizeof hir->as.cast.expr->type or sth) */;
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bitcast_instr(lw->arena, result, operand));
+    }
+    return result;
+}
+
 ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) {
     if (lw->symbol_map && lw->symbol_map[sym->id]) {
         ElMirValue* val = lw->symbol_map[sym->id];
@@ -191,6 +213,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_UNARY:         return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
     case EL_HIR_EXPR_CALL:          return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
     case EL_HIR_EXPR_ARRAY_LITERAL: return _el_lowerer_lower_array_lit_expr(lw, hir);
+    case EL_HIR_EXPR_CAST:          return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:        return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
     case EL_HIR_EXPR_LITERAL:       return el_mir_new_const(lw->arena, hir->type, hir->as.literal);
     }

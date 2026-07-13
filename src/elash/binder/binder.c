@@ -24,10 +24,23 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
 
     binder->builtin_scope = el_sema_scope_new(NULL);
     register_builtin_type(binder, EL_SV("void"), binder->builtins->type_void);
-    register_builtin_type(binder, EL_SV("int"),  binder->builtins->type_int);
-    register_builtin_type(binder, EL_SV("uint"), binder->builtins->type_uint);
     register_builtin_type(binder, EL_SV("char"), binder->builtins->type_char);
     register_builtin_type(binder, EL_SV("bool"), binder->builtins->type_bool);
+
+    register_builtin_type(binder, EL_SV("isize"),   binder->builtins->type_isize);
+    register_builtin_type(binder, EL_SV("usize"),   binder->builtins->type_usize);
+    register_builtin_type(binder, EL_SV("int"),     binder->builtins->type_int);
+    register_builtin_type(binder, EL_SV("uint"),    binder->builtins->type_uint);
+    register_builtin_type(binder, EL_SV("int8"),    binder->builtins->type_int8);
+    register_builtin_type(binder, EL_SV("uint8"),   binder->builtins->type_uint8);
+    register_builtin_type(binder, EL_SV("int16"),   binder->builtins->type_int16);
+    register_builtin_type(binder, EL_SV("uint16"),  binder->builtins->type_uint16);
+    register_builtin_type(binder, EL_SV("int32"),   binder->builtins->type_int32);
+    register_builtin_type(binder, EL_SV("uint32"),  binder->builtins->type_uint32);
+    register_builtin_type(binder, EL_SV("int64"),   binder->builtins->type_int64);
+    register_builtin_type(binder, EL_SV("uint64"),  binder->builtins->type_uint64);
+    register_builtin_type(binder, EL_SV("int128"),  binder->builtins->type_int128);
+    register_builtin_type(binder, EL_SV("uint128"), binder->builtins->type_uint128);
 
     register_builtin_func(binder, EL_SV("len"), EL_BUILTIN_LEN);
 

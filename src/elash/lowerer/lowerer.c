@@ -65,16 +65,21 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
                 lw->symbol_map[sym->id] = glob;
             }
             return glob;
-        } else if (sym->kind == EL_SYM_FUNC) {
+        }
+        if (sym->kind == EL_SYM_FUNC) {
             return el_mir_new_global(lw->arena, hir->type, sym);
         }
         EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
     }
 
-
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
-             ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
+             ElMirValue* ptr;
+             if (hir->as.binary.left->type->kind == EL_TYPE_RAW_SLICE) {
+                 ptr = el_lowerer_lower_expr(lw, hir->as.binary.left);
+             } else {
+                 ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
+             }
              ElMirValue* index = el_lowerer_lower_expr(lw, hir->as.binary.right);
 
              ElType* result_ptr_type = el_sema_new_ptr_type(lw->arena, hir->type);

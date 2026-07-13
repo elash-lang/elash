@@ -21,6 +21,8 @@
 - [x] Array types
 - [ ] Struct types
 - [ ] Enum types
+- [x] Type casting
+- [ ] Untyped literal types (untypedint, untypedfloat)
 
 ### Expressions
 - [x] Binary expressions (+, -, *, /, ==, ...)
