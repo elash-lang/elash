@@ -10,10 +10,12 @@
 
 ### Control Flow
 - [x] If statement
-- [x] While statement
+- [x] While loops
+- [ ] For loops
 
 ### Type system
 - [x] Basic primitive types
+- [ ] Floating-point types
 - [x] Pointer types
 - [x] Function types
 - [ ] Slice types
@@ -22,11 +24,11 @@
 - [ ] Struct types
 - [ ] Enum types
 - [x] Type casting
-- [ ] Untyped literal types (untypedint, untypedfloat)
 
 ### Expressions
 - [x] Binary expressions (+, -, *, /, ==, ...)
 - [x] Unary expressions (-, !, ~, ...)
+- [ ] Untyped literals
 - [x] Function calls
 - [x] Pointer dereference operator
 - [x] Array subscript operator
@@ -173,22 +175,11 @@
 
 - [x] Implement command parsing
 - [x] Implement useful flags
-- [ ] ~~Implement optimization flags~~ *(moved to 0.2.0)*
+- [ ] Implement optimization flags
 - [x] Implement colored diagnostics
 - [ ] Return proper exit codes
 
-
-### 10. Modules & Multi-file Compilation
-
-- [ ] ~~Implement import resolution~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Support multi-file parsing~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Share symbol table across modules~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Implement symbol visibility rules~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Detect circular imports~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Merge modules into single LLVM module before emission~~ *(moved to 0.2.0 or later)*
-
-
-### 11. Standard Library
+### 10. Standard Library
 - [ ] ~~`io` module~~ *(moved to 0.2.0 or later)*
 - [ ] ~~`fs` module~~ *(moved to 0.2.0 or later)*
 - [ ] ~~`math` module~~ *(moved to 0.2.0 or later)*
@@ -199,10 +190,8 @@
 - [ ] ~~`net` module~~ *(moved to 0.2.0 or later)*
 
 
-### 12. Stability & Hardening
+### 11. Stability & Hardening
 
 - [x] End-to-end compilation tests
 - [x] Invalid program test suite
-- [ ] ~~Large file compilation test~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Memory usage checks~~ *(moved to 0.2.0 or later)*
-- [ ] ~~Regression tests~~ *(moved to 0.2.0 or later)*
+- [ ] ~~Fuzz tests~~ *(moved to 0.2.0)*
