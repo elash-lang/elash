@@ -4,7 +4,7 @@ void modify(int* ptr) {
 
 int putchar(int c);
 void putchar_by_ptr(char* ptr, int* result) {
-    *result = putchar((*ptr) as int);
+    *result = putchar(*ptr as int);
 }
 
 int main() {

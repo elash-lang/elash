@@ -222,18 +222,6 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
     return expr;
 }
 
-ElAstExpr* _el_parser_parse_cast(ElParser* parser) {
-    ElAstExpr* expr = _el_parser_parse_postfix(parser);
-    if (el_parser_has_errs(parser)) return NULL;
-
-    while (el_parser_match(parser, EL_TT_KW_AS)) {
-        ElAstType* type = _el_parser_parse_type(parser);
-        if (type == NULL) return NULL;
-        expr = el_ast_new_cast_expr(parser->arena, el_source_span_merge(expr->span, type->span), expr, type);
-    }
-    return expr;
-}
-
 ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_PLUS)) {
         ElToken tok = parser->current;
@@ -292,11 +280,23 @@ ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_ADDROF, operand);
     }
 
-    return _el_parser_parse_cast(parser);
+    return _el_parser_parse_postfix(parser);
+}
+
+ElAstExpr* _el_parser_parse_cast(ElParser* parser) {
+    ElAstExpr* expr = _el_parser_parse_unary(parser);
+    if (el_parser_has_errs(parser)) return NULL;
+
+    while (el_parser_match(parser, EL_TT_KW_AS)) {
+        ElAstType* type = _el_parser_parse_type(parser);
+        if (type == NULL) return NULL;
+        expr = el_ast_new_cast_expr(parser->arena, el_source_span_merge(expr->span, type->span), expr, type);
+    }
+    return expr;
 }
 
 ElAstExpr* _el_parser_parse_multiplicative(ElParser* parser) {
-    ElAstExpr* expr = _el_parser_parse_unary(parser);
+    ElAstExpr* expr = _el_parser_parse_cast(parser);
     if (el_parser_has_errs(parser)) return NULL;
 
     while (true) {
@@ -306,7 +306,7 @@ ElAstExpr* _el_parser_parse_multiplicative(ElParser* parser) {
         else if (el_parser_match(parser, EL_TT_PERCENT)) type = EL_SEMA_BIN_OP_MOD;
         else break;
 
-        ElAstExpr* right = _el_parser_parse_unary(parser);
+        ElAstExpr* right = _el_parser_parse_cast(parser);
         if (el_parser_has_errs(parser)) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
