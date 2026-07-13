@@ -8,6 +8,13 @@
 #include <elash/diag/printer.h>
 #include <elash/diag/meta.h>
 
+typedef struct ElDiagnosticHelp {
+    ElStringView template;
+    ElStringView formatted;
+    ElDiagMeta meta;
+    struct ElDiagnosticHelp* next;
+} ElDiagnosticHelp;
+
 typedef struct ElDiagnostic {
     ElDiagSeverity sev;
     ElStringView category;
@@ -15,7 +22,10 @@ typedef struct ElDiagnostic {
     ElStringView formatted;
     ElStringView template;
     ElDiagMeta meta;
-    
+
+    ElDiagnosticHelp* help_head;
+    ElDiagnosticHelp* help_tail;
+
     struct ElDiagnostic* prev;
     struct ElDiagnostic* next;
 } ElDiagnostic;
@@ -44,6 +54,11 @@ void el_diag_report_impl(
     ElStringView template, ElDiagMeta meta
 );
 
+void el_diag_help_impl(
+    ElDiagEngine* engine,
+    ElStringView template, ElDiagMeta meta
+);
+
 ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine);
 void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, FILE* out);
 
@@ -53,4 +68,7 @@ static inline bool el_diag_engine_has_errors(const ElDiagEngine* engine) {
 
 #define el_diag_report(engine, sev, cat, span, template, ...) \
     el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+
+#define el_diag_help(engine, template, ...) \
+    el_diag_help_impl(engine, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
 

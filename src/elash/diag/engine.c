@@ -2,6 +2,7 @@
 
 #include <elash/diag/template.h>
 #include <elash/util/strbuf.h>
+#include <elash/util/assert.h>
 
 void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena) {
     engine->arena = arena;
@@ -25,15 +26,32 @@ static ElDiagMeta _el_diag_clone_meta(ElDynArena* arena, ElDiagMeta meta) {
     for (usize i = 0; i < meta.count; i++) {
         entries[i].key = meta.entries[i].key;
         entries[i].type = meta.entries[i].type;
+        entries[i].as = meta.entries[i].as;
 
         if (entries[i].type == EL_DIAG_META_STRING) {
             entries[i].as.string = el_dynarena_clone_sv(arena, meta.entries[i].as.string);
-        } else {
-            entries[i].as.integer = meta.entries[i].as.integer;
         }
     }
 
     return (ElDiagMeta) { .entries = entries, .count = meta.count };
+}
+
+static void _el_diag_format_message(
+    ElDiagEngine* engine,
+    ElStringView template, ElDiagMeta* meta,
+    ElStringView* out_template, ElStringView* out_formatted
+) {
+    *meta = _el_diag_clone_meta(engine->arena, *meta);
+    *out_template = el_dynarena_clone_sv(engine->arena, template);
+
+    ElStringBuf formatted;
+    el_strbuf_init(&formatted);
+    if (el_diag_render_template(template, meta, &formatted)) {
+        *out_formatted = el_dynarena_clone_sv(engine->arena, el_strbuf_view(&formatted));
+    } else {
+        *out_formatted = *out_template;
+    }
+    el_strbuf_destroy(&formatted);
 }
 
 void el_diag_report_impl(
@@ -42,25 +60,20 @@ void el_diag_report_impl(
     ElSourceSpan span,
     ElStringView template, ElDiagMeta meta
 ) {
-    ElDiagnostic* diag = EL_DYNARENA_NEW(engine->arena, ElDiagnostic);
-    diag->sev = sev;
-    diag->category = category;
-    diag->span = span;
-    diag->template = el_dynarena_clone_sv(engine->arena, template);
-    diag->meta = _el_diag_clone_meta(engine->arena, meta);
+    ElDiagnostic* diag = EL_DYNARENA_NEW_STRUCT(engine->arena, ElDiagnostic, {
+        .sev = sev,
+        .category = category,
+        .span = span,
+        .help_head = NULL,
+        .help_tail = NULL,
+    });
+
+    _el_diag_format_message(engine, template, &meta, &diag->template, &diag->formatted);
+    diag->meta = meta;
 
     if (diag->sev == EL_DIAG_ERROR) engine->summary.total_errors++;
     if (diag->sev == EL_DIAG_WARN)  engine->summary.total_warnings++;
     engine->summary.total_diagnostics++;
-
-    ElStringBuf formatted;
-    el_strbuf_init(&formatted);
-    if (el_diag_render_template(template, &diag->meta, &formatted)) {
-        diag->formatted = el_dynarena_clone_sv(engine->arena, el_strbuf_view(&formatted));
-    } else {
-        diag->formatted = diag->template;
-    }
-    el_strbuf_destroy(&formatted);
 
     diag->next = NULL;
     diag->prev = engine->diag_tail;
@@ -73,6 +86,26 @@ void el_diag_report_impl(
 
     engine->diag_tail = diag;
     engine->diag_count++;
+}
+
+void el_diag_help_impl(
+    ElDiagEngine* engine,
+    ElStringView template, ElDiagMeta meta
+) {
+    // just in case
+    EL_ASSERT(engine->diag_tail != NULL, "no diagnostic to add help to");
+
+    ElDiagnosticHelp* help = EL_DYNARENA_NEW(engine->arena, ElDiagnosticHelp);
+    _el_diag_format_message(engine, template, &meta, &help->template, &help->formatted);
+    help->meta = meta;
+    help->next = NULL;
+
+    if (engine->diag_tail->help_tail != NULL) {
+        engine->diag_tail->help_tail->next = help;
+    } else {
+        engine->diag_tail->help_head = help;
+    }
+    engine->diag_tail->help_tail = help;
 }
 
 ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine) {

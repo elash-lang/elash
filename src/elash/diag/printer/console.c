@@ -21,7 +21,7 @@ ElAnsiStyle _el_diag_console_printer_get_style(ElDiagSeverity sev) {
     return (ElAnsiStyle) {
         .bg_color = EL_ANSI_CLR_DEFAULT,
         .fg_color = color,
-        .dec = EL_ANSI_DEC_BOLD, 
+        .dec = EL_ANSI_DEC_BOLD,
     };
 }
 
@@ -112,10 +112,28 @@ void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagn
     fputc('\n', out);
     _el_diag_console_printer_print_loc(&diag->span, out);
     _el_diag_console_printer_print_snippet(&diag->span, diag->sev, out);
+
+    for (ElDiagnosticHelp* help = diag->help_head; help != NULL; help = help->next) {
+        bool ansi = el_ansi_is_supported(out);
+
+        if (ansi) {
+            ElAnsiStyle style = {
+                .bg_color = EL_ANSI_CLR_DEFAULT,
+                .fg_color = EL_ANSI_CLR_BRIGHT_CYAN,
+                .dec = EL_ANSI_DEC_BOLD,
+            };
+            el_ansi_apply_style(style, out);
+        }
+        fputs("help: ", out);
+        if (ansi) el_ansi_reset_style(out);
+
+        el_sv_print(help->formatted, out);
+        fputc('\n', out);
+    }
 }
 
 static void print_diag_count(FILE *out, unsigned int count, ElDiagSeverity sev, bool ansi) {
-    if (count == 0) return; 
+    if (count == 0) return;
     ElAnsiStyle style = _el_diag_console_printer_get_style(sev);
     if (ansi) el_ansi_apply_style(style, out);
     fprintf(out, "%u %s%s", count, (sev == EL_DIAG_ERROR ? "error" : "warning"), (count == 1 ? "" : "s"));
@@ -127,7 +145,7 @@ void el_diag_console_printer_summary(ElDiagPrinter* self, FILE* out, const ElDia
     if (sum->total_diagnostics != 0) {
         bool ansi = el_ansi_is_supported(out);
         fputs("Finished with ", out);
-    
+
         print_diag_count(out, sum->total_errors, EL_DIAG_ERROR, ansi);
         if (sum->total_errors > 0 && sum->total_warnings > 0) fputs(" and ", out);
         print_diag_count(out, sum->total_warnings, EL_DIAG_WARN, ansi);
