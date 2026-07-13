@@ -1,11 +1,13 @@
 #pragma once
 
 #include <elash/diag/severity.h>
+#include <elash/sema/type.h>
 
 typedef enum ElDiagMetaType {
     EL_DIAG_META_STRING,
     EL_DIAG_META_INTEGER,
     EL_DIAG_META_CHARACTER,
+    EL_DIAG_META_TYPE,
 } ElDiagMetaType;
 
 typedef struct ElDiagMetaEntry {
@@ -15,6 +17,7 @@ typedef struct ElDiagMetaEntry {
         ElStringView string;
         int integer;
         char character;
+        ElType* type;
     } as;
 } ElDiagMetaEntry;
 
@@ -26,6 +29,9 @@ typedef struct ElDiagMetaEntry {
 
 #define EL_DIAG_CHAR(KEY, CHAR) \
     ((ElDiagMetaEntry) { .key = (KEY), .type = EL_DIAG_META_CHARACTER, .as.integer = (CHAR) })
+
+#define EL_DIAG_TYPE(KEY, TYPE) \
+    ((ElDiagMetaEntry) { .key = (KEY), .type = EL_DIAG_META_TYPE, .as.type = (TYPE) })
 
 typedef struct ElDiagMeta {
     const ElDiagMetaEntry* entries;
