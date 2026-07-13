@@ -16,7 +16,7 @@
 
 static void _el_lowerer_lower_func_def(ElLowerer* lw, ElHirFuncDef* hir_func) {
     ElMirFunc* func = el_mir_new_func(lw->arena, hir_func->symbol);
-    
+
     ElMirFunc* prev_func = lw->current_func;
     uint32_t prev_block_id = lw->current_block_id;
 
@@ -62,11 +62,11 @@ static void _el_lowerer_lower_func_decl(ElLowerer* lw, ElHirFuncDecl* hir_func) 
     if (hir_func->symbol->as.func.is_defined) {
         return;
     }
-    
+
     lw->symbol_map[hir_func->symbol->id] = el_mir_new_global(
         lw->arena, hir_func->symbol->as.func.type, hir_func->symbol
     );
-    
+
     ElMirFunc* func = el_mir_new_func(lw->arena, hir_func->symbol);
     el_mir_module_add_func(lw->current_mod, func);
 }
@@ -77,7 +77,7 @@ void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
         ElSymbol* sym = decl->as.var_def.var;
         ElType* ptr_type = el_sema_new_ptr_type(lw->arena, sym->as.var.type);
         lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, sym);
-        
+
         if (decl->as.var_def.init != NULL) {
             EL_TODO("global variable initializers not supported yet");
         }
@@ -114,7 +114,7 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         lw->symbol_map[sym->id] = ptr_reg;
 
         if (decl->as.var_def.init) {
-            if (decl->as.var_def.init->kind == EL_HIR_EXPR_ARRAY_LITERAL) {
+            if (decl->as.var_def.init->kind == EL_HIR_EXPR_ARRAYLIT) {
                 _el_lowerer_lower_array_lit(lw, ptr_reg, &decl->as.var_def.init->as.array_lit);
             } else {
                 ElMirValue* init_val = el_lowerer_lower_expr(lw, decl->as.var_def.init);

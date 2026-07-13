@@ -76,11 +76,11 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
 ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral* lit) {
     switch (lit->type) {
     case EL_AST_LIT_INT:
-        return el_hir_new_int_literal(binder->hir_arena, binder->builtins->type_int, lit->of.int_.value);
+        return el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_int, lit->of.int_.value);
     case EL_AST_LIT_CHAR:
-        return el_hir_new_char_literal(binder->hir_arena, binder->builtins->type_char, lit->of.char_.value);
+        return el_hir_new_char_constant(binder->hir_arena, binder->builtins->type_char, lit->of.char_.value);
     case EL_AST_LIT_BOOL:
-        return el_hir_new_bool_literal(binder->hir_arena, binder->builtins->type_bool, lit->of.bool_.value);
+        return el_hir_new_bool_constant(binder->hir_arena, binder->builtins->type_bool, lit->of.bool_.value);
     default:
         // TODO: handle other literal types
         el_diag_report(
@@ -183,13 +183,13 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     if (in == NULL) return NULL;
 
     switch (in->type) {
-    case EL_AST_EXPR_BINARY:        return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
-    case EL_AST_EXPR_UNARY:         return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
-    case EL_AST_EXPR_LITERAL:       return _el_binder_bind_literal(binder, in, &in->as.literal);
-    case EL_AST_EXPR_IDENT:         return _el_binder_bind_ident(binder, in, &in->as.ident);
-    case EL_AST_EXPR_CALL:          return _el_binder_bind_call(binder, in, &in->as.call);
-    case EL_AST_EXPR_CAST:          return _el_binder_bind_cast(binder, in, &in->as.cast);
-    case EL_AST_EXPR_ARRAY_LITERAL: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
+    case EL_AST_EXPR_BINARY:   return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
+    case EL_AST_EXPR_UNARY:    return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
+    case EL_AST_EXPR_LITERAL:  return _el_binder_bind_literal(binder, in, &in->as.literal);
+    case EL_AST_EXPR_IDENT:    return _el_binder_bind_ident(binder, in, &in->as.ident);
+    case EL_AST_EXPR_CALL:     return _el_binder_bind_call(binder, in, &in->as.call);
+    case EL_AST_EXPR_CAST:     return _el_binder_bind_cast(binder, in, &in->as.cast);
+    case EL_AST_EXPR_ARRAYLIT: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }

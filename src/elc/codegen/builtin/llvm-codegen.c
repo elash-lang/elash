@@ -83,11 +83,11 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
         LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
         switch (value->type->as.prim.kind) {
         case EL_PRIMTYPE_INT:
-            return LLVMConstInt(type, value->as.constant.lit.as.int_, true);
+            return LLVMConstInt(type, value->as.constant.as.int_, true);
         case EL_PRIMTYPE_CHAR:
-            return LLVMConstInt(type, value->as.constant.lit.as.char_, false);
+            return LLVMConstInt(type, value->as.constant.as.char_, false);
         case EL_PRIMTYPE_BOOL:
-            return LLVMConstInt(type, value->as.constant.lit.as.bool_, false);
+            return LLVMConstInt(type, value->as.constant.as.bool_, false);
         case EL_PRIMTYPE_VOID:
             EL_UNREACHABLE("void constant");
         }

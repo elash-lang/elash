@@ -34,13 +34,13 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         break;
     }
 
-    case EL_HIR_EXPR_LITERAL:
+    case EL_HIR_EXPR_CONST:
         if (node->type->kind == EL_TYPE_PRIM) {
             switch (node->type->as.prim.kind) {
-            case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.literal.as.int_);        break;
-            case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.literal.as.char_);          break;
-            case EL_PRIMTYPE_BOOL:  fputs(node->as.literal.as.bool_ ? "true" : "false", out); break;
-            case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                           break;
+            case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.constant.as.int_);        break;
+            case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.constant.as.char_);          break;
+            case EL_PRIMTYPE_BOOL:  fputs(node->as.constant.as.bool_ ? "true" : "false", out); break;
+            case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                            break;
             }
         } else {
             fputs("<unhandled>", out);
@@ -62,7 +62,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         break;
     }
 
-    case EL_HIR_EXPR_ARRAY_LITERAL:
+    case EL_HIR_EXPR_ARRAYLIT:
         fputs("{", out);
         for (usize i = 0; i < node->as.array_lit.count; ++i) {
             if (i > 0) fputs(", ", out);

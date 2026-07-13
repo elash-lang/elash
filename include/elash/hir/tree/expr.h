@@ -2,11 +2,12 @@
 
 #include <elash/sema/type.h>
 #include <elash/sema/symbol.h>
+#include <elash/sema/const.h>
 #include <elash/util/dynarena.h>
 
 #include "expr/bin.h"
 #include "expr/unary.h"
-#include "expr/literal.h"
+#include "expr/const.h"
 #include "expr/call.h"
 #include "expr/cast.h"
 #include "expr/array-lit.h"
@@ -14,24 +15,24 @@
 typedef enum ElHirExprKind {
     EL_HIR_EXPR_BINARY,
     EL_HIR_EXPR_UNARY,
-    EL_HIR_EXPR_LITERAL,
+    EL_HIR_EXPR_CONST,
     EL_HIR_EXPR_SYMBOL, // resolved identifier
     EL_HIR_EXPR_CALL,
     EL_HIR_EXPR_CAST,
-    EL_HIR_EXPR_ARRAY_LITERAL,
+    EL_HIR_EXPR_ARRAYLIT,
 } ElHirExprKind;
 
 typedef struct ElHirExpr {
     ElHirExprKind kind;
     ElType* type;
     union {
-        ElHirBinExpr binary;
+        ElHirBinExpr   binary;
         ElHirUnaryExpr unary;
-        ElHirLiteral literal;
-        ElSymbol* symbol;
-        ElHirCallExpr call;
-        ElHirCastExpr cast;
-        ElHirArrayLit array_lit;
+        ElConstant     constant;
+        ElSymbol*      symbol;
+        ElHirCallExpr  call;
+        ElHirCastExpr  cast;
+        ElHirArrayLit  array_lit;
     } as;
 } ElHirExpr;
 

@@ -21,7 +21,7 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
     if (!arg) return NULL;
 
     if (arg->type->kind == EL_TYPE_ARRAY) {
-        return el_hir_new_int_literal(binder->hir_arena, binder->builtins->type_int, (int64_t)arg->type->as.array.size);
+        return el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_int, (int64_t)arg->type->as.array.size);
     }
     if (arg->type->kind == EL_TYPE_SLICE) {
         EL_TODO("implement len for slices");

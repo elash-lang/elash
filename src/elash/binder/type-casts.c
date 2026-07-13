@@ -45,7 +45,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
                         binder->hir_arena, el_sema_new_ptr_type(binder->type_arena, base_type),
                         EL_SEMA_UNARY_OP_ADDROF,
                         el_hir_new_bin_expr(binder->hir_arena, base_type, EL_SEMA_BIN_OP_INDEX,
-                            expr, el_hir_new_int_literal(binder->hir_arena, binder->builtins->type_int, 0)
+                            expr, el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_int, 0)
                 )));
             }
         } else if (to->kind == EL_TYPE_PTR) {

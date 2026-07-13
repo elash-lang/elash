@@ -73,7 +73,7 @@ void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
         }
         break;
     }
-    case EL_AST_EXPR_ARRAY_LITERAL:
+    case EL_AST_EXPR_ARRAYLIT:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "ArrayLit:\n");
         el_ast_dump_print_indent(indent + 1, out);

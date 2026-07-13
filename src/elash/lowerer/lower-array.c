@@ -3,7 +3,7 @@
 
 void _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit) {
     for (usize i = 0; i < array_lit->count; ++i) {
-        ElHirLiteral idx_lit = { .as.int_ = (int64_t)i };
+        ElConstant idx_lit = { .as.int_ = (int64_t)i };
         ElMirValue* index = el_mir_new_const(lw->arena, lw->builtins->type_int, idx_lit);
 
         ElType* elem_type = array_lit->values[i]->type;
@@ -12,7 +12,7 @@ void _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* 
 
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, elem_ptr, ptr, index));
 
-        if (array_lit->values[i]->kind == EL_HIR_EXPR_ARRAY_LITERAL) {
+        if (array_lit->values[i]->kind == EL_HIR_EXPR_ARRAYLIT) {
             _el_lowerer_lower_array_lit(lw, elem_ptr, &array_lit->values[i]->as.array_lit);
         } else {
             ElMirValue* val = el_lowerer_lower_expr(lw, array_lit->values[i]);

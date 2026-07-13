@@ -14,11 +14,11 @@ ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     ElHirExpr* size_hir = el_binder_bind_expr(binder, array->size);
     if (size_hir == NULL) return NULL;
 
-    if (size_hir->kind != EL_HIR_EXPR_LITERAL || size_hir->type->kind != EL_TYPE_PRIM || size_hir->type->as.prim.kind != EL_PRIMTYPE_INT) {
+    if (size_hir->kind != EL_HIR_EXPR_CONST || size_hir->type->kind != EL_TYPE_PRIM || size_hir->type->as.prim.kind != EL_PRIMTYPE_INT) {
         EL_TODO("implement constant expressions evaluation");
     }
 
-    int64_t size_val = size_hir->as.literal.as.int_;
+    int64_t size_val = size_hir->as.constant.as.int_;
     if (size_val <= 0) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-array-size",

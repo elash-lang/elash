@@ -136,7 +136,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = lhs_false_id;
-            ElMirValue* true_val = el_mir_new_const(lw->arena, cassign->target->type, (ElHirLiteral) { .as.bool_ = true });
+            ElMirValue* true_val = el_mir_new_const(lw->arena, cassign->target->type, (ElConstant) { .as.bool_ = true });
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, true_val));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
