@@ -53,13 +53,13 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         break;
     case EL_MIR_INSTR_LOAD:
         fputs("load ", out);
-        el_mir_dump_value(instr->as.load.ptr, out);
+        el_mir_dump_value(instr->as.load.ref, out);
         break;
     case EL_MIR_INSTR_STORE:
         fputs("store ", out);
         el_mir_dump_value(instr->as.store.value, out);
         fputs(", ", out);
-        el_mir_dump_value(instr->as.store.ptr, out);
+        el_mir_dump_value(instr->as.store.ref, out);
         break;
     case EL_MIR_INSTR_JMP:
         fprintf(out, "jmp @%u", instr->as.jmp.target_id);
@@ -79,7 +79,7 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         break;
     case EL_MIR_INSTR_GEP:
         fputs("gep ", out);
-        el_mir_dump_value(instr->as.gep.ptr, out);
+        el_mir_dump_value(instr->as.gep.ref, out);
         fputs(", ", out);
         el_mir_dump_value(instr->as.gep.index, out);
         break;

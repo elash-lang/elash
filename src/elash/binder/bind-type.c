@@ -30,10 +30,10 @@ ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
 
 ElType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
     switch (node->kind) {
-    case EL_AST_TYPE_PTR: {
+    case EL_AST_TYPE_REF: {
         ElType* base = _el_binder_bind_type(binder ,node->base);
         if (base == NULL) return NULL;
-        return el_sema_new_ptr_type(binder->type_arena, base);
+        return el_sema_new_ref_type(binder->type_arena, base);
     }
     case EL_AST_TYPE_SLICE: {
         ElType* base = _el_binder_bind_type(binder ,node->base);

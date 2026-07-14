@@ -22,7 +22,7 @@ typedef enum ElSemaBinOp {
 
     EL_SEMA_BIN_OP_BW_AND, // &
     EL_SEMA_BIN_OP_BW_OR,  // |
-    EL_SEMA_BIN_OP_BW_XOR, // ^
+    EL_SEMA_BIN_OP_BW_XOR, // <>
     EL_SEMA_BIN_OP_BW_IMP, // ~>
     EL_SEMA_BIN_OP_SHL,    // <<
     EL_SEMA_BIN_OP_SHR,    // >>

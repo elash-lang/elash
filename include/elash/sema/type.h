@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "type/prim.h"
-#include "type/ptr.h"
+#include "type/ref.h"
 #include "type/func.h"
 #include "type/array.h"
 #include "type/slice.h"
@@ -12,11 +12,11 @@
 
 typedef enum ElTypeKind {
     EL_TYPE_PRIM,
-    EL_TYPE_PTR,
+    EL_TYPE_REF,
     EL_TYPE_FUNC,
     EL_TYPE_ARRAY,
     EL_TYPE_SLICE,
-    EL_TYPE_RAW_SLICE,
+    EL_TYPE_RWSLICE,
 } ElTypeKind;
 
 typedef struct ElType ElType;
@@ -24,7 +24,7 @@ struct ElType {
     ElTypeKind kind;
     union {
         ElPrimitiveType prim;
-        ElPointerType ptr;
+        ElPointerType ref;
         ElSliceType slice;
         ElArrayType array;
         ElRawSliceType raw_slice;

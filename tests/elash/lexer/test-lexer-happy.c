@@ -69,8 +69,8 @@ Test(elash_lexer_happy, operators) {
         EL_SV(
             "+ - * / % ++ -- += -= *= /= %="
             "= == != < <= > >="
-            "&& || ! ^^ => &&= ||= ^^= =>="
-            "& | ^ ~ ~> &= |= ^= ~>="
+            "&& || ! => &&= ||= =>="
+            "& | ^ ~ ~> &= |= <> <>= ~>="
             "<< >> <<= >>="
         ), EL_SV("test.ei")
     );
@@ -103,21 +103,20 @@ Test(elash_lexer_happy, operators) {
     assert_token(&lexer, EL_TT_LOGICAL_AND, "&&");
     assert_token(&lexer, EL_TT_LOGICAL_OR, "||");
     assert_token(&lexer, EL_TT_LOGICAL_NOT, "!");
-    assert_token(&lexer, EL_TT_LOGICAL_XOR, "^^");
     assert_token(&lexer, EL_TT_LOGICAL_IMP, "=>");
     assert_token(&lexer, EL_TT_LOGICAL_AND_ASSIGN, "&&=");
     assert_token(&lexer, EL_TT_LOGICAL_OR_ASSIGN,  "||=");
-    assert_token(&lexer, EL_TT_LOGICAL_XOR_ASSIGN, "^^=");
     assert_token(&lexer, EL_TT_LOGICAL_IMP_ASSIGN, "=>=");
 
     assert_token(&lexer, EL_TT_BITWISE_AND, "&");
     assert_token(&lexer, EL_TT_BITWISE_OR, "|");
-    assert_token(&lexer, EL_TT_BITWISE_XOR, "^");
+    assert_token(&lexer, EL_TT_CARET, "^");
     assert_token(&lexer, EL_TT_BITWISE_NOT, "~");
     assert_token(&lexer, EL_TT_BITWISE_IMP, "~>");
     assert_token(&lexer, EL_TT_BITWISE_AND_ASSIGN, "&=");
     assert_token(&lexer, EL_TT_BITWISE_OR_ASSIGN, "|=");
-    assert_token(&lexer, EL_TT_BITWISE_XOR_ASSIGN, "^=");
+    assert_token(&lexer, EL_TT_BITWISE_XOR, "<>");
+    assert_token(&lexer, EL_TT_BITWISE_XOR_ASSIGN, "<>=");
     assert_token(&lexer, EL_TT_BITWISE_IMP_ASSIGN, "~>=");
 
     assert_token(&lexer, EL_TT_SHL, "<<");
@@ -131,7 +130,7 @@ Test(elash_lexer_happy, operators) {
 
 Test(elash_lexer_happy, delimiters) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . -> # ..."), EL_SV("test.ei"));
+    el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . # ..."), EL_SV("test.ei"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
@@ -147,7 +146,6 @@ Test(elash_lexer_happy, delimiters) {
     assert_token(&lexer, EL_TT_DOUBLECOLON, "::");
     assert_token(&lexer, EL_TT_COMMA, ",");
     assert_token(&lexer, EL_TT_DOT, ".");
-    assert_token(&lexer, EL_TT_ARROW, "->");
     assert_token(&lexer, EL_TT_HASH, "#");
     assert_token(&lexer, EL_TT_ELLIPSIS, "...");
     assert_token(&lexer, EL_TT_EOF, "");

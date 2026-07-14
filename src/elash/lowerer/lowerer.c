@@ -59,8 +59,8 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
                 return lw->symbol_map[sym->id];
             }
 
-            ElType* ptr_type = el_sema_new_ptr_type(lw->arena, sym->as.var.type);
-            ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, sym);
+            ElType* ref_type = el_sema_new_ref_type(lw->arena, sym->as.var.type);
+            ElMirValue* glob = el_mir_new_global(lw->arena, ref_type, sym);
             if (lw->symbol_map) {
                 lw->symbol_map[sym->id] = glob;
             }
@@ -74,17 +74,17 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
 
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
-             ElMirValue* ptr;
-             if (hir->as.binary.left->type->kind == EL_TYPE_RAW_SLICE) {
-                 ptr = el_lowerer_lower_expr(lw, hir->as.binary.left);
+             ElMirValue* ref;
+             if (hir->as.binary.left->type->kind == EL_TYPE_RWSLICE) {
+                 ref = el_lowerer_lower_expr(lw, hir->as.binary.left);
              } else {
-                 ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
+                 ref = el_lowerer_get_lvalue(lw, hir->as.binary.left);
              }
              ElMirValue* index = el_lowerer_lower_expr(lw, hir->as.binary.right);
 
-             ElType* result_ptr_type = el_sema_new_ptr_type(lw->arena, hir->type);
-             ElMirValue* res_reg = el_mir_new_reg(lw->arena, result_ptr_type, lw->current_func->reg_count++);
-             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, res_reg, ptr, index));
+             ElType* result_ref_type = el_sema_new_ref_type(lw->arena, hir->type);
+             ElMirValue* res_reg = el_mir_new_reg(lw->arena, result_ref_type, lw->current_func->reg_count++);
+             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, res_reg, ref, index));
              return res_reg;
         }
         break;

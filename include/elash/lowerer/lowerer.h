@@ -43,7 +43,7 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id);
 ElMirValue*  el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
-void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit);
+void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ref, ElHirArrayLit* array_lit);
 void         _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* hir);
 void         _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* hir);
 

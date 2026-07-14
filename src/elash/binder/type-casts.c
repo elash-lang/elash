@@ -1,5 +1,5 @@
 #include <elash/binder/binder.h>
-#include <elash/sema/type/ptr.h>
+#include <elash/sema/type/ref.h>
 #include <elash/hir/tree/expr.h>
 
 #include <elash/util/todo.h>
@@ -45,19 +45,19 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             // this should probably return something like
             // mkslice(arr as int[*], len(arr))
             EL_TODO("implement array to slice casting");
-        } else if (to->kind == EL_TYPE_RAW_SLICE) {
+        } else if (to->kind == EL_TYPE_RWSLICE) {
             if (type_eql(to->as.raw_slice.base, from->as.array.base)) {
                 // &(expr)[0] as T[*]
                 ElType* base_type = from->as.array.base;
                 return el_hir_new_cast_expr(binder->hir_arena, to,
                     el_hir_new_unary_expr(
-                        binder->hir_arena, el_sema_new_ptr_type(binder->type_arena, base_type),
+                        binder->hir_arena, el_sema_new_ref_type(binder->type_arena, base_type),
                         EL_SEMA_UNARY_OP_ADDROF,
                         el_hir_new_bin_expr(binder->hir_arena, base_type, EL_SEMA_BIN_OP_INDEX,
                             expr, el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_int, 0)
                 )));
             }
-        } else if (to->kind == EL_TYPE_PTR) {
+        } else if (to->kind == EL_TYPE_REF) {
             // let's give the user some nice error message in this case
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
@@ -66,7 +66,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             );
             el_diag_help(
                 binder->diag, "did you meant to use a raw slice ('${type}')?",
-                EL_DIAG_TYPE("type", el_sema_new_raw_slice_type(binder->type_arena, to->as.ptr.base)),
+                EL_DIAG_TYPE("type", el_sema_new_raw_slice_type(binder->type_arena, to->as.ref.base)),
             );
 
             return NULL;
