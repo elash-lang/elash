@@ -229,10 +229,6 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
             next(lexer);
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SUB_ASSIGN, out);
         }
-        if (peek(lexer) == '>') {
-            next(lexer);
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ARROW, out);
-        }
         return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_MINUS, out);
 
     case '*': return _el_lexer_lex_op2(lexer, '=', EL_TT_STAR, EL_TT_MUL_ASSIGN, out);
@@ -248,12 +244,6 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
         }
         return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ASSIGN, out);
     case '!': return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_NOT, EL_TT_NEQ, out);
-    case '^':
-        if (peek(lexer) == '^') {
-            next(lexer);
-            return _el_lexer_lex_op2(lexer, '=', EL_TT_LOGICAL_XOR, EL_TT_LOGICAL_XOR_ASSIGN, out);
-        }
-        return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_XOR, EL_TT_BITWISE_XOR_ASSIGN, out);
 
     case ':': return _el_lexer_lex_op2(lexer, ':', EL_TT_COLON, EL_TT_DOUBLECOLON, out);
 
@@ -275,6 +265,9 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
         if (peek(lexer) == '<') {
             next(lexer);
             return _el_lexer_lex_op2(lexer, '=', EL_TT_SHL, EL_TT_SHL_ASSIGN, out);
+        } else if (peek(lexer) == '>') {
+            next(lexer);
+            return _el_lexer_lex_op2(lexer, '=', EL_TT_BITWISE_XOR, EL_TT_BITWISE_XOR_ASSIGN, out);
         }
         return _el_lexer_lex_op2(lexer, '=', EL_TT_LT, EL_TT_LTE, out);
 
@@ -292,6 +285,7 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     case '{': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_LBRACE, out);
     case '}': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_RBRACE, out);
     case ';': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SEMICOLON, out);
+    case '^': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_CARET, out);
     case '.':
         if (peek(lexer) == '.' && peek_next(lexer) == '.') {
             next(lexer);
@@ -456,7 +450,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 next(lexer);
                 return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DIV_ASSIGN, out);
             }
-            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DIV, out);
+            return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SLASH, out);
         }
 
         if (c == '"') {
@@ -575,4 +569,3 @@ ElTokenStream el_lexer_as_token_stream(ElLexer* lexer) {
         .ctx = lexer,
     };
 }
-

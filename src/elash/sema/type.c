@@ -43,8 +43,8 @@ void el_sema_format_type_internal(const ElType* type, void (*write)(const char*,
         }
         }
         EL_UNREACHABLE_ENUM_VAL(ElPrimitiveTypeKind, type->as.prim.kind);
-    case EL_TYPE_PTR:
-        el_sema_format_type_internal(type->as.ptr.base, write, ctx);
+    case EL_TYPE_REF:
+        el_sema_format_type_internal(type->as.ref.base, write, ctx);
         write("*", ctx);
         return;
     case EL_TYPE_ARRAY:
@@ -57,7 +57,7 @@ void el_sema_format_type_internal(const ElType* type, void (*write)(const char*,
         el_sema_format_type_internal(type->as.slice.base, write, ctx);
         write("[]", ctx);
         return;
-    case EL_TYPE_RAW_SLICE:
+    case EL_TYPE_RWSLICE:
         el_sema_format_type_internal(type->as.raw_slice.base, write, ctx);
         write("[*]", ctx);
         return;
@@ -89,11 +89,11 @@ bool el_sema_type_eql(const ElType* lhs, const ElType* rhs) {
                    lhs->as.prim.as.integral.is_signed == rhs->as.prim.as.integral.is_signed;
         }
         return true;
-    case EL_TYPE_PTR:
-        return el_sema_type_eql(lhs->as.ptr.base, rhs->as.ptr.base);
+    case EL_TYPE_REF:
+        return el_sema_type_eql(lhs->as.ref.base, rhs->as.ref.base);
     case EL_TYPE_SLICE:
         return el_sema_type_eql(lhs->as.slice.base, rhs->as.slice.base);
-    case EL_TYPE_RAW_SLICE:
+    case EL_TYPE_RWSLICE:
         return el_sema_type_eql(lhs->as.raw_slice.base, rhs->as.raw_slice.base);
     case EL_TYPE_ARRAY:
         return lhs->as.array.size == rhs->as.array.size &&

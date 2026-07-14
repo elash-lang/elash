@@ -9,7 +9,7 @@ typedef enum ElSemaUnaryOp {
     EL_SEMA_UNARY_OP_NOT,    // !
     EL_SEMA_UNARY_OP_BW_NOT, // ~
 
-    EL_SEMA_UNARY_OP_DEREF,  // *
+    EL_SEMA_UNARY_OP_DEREF,  // ^
     EL_SEMA_UNARY_OP_ADDROF, // &
 
     EL_SEMA_UNARY_OP_PRE_INC,  // ++x

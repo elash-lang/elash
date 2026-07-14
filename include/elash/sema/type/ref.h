@@ -8,4 +8,4 @@ typedef struct ElPointerType {
     ElType* base;
 } ElPointerType;
 
-ElType* el_sema_new_ptr_type(ElDynArena* arena, ElType* base);
+ElType* el_sema_new_ref_type(ElDynArena* arena, ElType* base);

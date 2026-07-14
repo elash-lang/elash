@@ -69,8 +69,8 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElType* type) {
     }
     case EL_TYPE_SLICE:
         EL_TODO("implement slice type");
-    case EL_TYPE_RAW_SLICE:
-    case EL_TYPE_PTR:
+    case EL_TYPE_RWSLICE:
+    case EL_TYPE_REF:
         return LLVMPointerTypeInContext(ctx->context, 0);
     }
 
@@ -243,13 +243,13 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
 
 void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     ElMirGepInstr* gep = &instr->as.gep;
-    LLVMValueRef ptr = elc_llvm_map_value(ctx, func, gep->ptr);
+    LLVMValueRef ref = elc_llvm_map_value(ctx, func, gep->ref);
     LLVMValueRef index = elc_llvm_map_value(ctx, func, gep->index);
 
-    ElType* ptr_type = gep->ptr->type;
-    EL_ASSERT(ptr_type->kind == EL_TYPE_RAW_SLICE, "gep source must be a raw slice");
+    ElType* ref_type = gep->ref->type;
+    EL_ASSERT(ref_type->kind == EL_TYPE_RWSLICE, "gep source must be a raw slice");
 
-    ElType* base_type = ptr_type->as.raw_slice.base;
+    ElType* base_type = ref_type->as.raw_slice.base;
     LLVMTypeRef llvm_base_type = elc_llvm_map_type(ctx, base_type);
 
     LLVMValueRef res;
@@ -258,10 +258,10 @@ void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr*
             LLVMConstInt(LLVMInt32TypeInContext(ctx->context), 0, false),
             index
         };
-        res = LLVMBuildGEP2(ctx->builder, llvm_base_type, ptr, indices, 2, "");
+        res = LLVMBuildGEP2(ctx->builder, llvm_base_type, ref, indices, 2, "");
     } else {
         LLVMValueRef indices[1] = { index };
-        res = LLVMBuildGEP2(ctx->builder, llvm_base_type, ptr, indices, 1, "");
+        res = LLVMBuildGEP2(ctx->builder, llvm_base_type, ref, indices, 1, "");
     }
 
     ASSIGN_REG(func, instr->result, res, "gep");
@@ -323,15 +323,15 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
     }
     case EL_MIR_INSTR_LOAD: {
         LLVMTypeRef type = elc_llvm_map_type(ctx, instr->result->type);
-        LLVMValueRef ptr = elc_llvm_map_value(ctx, func, instr->as.load.ptr);
-        LLVMValueRef res = LLVMBuildLoad2(ctx->builder, type, ptr, "");
+        LLVMValueRef ref = elc_llvm_map_value(ctx, func, instr->as.load.ref);
+        LLVMValueRef res = LLVMBuildLoad2(ctx->builder, type, ref, "");
         ASSIGN_REG(func, instr->result, res, "load");
         return;
     }
     case EL_MIR_INSTR_STORE: {
-        LLVMValueRef ptr = elc_llvm_map_value(ctx, func, instr->as.store.ptr);
+        LLVMValueRef ref = elc_llvm_map_value(ctx, func, instr->as.store.ref);
         LLVMValueRef val = elc_llvm_map_value(ctx, func, instr->as.store.value);
-        LLVMBuildStore(ctx->builder, val, ptr);
+        LLVMBuildStore(ctx->builder, val, ref);
         return;
     }
     case EL_MIR_INSTR_GEP:

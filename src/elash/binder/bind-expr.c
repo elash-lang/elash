@@ -68,10 +68,10 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
         switch (left->type->kind) {
-        case EL_TYPE_ARRAY:     type = left->type->as.array.base;     break;
-        case EL_TYPE_SLICE:     type = left->type->as.slice.base;     break;
-        case EL_TYPE_RAW_SLICE: type = left->type->as.raw_slice.base; break;
-        default:                REPORT_NON_INDEXABLE;                 break;
+        case EL_TYPE_ARRAY:   type = left->type->as.array.base;     break;
+        case EL_TYPE_SLICE:   type = left->type->as.slice.base;     break;
+        case EL_TYPE_RWSLICE: type = left->type->as.raw_slice.base; break;
+        default:              REPORT_NON_INDEXABLE;                 break;
         }
     }
 
@@ -102,15 +102,15 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
             );
     } else {
         if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
-            type = el_sema_new_ptr_type(binder->type_arena, operand->type);
+            type = el_sema_new_ref_type(binder->type_arena, operand->type);
         } else if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
-            if (operand->type->kind != EL_TYPE_PTR)
+            if (operand->type->kind != EL_TYPE_REF)
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
                     in->span, "cannot dereference non-pointer type ${type}",
                     EL_DIAG_STRING("type", EL_SV("TODO"))
                 );
-            type = operand->type->as.ptr.base;
+            type = operand->type->as.ref.base;
         }
     }
 
@@ -234,4 +234,3 @@ ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
     if (expr == NULL) return NULL;
     return _el_binder_simplify_expr(binder, expr);
 }
-

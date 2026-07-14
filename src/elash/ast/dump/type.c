@@ -8,7 +8,7 @@ void el_ast_dump_type(ElAstType* node, usize indent, FILE* out) {
     case EL_AST_TYPE_NAME:
         fprintf(out, "TypeName(\""EL_SV_FMT"\")\n", EL_SV_FARG(node->name->name));
         break;
-    case EL_AST_TYPE_PTR:
+    case EL_AST_TYPE_REF:
         fprintf(out, "PointerType:\n");
         el_ast_dump_type(node->base, indent + 1, out);
         break;

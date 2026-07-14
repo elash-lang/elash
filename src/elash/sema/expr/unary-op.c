@@ -12,7 +12,7 @@ ElStringView el_sema_unary_op_to_string(ElSemaUnaryOp type) {
     case EL_SEMA_UNARY_OP_BW_NOT: return EL_SV("~");
 
     case EL_SEMA_UNARY_OP_ADDROF: return EL_SV("&");
-    case EL_SEMA_UNARY_OP_DEREF: return EL_SV("*");
+    case EL_SEMA_UNARY_OP_DEREF: return EL_SV("^");
 
     case EL_SEMA_UNARY_OP_PRE_INC:
     case EL_SEMA_UNARY_OP_POST_INC: return EL_SV("++");
@@ -32,7 +32,7 @@ ElStringView el_sema_unary_op_format(ElSemaUnaryOp type) {
     case EL_SEMA_UNARY_OP_BW_NOT: return EL_SV("~");
 
     case EL_SEMA_UNARY_OP_ADDROF: return EL_SV("&");
-    case EL_SEMA_UNARY_OP_DEREF: return EL_SV("*");
+    case EL_SEMA_UNARY_OP_DEREF: return EL_SV("^");
 
     case EL_SEMA_UNARY_OP_PRE_INC:  return EL_SV("pre  ++x");
     case EL_SEMA_UNARY_OP_PRE_DEC:  return EL_SV("pre  --x");

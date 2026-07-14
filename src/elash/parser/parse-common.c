@@ -22,10 +22,10 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
     ElAstType* type = el_ast_new_type_name(parser->arena, name->span, name);
 
     while (true) {
-        if (el_parser_check(parser, EL_TT_STAR)) {
-            ElToken star_tok = parser->current;
+        if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
+            ElToken amp_tok = parser->current;
             el_parser_advance(parser);
-            type = el_ast_new_type_ptr(parser->arena, el_source_span_merge(type->span, star_tok.span), type);
+            type = el_ast_new_type_ref(parser->arena, el_source_span_merge(type->span, amp_tok.span), type);
         } else if (el_parser_check(parser, EL_TT_LBRACKET)) {
             el_parser_advance(parser); // '['
 
@@ -37,11 +37,11 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
                 continue;
             }
 
-            // T[*]
-            if (el_parser_check(parser, EL_TT_STAR)) {
-                ElToken star_tok = parser->current;
+            // T[&]
+            if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
+                ElToken amp_tok = parser->current;
                 el_parser_advance(parser);
-                type = el_ast_new_type_raw_slice(parser->arena, el_source_span_merge(type->span, star_tok.span), type);
+                type = el_ast_new_type_raw_slice(parser->arena, el_source_span_merge(type->span, amp_tok.span), type);
                 el_parser_expect(parser, EL_TT_RBRACKET);
                 continue;
             }
@@ -64,7 +64,7 @@ bool _el_parser_lookahead_skip_type(ElParser* parser, usize* idx) {
 
     while (true) {
         ElToken tok = el_parser_peek_at(parser, *idx);
-        if (tok.type == EL_TT_STAR) {
+        if (tok.type == EL_TT_BITWISE_AND) {
             (*idx)++;
         } else if (tok.type == EL_TT_LBRACKET) {
             (*idx)++;

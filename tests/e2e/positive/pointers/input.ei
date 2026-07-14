@@ -1,10 +1,10 @@
-void modify(int* ptr) {
-    *ptr = 47;
+void modify(int& ref) {
+    ref^ = 47;
 }
 
 int putchar(int c);
-void putchar_by_ptr(char* ptr, int* result) {
-    *result = putchar(*ptr as int);
+void putchar_by_ref(char& ref, int& result) {
+    result^ = putchar(ref^ as int);
 }
 
 int main() {
@@ -16,7 +16,7 @@ int main() {
     }
 
     char c = 'Y';
-    putchar_by_ptr(&c, &n);
+    putchar_by_ref(&c, &n);
 
     // 89 == 'Y'
     if (n != 89) {

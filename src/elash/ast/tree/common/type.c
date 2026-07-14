@@ -16,8 +16,8 @@ ElAstType* new_with_base(ElDynArena* arena, ElSourceSpan span, ElAstType* base, 
     });
 }
 
-ElAstType* el_ast_new_type_ptr(ElDynArena* arena, ElSourceSpan span, ElAstType* base) {
-    return new_with_base(arena, span, base, EL_AST_TYPE_PTR);
+ElAstType* el_ast_new_type_ref(ElDynArena* arena, ElSourceSpan span, ElAstType* base) {
+    return new_with_base(arena, span, base, EL_AST_TYPE_REF);
 }
 ElAstType* el_ast_new_type_slice(ElDynArena* arena, ElSourceSpan span, ElAstType* base) {
     return new_with_base(arena, span, base, EL_AST_TYPE_SLICE);

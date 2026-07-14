@@ -61,6 +61,7 @@ static struct {
     [EL_TT_STAR]    = F("STAR", "'*'"),
     [EL_TT_SLASH]   = F("SLASH", "'/'"),
     [EL_TT_PERCENT] = F("PERCENT", "'/'"),
+    [EL_TT_CARET]   = F("CARET", "'^'"),
 
     [EL_TT_INC] = F("INC", "'++'"),
     [EL_TT_DEC] = F("DEC", "'--'"),
@@ -82,23 +83,21 @@ static struct {
     [EL_TT_LOGICAL_AND] = F("LOGICAL_AND", "'&&'"),
     [EL_TT_LOGICAL_OR]  = F("LOGICAL_OR",  "'||'"),
     [EL_TT_LOGICAL_NOT] = F("LOGICAL_NOT", "'!'"),
-    [EL_TT_LOGICAL_XOR] = F("LOGICAL_XOR", "'^^'"),
     [EL_TT_LOGICAL_IMP] = F("LOGICAL_IMP", "'=>'"),
 
     [EL_TT_LOGICAL_AND_ASSIGN] = F("LOGICAL_AND_ASSIGN", "'&&='"),
     [EL_TT_LOGICAL_OR_ASSIGN]  = F("LOGICAL_OR_ASSIGN",  "'||='"),
-    [EL_TT_LOGICAL_XOR_ASSIGN] = F("LOGICAL_XOR_ASSIGN", "'^^='"),
     [EL_TT_LOGICAL_IMP_ASSIGN] = F("LOGICAL_IMP_ASSIGN", "'=>='"),
 
     [EL_TT_BITWISE_AND] = F("BITWISE_AND", "'&'"),
     [EL_TT_BITWISE_OR]  = F("BITWISE_OR", "'|'"),
-    [EL_TT_BITWISE_XOR] = F("BITWISE_XOR", "'^'"),
     [EL_TT_BITWISE_NOT] = F("BITWISE_NOT", "'~'"),
+    [EL_TT_BITWISE_XOR] = F("BITWISE_XOR", "'<>'"),
     [EL_TT_BITWISE_IMP] = F("BITWISE_IMP", "'~>'"),
 
     [EL_TT_BITWISE_AND_ASSIGN] = F("BITWISE_AND_ASSIGN", "'&='"),
     [EL_TT_BITWISE_OR_ASSIGN]  = F("BITWISE_OR_ASSIGN",  "'|='"),
-    [EL_TT_BITWISE_XOR_ASSIGN] = F("BITWISE_XOR_ASSIGN", "'^='"),
+    [EL_TT_BITWISE_XOR_ASSIGN] = F("BITWISE_XOR_ASSIGN", "'<>='"),
     [EL_TT_BITWISE_IMP_ASSIGN] = F("BITWISE_IMP_ASSIGN", "'~>='"),
 
     [EL_TT_SHL] = F("SHL", "'<<'"),
@@ -119,7 +118,6 @@ static struct {
     [EL_TT_COMMA]       = F("COMMA", "','"),
     [EL_TT_DOT]         = F("DOT", "'.'"),
     [EL_TT_DOUBLECOLON] = F("DOUBLECOLON", "'::'"),
-    [EL_TT_ARROW]       = F("ARROW", "'->'"),
 
     [EL_TT_HASH] = F("HASH", "'#'"),
 

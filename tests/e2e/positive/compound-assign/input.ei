@@ -1,5 +1,5 @@
-void applydiv(int* n, int m) {
-    *n /= m;
+void applydiv(int& n, int m) {
+    n^ /= m;
 }
 
 int main() {

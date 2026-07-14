@@ -189,6 +189,10 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
             expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
         } else if (el_parser_match(parser, EL_TT_LPAREN)) {
             expr = _el_parser_parse_call(parser, expr);
+        } else if (el_parser_check(parser, EL_TT_CARET)) {
+            ElToken tok = parser->current;
+            el_parser_advance(parser);
+            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
             if (el_parser_has_errs(parser)) {
@@ -264,13 +268,6 @@ ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_PRE_DEC, operand);
-    }
-    if (el_parser_check(parser, EL_TT_STAR)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
-        ElAstExpr* operand = _el_parser_parse_unary(parser);
-        if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_DEREF, operand);
     }
     if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
         ElToken tok = parser->current;

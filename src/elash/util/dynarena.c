@@ -49,9 +49,9 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
         usize new_offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
 
         if (new_offset <= arena->current->size) {
-            void* ptr = (void*)aligned_addr; // NOLINT(performance-no-int-to-ptr)
+            void* ref = (void*)aligned_addr; // NOLINT(performance-no-int-to-ref)
             arena->offset = new_offset;
-            return ptr;
+            return ref;
         }
 
         if (arena->current->next) {
@@ -81,23 +81,23 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
     uintptr_t addr = (uintptr_t) (arena->current->data + arena->offset);
     uintptr_t aligned_addr = (addr + align - 1) & ~((uintptr_t) (align - 1));
     arena->offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
-    return (void*)aligned_addr; // NOLINT(performance-no-int-to-ptr)
+    return (void*)aligned_addr; // NOLINT(performance-no-int-to-ref)
 }
 
 void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {
-    void* ptr = el_dynarena_alloc(arena, size, align);
-    if (ptr) {
-        memset(ptr, 0, size);
+    void* ref = el_dynarena_alloc(arena, size, align);
+    if (ref) {
+        memset(ref, 0, size);
     }
-    return ptr;
+    return ref;
 }
 
 void* el_dynarena_alloc_init(ElDynArena* arena, usize size, usize align, void* init) {
-    void *ptr = el_dynarena_alloc(arena, size, align);
-    if (ptr) {
-        memcpy(ptr, init, size);
+    void *ref = el_dynarena_alloc(arena, size, align);
+    if (ref) {
+        memcpy(ref, init, size);
     }
-    return ptr;
+    return ref;
 }
 
 ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv) {
@@ -113,7 +113,7 @@ ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv) {
 
 char* el_dynarena_make_cstr(ElDynArena* arena, ElStringView sv) {
     if (el_sv_is_null(sv) || sv.len == 0) return NULL;
-    
+
     char* buf = el_dynarena_alloc(arena, sv.len + 1, 1);
     if (!buf) return NULL;
 

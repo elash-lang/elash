@@ -17,7 +17,7 @@ int main() {
     int arithmetic = (100 - 20) / 2 + 5 * 2 % 3;
     if (arithmetic != 41) return 1;
 
-    int bitwise = (12 | 10) & 14 ^ ~(-1);
+    int bitwise = (12 | 10) & 14 <> ~(-1);
     if (bitwise != 14) return 2;
 
     if (!(10 == 10)) return 3;

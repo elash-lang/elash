@@ -8,7 +8,7 @@ int sumElements(int[] slice) {
     return acc;
 }
 
-int sumElementsRaw(int[*] raw, int size) {
+int sumElementsRaw(int[&] raw, int size) {
     return sumElements(mkslice(raw, size));
 }
 

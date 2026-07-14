@@ -66,12 +66,7 @@ typedef enum ElTokenType {
     EL_TT_STAR,                 // *
     EL_TT_SLASH,                // /
     EL_TT_PERCENT,              // %
-
-    EL_TT_ADD = EL_TT_PLUS,
-    EL_TT_SUB = EL_TT_MINUS,
-    EL_TT_MUL = EL_TT_STAR,
-    EL_TT_DIV = EL_TT_SLASH,
-    EL_TT_MOD = EL_TT_PERCENT,
+    EL_TT_CARET,                // ^
 
     EL_TT_INC,                  // ++
     EL_TT_DEC,                  // --
@@ -92,24 +87,22 @@ typedef enum ElTokenType {
 
     EL_TT_LOGICAL_AND,          // &&
     EL_TT_LOGICAL_OR,           // ||
-    EL_TT_LOGICAL_XOR,          // ^^
     EL_TT_LOGICAL_NOT,          // !
     EL_TT_LOGICAL_IMP,          // =>
 
     EL_TT_LOGICAL_AND_ASSIGN,   // &&=
     EL_TT_LOGICAL_OR_ASSIGN,    // ||=
-    EL_TT_LOGICAL_XOR_ASSIGN,   // ^^=
     EL_TT_LOGICAL_IMP_ASSIGN,   // =>=
 
     EL_TT_BITWISE_AND,          // &
     EL_TT_BITWISE_OR,           // |
-    EL_TT_BITWISE_XOR,          // ^
+    EL_TT_BITWISE_XOR,          // <>
     EL_TT_BITWISE_NOT,          // ~
     EL_TT_BITWISE_IMP,          // ~>
 
     EL_TT_BITWISE_AND_ASSIGN,   // &=
     EL_TT_BITWISE_OR_ASSIGN,    // |=
-    EL_TT_BITWISE_XOR_ASSIGN,   // ^=
+    EL_TT_BITWISE_XOR_ASSIGN,   // <>=
     EL_TT_BITWISE_IMP_ASSIGN,   // ~>=
 
     EL_TT_SHL,                  // <<
@@ -129,7 +122,6 @@ typedef enum ElTokenType {
     EL_TT_DOUBLECOLON,          // ::
     EL_TT_COMMA,                // ,
     EL_TT_DOT,                  // .
-    EL_TT_ARROW,                // ->
 
     EL_TT_HASH,                 // #
 
