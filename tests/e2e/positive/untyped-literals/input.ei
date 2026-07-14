@@ -1,0 +1,43 @@
+int add(int a, int b) {
+    return a + b;
+}
+bool uselessFunction(bool x) {
+    return x;
+}
+
+int main() {
+    int a = 10;
+    char c = 'Y';
+    bool b = true;
+
+    a = 20;
+    c = 'Z';
+    b = false;
+
+    int arithmetic = (100 - 20) / 2 + 5 * 2 % 3;
+    if (arithmetic != 41) return 1;
+
+    int bitwise = (12 | 10) & 14 ^ ~(-1);
+    if (bitwise != 14) return 2;
+
+    if (!(10 == 10)) return 3;
+    if (10 != 10) return 4;
+    if (!(5 < 10)) return 5;
+    if (10 < 10) return 6;
+
+    int[1 + 2 * 2] arr;
+    arr[0] = 42;
+    if (arr[0] != 42) return 7;
+
+    int sum = add(5, 10);
+    if (sum != 15) return 8;
+
+    bool val = uselessFunction(true);
+    if (!val) return 9;
+
+    42;
+    true;
+    'A';
+
+    return 0;
+}

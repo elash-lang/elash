@@ -47,7 +47,10 @@ typedef struct ElDiagEngine {
 void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena);
 void el_diag_engine_free(ElDiagEngine* engine);
 
-void el_diag_report_impl(
+// always returns NULL
+// ugly but allows this pattern
+// return el_diag_report(...);
+void* el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElStringView category,
     ElSourceSpan span,

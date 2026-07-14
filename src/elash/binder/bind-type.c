@@ -14,19 +14,16 @@ ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     ElHirExpr* size_hir = el_binder_bind_expr(binder, array->size);
     if (size_hir == NULL) return NULL;
 
-    if (size_hir->kind != EL_HIR_EXPR_CONST || size_hir->type->kind != EL_TYPE_PRIM || size_hir->type->as.prim.kind != EL_PRIMTYPE_INT) {
-        EL_TODO("implement constant expressions evaluation");
-    }
+    ElHirExpr* actual_size_hir = _el_binder_implicit_cast(binder, array->size->span, size_hir, binder->builtins->type_int);
+    if (actual_size_hir == NULL) return NULL;
 
-    int64_t size_val = size_hir->as.constant.as.int_;
-    if (size_val <= 0) {
-        el_diag_report(
+    int64_t size_val = actual_size_hir->as.constant.as.int_;
+    if (size_val <= 0)
+        return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-array-size",
             array->size->span,
             "array size must be positive"
         );
-        return NULL;
-    }
 
     return el_sema_new_array_type(binder->type_arena, base, (usize)size_val);
 }
@@ -52,16 +49,13 @@ ElType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
         ElSymbol* sym = el_sema_scope_lookup(binder->current_scope, node->name->name);
         if (sym == NULL) return NULL;
 
-        if (sym->kind != EL_SYM_TYPE) {
-            el_diag_report(
+        if (sym->kind != EL_SYM_TYPE)
+            return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.unexpected-symbol-kind",
-                node->span,
-                "${type} ${name} used as a type",
-                EL_DIAG_STRING("type", sym->kind == EL_SYM_VAR ? EL_SV("Variable") : EL_SV("Function")),
+                node->span, "${type} ${name} used as a type",
+                EL_DIAG_STRING("type", sym->kind == EL_SYM_VAR ? EL_SV("variable") : EL_SV("function")),
                 EL_DIAG_STRING("name", sym->name),
             );
-            return NULL;
-        }
 
         return sym->as.type.type;
     }

@@ -75,8 +75,9 @@ void el_sema_format_type_internal(const ElType* type, void (*write)(const char*,
 }
 
 bool el_sema_type_eql(const ElType* lhs, const ElType* rhs) {
-    if (lhs == rhs)             return true;
-    if (lhs->kind != rhs->kind) return false;
+    if (lhs == NULL || rhs == NULL) return lhs == rhs;
+    if (lhs == rhs)                 return true;
+    if (lhs->kind != rhs->kind)     return false;
 
     switch (rhs->kind) {
     case EL_TYPE_PRIM:

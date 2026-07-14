@@ -53,17 +53,14 @@ ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
             }
         } else {
             if (is_val_void) {
-                 el_diag_report(
+                el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.returning-void",
                     in->span,
                     "cannot return void value from non-void ction"
                 );
-            } else if (!el_sema_type_eql(val->type, binder->current_func->as.func.ret_type)) {
-                el_diag_report(
-                    binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-                    in->span,
-                    "incompatible return type"
-                );
+            } else {
+                val = _el_binder_implicit_cast(binder, in->span, val, binder->current_func->as.func.ret_type);
+                if (val == NULL) return NULL;
             }
         }
     }
@@ -119,46 +116,58 @@ ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
         return _el_binder_bind_return(binder, in);
     case EL_AST_STMT_EXPR: {
         ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
+        if (expr != NULL) {
+            expr = _el_binder_apply_default_type(binder, expr);
+        }
         return el_hir_new_expr_stmt(binder->hir_arena, expr);
     }
 
-    case EL_AST_STMT_IF:
+    case EL_AST_STMT_IF: {
+        ElHirExpr* cond = el_binder_bind_expr(binder, in->as.if_.cond);
+        if (cond == NULL) return NULL;
+        cond = _el_binder_implicit_cast(binder, in->as.if_.cond->span, cond, binder->builtins->type_bool);
+        if (cond == NULL) return NULL;
         return el_hir_new_if_stmt(
             binder->hir_arena,
-            el_binder_bind_expr(binder, in->as.if_.cond),
+            cond,
             el_binder_bind_stmt(binder, in->as.if_.then),
             in->as.if_.else_ != NULL
                 ? el_binder_bind_stmt(binder, in->as.if_.else_)
                 : NULL
         );
-    case EL_AST_STMT_WHILE:
+    }
+    case EL_AST_STMT_WHILE: {
         binder->loop_depth++;
+        ElHirExpr* cond = el_binder_bind_expr(binder, in->as.while_.cond);
+        if (cond == NULL)
+            return binder->loop_depth--, NULL;
+
+        cond = _el_binder_implicit_cast(binder, in->as.while_.cond->span, cond, binder->builtins->type_bool);
+        if (cond == NULL)
+            return binder->loop_depth--, NULL;
+
         ElHirStmt* body = el_binder_bind_stmt(binder, in->as.while_.body);
         binder->loop_depth--;
 
         return el_hir_new_while_stmt(
             binder->hir_arena,
-            el_binder_bind_expr(binder, in->as.while_.cond),
-            body
+            cond, body
         );
+    }
 
     case EL_AST_STMT_BREAK:
-        if (binder->loop_depth <= 0) {
-            el_diag_report(
+        if (binder->loop_depth <= 0)
+            return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.break-outside-loop",
                 in->span, "'break' can only be used inside loops.",
             );
-            return NULL;
-        }
         return el_hir_new_break_stmt(binder->hir_arena);
     case EL_AST_STMT_CONTINUE:
-        if (binder->loop_depth <= 0) {
-            el_diag_report(
+        if (binder->loop_depth <= 0)
+            return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.continue-outside-loop",
                 in->span, "'continue' can only be used inside loops.",
             );
-            return NULL;
-        }
         return el_hir_new_continue_stmt(binder->hir_arena);
 
     case EL_AST_STMT_ASSIGN:

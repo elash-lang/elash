@@ -29,12 +29,12 @@ int main() {
     if (!(10 != 11)) return 15;
 
     // logical
-    if (!(1 && 1)) return 20;
-    if (0 && 1) return 21;
-    if (!(1 || 0)) return 22;
-    if (0 || 0) return 23;
-    if (!0 != 1) return 24;
-    if (!1 != 0) return 25;
+    if (!(true && true)) return 20;
+    if (false && true) return 21;
+    if (!(true || false)) return 22;
+    if (false || false) return 23;
+    if (!false != true) return 24;
+    if (!true != false) return 25;
 
     bool b = true;
     b &&= false;

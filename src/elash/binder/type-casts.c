@@ -3,6 +3,7 @@
 #include <elash/hir/tree/expr.h>
 
 #include <elash/util/todo.h>
+#include <elash/diag/meta.h>
 
 // to reduce boilerplate.
 #define type_eql el_sema_type_eql
@@ -11,8 +12,13 @@ static inline bool is_fixed_width(ElBasicIntWidth width) {
     return width != EL_INT_WIDTH_NATIVE && width != EL_INT_WIDTH_EFFICIENT;
 }
 
+ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElType* to);
+
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElType* to) {
     ElType* from = expr->type;
+    if (from == NULL)
+        return _cast_untyped(binder, span, expr, to);
+
     if (type_eql(from, to)) return expr;
 
     if (from->kind == EL_TYPE_PRIM && to->kind == EL_TYPE_PRIM) {
@@ -29,6 +35,9 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElType* to) {
     ElType* from = expr->type;
+    if (from == NULL)
+        return _cast_untyped(binder, span, expr, to);
+
     if (type_eql(from, to)) return expr;
 
     if (from->kind == EL_TYPE_ARRAY) {
@@ -85,4 +94,53 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
     );
     return NULL;
+}
+
+ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElType* to) {
+    (void) span;
+    if (to->kind == EL_TYPE_PRIM) {
+        switch (expr->as.untyped_lit.kind) {
+        case EL_HIR_UNTYPED_INT:
+            if (to->as.prim.kind == EL_PRIMTYPE_INT) {
+                return el_hir_new_int_constant(binder->hir_arena, to, expr->as.untyped_lit.of.int_);
+            } else if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
+                return el_hir_new_char_constant(binder->hir_arena, to, (char)expr->as.untyped_lit.of.int_);
+            }
+            break;
+        case EL_HIR_UNTYPED_CHAR:
+            if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
+                return el_hir_new_char_constant(binder->hir_arena, to, expr->as.untyped_lit.of.char_);
+            } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
+                return el_hir_new_int_constant(binder->hir_arena, to, (int64_t)expr->as.untyped_lit.of.char_);
+            }
+            break;
+        case EL_HIR_UNTYPED_BOOL:
+            if (to->as.prim.kind == EL_PRIMTYPE_BOOL) {
+                return el_hir_new_bool_constant(binder->hir_arena, to, expr->as.untyped_lit.of.bool_);
+            }
+            break;
+        }
+    }
+
+    return el_diag_report(
+        binder->diag, EL_DIAG_ERROR, "invalid-cast",
+        span, "untyped ${of} literal cannot be converted to type ${to}",
+        EL_DIAG_STRING("of", el_hir_untyped_lit_kind_to_string(expr->as.untyped_lit.kind)),
+        EL_DIAG_TYPE("to", to),
+    );
+}
+
+ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
+    if (expr->type != NULL) return expr;
+    if (expr->kind == EL_HIR_EXPR_UNTYPEDLIT) {
+        switch (expr->as.untyped_lit.kind) {
+        case EL_HIR_UNTYPED_INT:
+            return el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_int, expr->as.untyped_lit.of.int_);
+        case EL_HIR_UNTYPED_CHAR:
+            return el_hir_new_char_constant(binder->hir_arena, binder->builtins->type_char, expr->as.untyped_lit.of.char_);
+        case EL_HIR_UNTYPED_BOOL:
+            return el_hir_new_bool_constant(binder->hir_arena, binder->builtins->type_bool, expr->as.untyped_lit.of.bool_);
+        }
+    }
+    return expr;
 }

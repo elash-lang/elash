@@ -54,7 +54,7 @@ static void _el_diag_format_message(
     el_strbuf_destroy(&formatted);
 }
 
-void el_diag_report_impl(
+void* el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElStringView category,
     ElSourceSpan span,
@@ -86,6 +86,7 @@ void el_diag_report_impl(
 
     engine->diag_tail = diag;
     engine->diag_count++;
+    return NULL;
 }
 
 void el_diag_help_impl(

@@ -28,7 +28,7 @@
 ### Expressions
 - [x] Binary expressions (+, -, *, /, ==, ...)
 - [x] Unary expressions (-, !, ~, ...)
-- [ ] Untyped literals
+- [x] Untyped literals
 - [x] Function calls
 - [x] Pointer dereference operator
 - [x] Array subscript operator

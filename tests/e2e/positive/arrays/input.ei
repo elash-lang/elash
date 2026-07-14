@@ -1,6 +1,6 @@
 int sumArray(int[3] arr) {
     int sum = 0;
-    int i = 0;
+    usize i = 0;
     while (i < 3) {
         sum += arr[i++];
     }
@@ -9,7 +9,7 @@ int sumArray(int[3] arr) {
 
 int main() {
     int[3] arr = { 10, 20, 30 };
-    
+
     if (len(arr) != 3) return 1;
     if (sumArray(arr) != 60) return 2;
 
