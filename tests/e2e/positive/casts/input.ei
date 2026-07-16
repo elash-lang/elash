@@ -5,9 +5,7 @@ int main() {
     int64 y = x as int64;
     uint32 z = x; // implicit cast
 
-    // TODO: casts shouldn't be required here. we'll need to add something
-    //       like `comptime int`, `comptime float` etc. types
-    if (n != 10 || d != 10 as int32 || x != 10 as uint16 || y != 10 as int64 || z != 10 as uint32) {
+    if (n != 10 || d != 10 || x != 10 || y != 10 || z != 10) {
         return 1;
     }
 
