@@ -47,6 +47,14 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id);
 
 ElMirValue*  el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir);
 
+enum {
+    EL_MIR_SLICE_FIELD_DATA = 0,
+    EL_MIR_SLICE_FIELD_LEN  = 1,
+};
+
+ElMirValue*  _el_lowerer_extract_tuple_field(ElLowerer* lw, ElMirValue* tuple, usize index);
+ElMirValue* _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirValue** fields);
+
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
 void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit);
 void         _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl);

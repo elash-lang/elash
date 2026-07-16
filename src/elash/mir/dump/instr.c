@@ -83,6 +83,11 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         fputs(", ", out);
         el_mir_dump_value(instr->as.gep.index, out);
         break;
+    case EL_MIR_INSTR_GFP:
+        fputs("gfp ", out);
+        el_mir_dump_value(instr->as.gfp.ptr, out);
+        fprintf(out, ", %zu", instr->as.gfp.index);
+        break;
     case EL_MIR_INSTR_UNREACHABLE:
         fputs("unreachable", out);
         break;

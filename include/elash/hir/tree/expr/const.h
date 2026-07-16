@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <elash/util/dynarena.h>
+#include <stdint.h>
 
 typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirType ElHirType;

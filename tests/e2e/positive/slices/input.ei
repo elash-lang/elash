@@ -1,14 +1,14 @@
 int sumElements(int[] slice) {
     int acc = 0;
-    int i = 0;
+    usize i = 0;
     while (i < len(slice)) {
         acc += slice[i];
-        i = i + 1;
+        i += 1;
     }
     return acc;
 }
 
-int sumElementsRaw(int[&] raw, int size) {
+int sumElementsRaw(int[&] raw, usize size) {
     return sumElements(mkslice(raw, size));
 }
 

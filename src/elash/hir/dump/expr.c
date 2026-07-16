@@ -70,9 +70,45 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         }
         fputs("}", out);
         break;
+
+    case EL_HIR_EXPR_INTR:
+        switch (node->as.intr.kind) {
+            case EL_HIR_INTR_SLICE_LEN:  fputs("intr 'slice-len'", out);  break;
+            case EL_HIR_INTR_SLICE_DATA: fputs("intr 'slice-data'", out); break;
+            case EL_HIR_INTR_MAKE_SLICE: fputs("intr 'make-slice'", out); break;
+        }
+        fputs(" (", out);
+        if (node->as.intr.kind == EL_HIR_INTR_MAKE_SLICE) {
+            el_hir_dump_expr(node->as.intr.params.rwslice, 0, out);
+            fputs(", ", out);
+            el_hir_dump_expr(node->as.intr.params.len, 0, out);
+        } else {
+            el_hir_dump_expr(node->as.intr.params.slice, 0, out);
+        }
+        fputs(")", out);
+        break;
+
+    case EL_HIR_EXPR_CAST:
+        // the type is already dumped after the switch so this should be enough
+        fputs("cast(", out);
+        el_hir_dump_expr(node->as.cast.expr, 0, out);
+        fputs(")", out);
+        break;
+
+    case EL_HIR_EXPR_UNTYPEDLIT:
+        switch (node->as.untyped_lit.kind) {
+            case EL_HIR_UNTYPED_INT:  fprintf(out, "%"PRId64, node->as.untyped_lit.of.int_); break;
+            case EL_HIR_UNTYPED_CHAR: fprintf(out, "'%c'", node->as.untyped_lit.of.char_);   break;
+            case EL_HIR_UNTYPED_BOOL: fputs(node->as.untyped_lit.of.bool_ ? "true" : "false", out); break;
+        }
+        break;
     }
 
     fputs(" : ", out);
-    el_sema_dump_type(node->type, out);
+    if (node->type != NULL) {
+        el_sema_dump_type(node->type, out);
+    } else {
+        fputs("untyped", out);
+    }
     fputs(")", out);
 }

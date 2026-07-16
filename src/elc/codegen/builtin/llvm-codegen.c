@@ -35,6 +35,15 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
         LLVMTypeRef base_type = elc_llvm_map_type(ctx, type->as.array.base);
         return LLVMArrayType(base_type, (unsigned)type->as.array.size);
     }
+    case EL_MIR_TYPE_TUPLE: {
+        LLVMTypeRef* elem_types = malloc(sizeof(LLVMTypeRef) * type->as.tuple.item_count);
+        for (usize i = 0; i < type->as.tuple.item_count; ++i) {
+            elem_types[i] = elc_llvm_map_type(ctx, type->as.tuple.items[i]);
+        }
+        LLVMTypeRef struct_type = LLVMStructTypeInContext(ctx->context, elem_types, (unsigned)type->as.tuple.item_count, false);
+        free(elem_types);
+        return struct_type;
+    }
     case EL_MIR_TYPE_FUNC: {
         LLVMTypeRef ret_type = elc_llvm_map_type(ctx, type->as.func.ret_type);
         LLVMTypeRef* param_types = malloc(sizeof(LLVMTypeRef) * type->as.func.param_count);
@@ -233,6 +242,22 @@ void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     ASSIGN_REG(func, instr->result, res, "gep");
 }
 
+void elc_llvm_compile_gfp_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    ElMirGfpInstr* gfp = &instr->as.gfp;
+    LLVMValueRef ptr = elc_llvm_map_value(ctx, func, gfp->ptr);
+
+    ElMirType* ptr_type = gfp->ptr->type;
+    EL_ASSERT(ptr_type->kind == EL_MIR_TYPE_PTR, "gfp source must be a pointer");
+    ElMirType* base_type = ptr_type->as.ptr.base;
+    EL_ASSERT(base_type->kind == EL_MIR_TYPE_TUPLE, "gfp source must be a pointer to a tuple");
+
+    LLVMTypeRef llvm_base_type = elc_llvm_map_type(ctx, base_type);
+
+    LLVMValueRef res = LLVMBuildStructGEP2(ctx->builder, llvm_base_type, ptr, (unsigned)gfp->index, "");
+
+    ASSIGN_REG(func, instr->result, res, "gfp");
+}
+
 void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     LLVMValueRef operand = elc_llvm_map_value(ctx, func, instr->kind == EL_MIR_INSTR_INTCAST ? instr->as.intcast.operand : instr->as.bitcast.operand);
     LLVMTypeRef  to_type = elc_llvm_map_type(ctx, instr->result->type);
@@ -302,6 +327,9 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
     }
     case EL_MIR_INSTR_GEP:
         elc_llvm_compile_gep_instr(ctx, func, instr);
+        return;
+    case EL_MIR_INSTR_GFP:
+        elc_llvm_compile_gfp_instr(ctx, func, instr);
         return;
     case EL_MIR_INSTR_INTCAST:
     case EL_MIR_INSTR_BITCAST:

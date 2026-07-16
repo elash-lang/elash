@@ -6,6 +6,13 @@
 
 #define CHAR_BITS 8 // one byte
 
+static ElMirType* make_slice_type(ElLowerer* lw, const ElHirSliceType* slice) {
+    ElMirType** items = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, 2);
+    items[EL_MIR_SLICE_FIELD_DATA] = el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, slice->base));
+    items[EL_MIR_SLICE_FIELD_LEN]  = lw->builtins->type_usize;
+    return el_mir_new_tuple_type(lw->arena, items, 2);
+}
+
 ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
     if (type == NULL) return NULL;
     switch (type->kind) {
@@ -52,9 +59,7 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
     case EL_HIR_TYPE_RWSLICE:
         return el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, type->as.rwslice.base));
     case EL_HIR_TYPE_SLICE:
-        // TODO: map this to something like struct(T*, usize) or something
-        //       once structs've been added
-        EL_TODO("implement slice types");
+        return make_slice_type(lw, &type->as.slice);
     }
     EL_UNREACHABLE("unknown hir type kind");
 }

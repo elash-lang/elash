@@ -12,22 +12,25 @@
 #include "type/void.h"
 #include "type/func.h"
 #include "type/array.h"
+#include "type/tuple.h"
 
 typedef enum ElMirTypeKind {
     EL_MIR_TYPE_VOID,
     EL_MIR_TYPE_INT,
     EL_MIR_TYPE_PTR,
-    EL_MIR_TYPE_ARRAY,
     EL_MIR_TYPE_FUNC,
+    EL_MIR_TYPE_ARRAY,
+    EL_MIR_TYPE_TUPLE,
 } ElMirTypeKind;
 
 struct ElMirType {
     ElMirTypeKind kind;
     union {
-        ElMirIntType integer;
-        ElMirPtrType ptr;
+        ElMirIntType   integer;
+        ElMirPtrType   ptr;
+        ElMirFuncType  func;
         ElMirArrayType array;
-        ElMirFuncType func;
+        ElMirTupleType tuple;
     } as;
 };
 

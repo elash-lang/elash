@@ -81,6 +81,10 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
              ElMirValue* ptr;
              if (hir->as.binary.left->type->kind == EL_HIR_TYPE_RWSLICE) {
                  ptr = el_lowerer_lower_expr(lw, hir->as.binary.left);
+             } else if (hir->as.binary.left->type->kind == EL_HIR_TYPE_SLICE) {
+                 // slice is { data, len }; index through the data pointer
+                 ElMirValue* slice = el_lowerer_lower_expr(lw, hir->as.binary.left);
+                 ptr = _el_lowerer_extract_tuple_field(lw, slice, 0);
              } else {
                  ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
              }

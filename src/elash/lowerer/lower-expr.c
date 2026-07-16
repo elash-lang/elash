@@ -210,11 +210,33 @@ ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExpr* hir) {
     return res;
 }
 
+ElMirValue* _el_lowerer_lower_intr_expr(ElLowerer* lw, ElHirExpr* hir) {
+    switch (hir->as.intr.kind) {
+    case EL_HIR_INTR_SLICE_LEN: {
+        ElMirValue* slice = el_lowerer_lower_expr(lw, hir->as.intr.params.slice);
+        return _el_lowerer_extract_tuple_field(lw, slice, EL_MIR_SLICE_FIELD_LEN);
+    }
+    case EL_HIR_INTR_SLICE_DATA: {
+        ElMirValue* slice = el_lowerer_lower_expr(lw, hir->as.intr.params.slice);
+        return _el_lowerer_extract_tuple_field(lw, slice, EL_MIR_SLICE_FIELD_DATA);
+    }
+    case EL_HIR_INTR_MAKE_SLICE: {
+        ElMirValue* data = el_lowerer_lower_expr(lw, hir->as.intr.params.rwslice);
+        ElMirValue* len = el_lowerer_lower_expr(lw, hir->as.intr.params.len);
+        ElMirType* slice_type = el_lowerer_map_type(lw, hir->type);
+        ElMirValue* fields[] = { data, len };
+        return _el_lowerer_make_tuple(lw, slice_type, fields);
+    }
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElHirIntrKind, hir->as.intr.kind);
+}
+
 ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_BINARY:   return _el_lowerer_lower_bin_expr(lw, hir, &hir->as.binary);
     case EL_HIR_EXPR_UNARY:    return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
     case EL_HIR_EXPR_CALL:     return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
+    case EL_HIR_EXPR_INTR:     return _el_lowerer_lower_intr_expr(lw, hir);
     case EL_HIR_EXPR_ARRAYLIT: return _el_lowerer_lower_array_lit_expr(lw, hir);
     case EL_HIR_EXPR_CAST:     return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:   return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);

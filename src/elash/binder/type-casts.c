@@ -42,9 +42,11 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
     if (from->kind == EL_HIR_TYPE_ARRAY) {
         if (to->kind == EL_HIR_TYPE_SLICE) {
-            // this should probably return something like
-            // mkslice(arr as int[*], len(arr))
-            EL_TODO("implement array to slice casting");
+            return el_hir_new_make_slice_intr(
+                binder->hir_arena,
+                _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->type_arena, from->as.array.base)),
+                el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_usize, (int64_t)from->as.array.size)
+            );
         } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
             if (type_eql(to->as.rwslice.base, from->as.array.base)) {
                 // &(expr)[0] as T[*]

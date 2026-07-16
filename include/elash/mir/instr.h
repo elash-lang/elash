@@ -3,6 +3,7 @@
 #include <elash/util/dynarena.h>
 #include <elash/mir/value.h>
 
+#include "instr/unreachable.h"
 #include "instr/binary.h"
 #include "instr/unary.h"
 #include "instr/intcast.h"
@@ -14,7 +15,7 @@
 #include "instr/store.h"
 #include "instr/jump.h"
 #include "instr/gep.h"
-#include "instr/unreachable.h"
+#include "instr/gfp.h"
 
 typedef enum ElMirInstrKind {
     EL_MIR_INSTR_BIN,
@@ -27,6 +28,7 @@ typedef enum ElMirInstrKind {
     EL_MIR_INSTR_LOAD,
     EL_MIR_INSTR_STORE,
     EL_MIR_INSTR_GEP,
+    EL_MIR_INSTR_GFP,
     EL_MIR_INSTR_JMP,
     EL_MIR_INSTR_JMPIF,
     EL_MIR_INSTR_UNREACHABLE,
@@ -49,6 +51,7 @@ struct ElMirInstr {
         ElMirLoadInstr    load;
         ElMirStoreInstr   store;
         ElMirGepInstr     gep;
+        ElMirGfpInstr     gfp;
         ElMirJmpInstr     jmp;
         ElMirJmpIfInstr   jmpif;
     } as;

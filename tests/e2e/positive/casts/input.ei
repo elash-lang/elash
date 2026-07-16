@@ -27,5 +27,10 @@ int main() {
         return 4;
     }
 
+    int[] slice = arr;
+    if (len(slice) != len(arr) || slice[1] != 5) {
+        return 5;
+    }
+
     return 0;
 }

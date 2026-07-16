@@ -5,6 +5,7 @@
 
 typedef enum ElBuiltinKind {
     EL_BUILTIN_LEN,
+    EL_BUILTIN_MKSLICE,
 } ElBuiltinKind;
 
 typedef struct ElHirBuiltinSymbol {

@@ -16,6 +16,7 @@ Checks: >
   -readability-implicit-bool-conversion,
   -readability-use-concise-preprocessor-directives,
   -readability-suspicious-call-argument,
+  -readability-else-after-return,
 
   -modernize-macro-to-enum,
 
