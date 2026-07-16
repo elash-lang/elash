@@ -3,7 +3,7 @@
 #include <elash/hir/dump/indent.h>
 #include <elash/hir/dump/decl.h>
 
-#include <elash/sema/type.h>
+#include <elash/hir/type.h>
 #include <elash/hir/tree/stmt.h>
 
 #include <elash/util/assert.h>

@@ -1,7 +1,7 @@
 #include <elash/mir/dump/instr.h>
 #include <elash/mir/dump/value.h>
-#include <elash/sema/expr/bin-op.h>
-#include <elash/sema/expr/unary-op.h>
+#include <elash/sema/unary-op.h>
+#include <elash/sema/bin-op.h>
 #include <elash/defs/sv.h>
 
 void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
@@ -49,17 +49,17 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         break;
     case EL_MIR_INSTR_ALLOCA:
         fputs("alloca ", out);
-        el_sema_dump_type(instr->as.alloca.type, out);
+        el_mir_dump_type(instr->as.alloca.type, out);
         break;
     case EL_MIR_INSTR_LOAD:
         fputs("load ", out);
-        el_mir_dump_value(instr->as.load.ref, out);
+        el_mir_dump_value(instr->as.load.ptr, out);
         break;
     case EL_MIR_INSTR_STORE:
         fputs("store ", out);
         el_mir_dump_value(instr->as.store.value, out);
         fputs(", ", out);
-        el_mir_dump_value(instr->as.store.ref, out);
+        el_mir_dump_value(instr->as.store.ptr, out);
         break;
     case EL_MIR_INSTR_JMP:
         fprintf(out, "jmp @%u", instr->as.jmp.target_id);
@@ -79,7 +79,7 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         break;
     case EL_MIR_INSTR_GEP:
         fputs("gep ", out);
-        el_mir_dump_value(instr->as.gep.ref, out);
+        el_mir_dump_value(instr->as.gep.ptr, out);
         fputs(", ", out);
         el_mir_dump_value(instr->as.gep.index, out);
         break;

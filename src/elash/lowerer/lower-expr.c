@@ -1,25 +1,30 @@
 #include <elash/lowerer/lowerer.h>
+#include <elash/lowerer/builtin.h>
 
-#include <elash/sema/expr/bin-op.h>
-#include <elash/sema/expr/unary-op.h>
-#include <elash/sema/type/ref.h>
+#include <elash/sema/bin-op.h>
+#include <elash/sema/unary-op.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
 
 #include <elash/mir/instr.h>
-#include <elash/mir/value/const.h>
+#include <elash/mir/type.h>
 
-static inline bool is_int_or_char(ElType* type) {
-    return type->kind == EL_TYPE_PRIM &&
-        (type->as.prim.kind == EL_PRIMTYPE_INT || type->as.prim.kind == EL_PRIMTYPE_CHAR);
+#include <elash/mir/value/global.h>
+#include <elash/mir/value/const.h>
+#include <elash/mir/value/reg.h>
+
+static inline bool is_int_or_char(ElMirType* type) {
+    return type->kind == EL_MIR_TYPE_INT;
 }
 
 ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirValue* operand = el_lowerer_lower_expr(lw, hir->as.cast.expr);
-    ElMirValue* result = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirValue* result = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
 
-    bool from_is_integral = is_int_or_char(hir->as.cast.expr->type);
-    bool to_is_integral = is_int_or_char(hir->type);
+    ElMirType* from_type = el_lowerer_map_type(lw, hir->as.cast.expr->type);
+    bool from_is_integral = is_int_or_char(from_type);
+    bool to_is_integral = is_int_or_char(mir_type);
 
     if (from_is_integral && to_is_integral) {
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_intcast_instr(lw->arena, result, operand));
@@ -31,7 +36,8 @@ ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     return result;
 }
 
-ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) {
+ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* hir_type) {
+    ElMirType* type = el_lowerer_map_type(lw, hir_type);
     if (lw->symbol_map && lw->symbol_map[sym->id]) {
         ElMirValue* val = lw->symbol_map[sym->id];
         if (sym->kind == EL_SYM_VAR) {
@@ -44,8 +50,9 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) 
 
     switch (sym->kind) {
     case EL_SYM_VAR: {
-        ElType* ref_type = el_sema_new_ref_type(lw->arena, type);
-        ElMirValue* glob = el_mir_new_global(lw->arena, ref_type, sym);
+        ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
+        ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
+        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym);
         if (lw->symbol_map) lw->symbol_map[sym->id] = glob;
 
         ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
@@ -53,7 +60,8 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) 
         return reg;
     }
     case EL_SYM_FUNC: {
-        ElMirValue* glob = el_mir_new_global(lw->arena, type, sym);
+        ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
+        ElMirValue* glob = el_mir_new_global(lw->arena, type, mir_sym);
         if (lw->symbol_map) lw->symbol_map[sym->id] = glob;
         return glob;
     }
@@ -64,7 +72,7 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElSymbol* sym, ElType* type) 
         EL_UNREACHABLE("Type symbol in expression context (this should be caught during semantic analysis)");
         break;
     }
-    EL_UNREACHABLE_ENUM_VAL(ElSymbolKind, sym->kind);
+    EL_UNREACHABLE_ENUM_VAL(ElHirSymbolKind, sym->kind);
 }
 
 static bool _el_lowerer_is_incdec(ElSemaUnaryOp op) {
@@ -72,13 +80,13 @@ static bool _el_lowerer_is_incdec(ElSemaUnaryOp op) {
 }
 
 static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr) {
-    ElMirValue* ref = el_lowerer_get_lvalue(lw, expr->operand);
-    ElType*     val_type = expr->operand->type;
+    ElMirValue* ptr = el_lowerer_get_lvalue(lw, expr->operand);
+    ElMirType*  val_type = el_lowerer_map_type(lw, expr->operand->type);
 
     ElMirValue* current = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current, ref));
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current, ptr));
 
-    ElConstant one_lit = { .as.int_ = 1 };
+    ElMirConstant one_lit = { .as.int_ = 1 };
     ElMirValue* one = el_mir_new_const(lw->arena, val_type, one_lit);
 
     ElSemaBinOp bin_op = (expr->op == EL_SEMA_UNARY_OP_PRE_INC || expr->op == EL_SEMA_UNARY_OP_POST_INC)
@@ -87,37 +95,33 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
 
     ElMirValue* updated = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, updated, bin_op, current, one));
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, updated));
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, updated));
 
     return el_sema_unary_op_is_post(expr->op) ? current : updated;
 }
 
 ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
+    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
     if (bin->op == EL_SEMA_BIN_OP_INDEX) {
-         ElMirValue* ref = el_lowerer_get_lvalue(lw, hir);
-         ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
-         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ref));
+         ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir);
+         ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
+         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
          return reg;
     }
 
-    // to support short circuit here we need to implement these operators manually. so bad.
-    // at high level, this works like this:
-    //  bool my_variable = x && stuff();
-    // lowers to:
-    //  bool my_variable = x;
-    //  if (x) x = stuff();
     if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_OR || bin->op == EL_SEMA_BIN_OP_IMP) {
-        ElType* ref_type = el_sema_new_ref_type(lw->arena, hir->type);
-        ElMirValue* res_ref = el_mir_new_reg(lw->arena, ref_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, res_ref, hir->type));
+        ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
+        ElMirValue* res_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, res_ptr, mir_type));
 
         ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
 
         if (bin->op == EL_SEMA_BIN_OP_IMP) {
-            ElMirValue* true_val = el_mir_new_const(lw->arena, hir->type, (ElConstant) { .as.bool_ = true });
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ref, true_val));
+            ElMirConstant true_lit = { .as.int_ = 1 };
+            ElMirValue* true_val = el_mir_new_const(lw->arena, mir_type, true_lit);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, true_val));
         } else {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ref, lhs));
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, lhs));
         }
 
         uint32_t rhs_id = lw->current_func->block_count++;
@@ -126,30 +130,26 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
         if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_IMP) {
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, rhs_id, merge_id));
         } else {
-            // `or` short circuits when the cond is true, so we would emit additional not operation
-            // BUT there is a cool trick (isn't cool at all), swapping then and else branches
-            // actually does the same thing and is probably faster (it isn't, llvm optimization passes
-            // handles this anyway).
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, merge_id, rhs_id));
         }
         el_lowerer_emit_block(lw, lw->current_block_id);
 
         lw->current_block_id = rhs_id;
         ElMirValue* rhs = el_lowerer_lower_expr(lw, bin->right);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ref, rhs));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, rhs));
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
         el_lowerer_emit_block(lw, lw->current_block_id);
 
         lw->current_block_id = merge_id;
-        ElMirValue* res_val = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res_val, res_ref));
+        ElMirValue* res_val = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res_val, res_ptr));
         return res_val;
     }
 
     ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
     ElMirValue* rhs = el_lowerer_lower_expr(lw, bin->right);
 
-    ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+    ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
     ElMirInstr* instr = el_mir_new_bin_instr(lw->arena, reg, bin->op, lhs, rhs);
 
     el_mir_ibuf_push(&lw->ibuf, instr);
@@ -157,14 +157,15 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
 }
 
 ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExpr* hir, ElHirUnaryExpr* unary) {
+    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
     if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
         return el_lowerer_get_lvalue(lw, unary->operand);
     }
 
     if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
-        ElMirValue* ref = el_lowerer_lower_expr(lw, unary->operand);
-        ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ref));
+        ElMirValue* ptr = el_lowerer_lower_expr(lw, unary->operand);
+        ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
         return reg;
     }
 
@@ -174,7 +175,7 @@ ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExpr* hir, ElHirUna
 
     ElMirValue* operand = el_lowerer_lower_expr(lw, unary->operand);
 
-    ElMirValue* reg = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+    ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
     ElMirInstr* instr = el_mir_new_unary_instr(lw->arena, reg, unary->op, operand);
 
     el_mir_ibuf_push(&lw->ibuf, instr);
@@ -188,22 +189,24 @@ ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExpr* hir, ElHirCall
         args[i] = el_lowerer_lower_expr(lw, call->args[i]);
     }
 
-    bool is_void = el_sema_type_eql(hir->type, lw->builtins->type_void);
-    ElMirValue* result = is_void ? NULL : el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
+    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    bool is_void = el_mir_type_eql(mir_type, lw->builtins->type_void);
+    ElMirValue* result = is_void ? NULL : el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
     ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
     el_mir_ibuf_push(&lw->ibuf, instr);
     return result;
 }
 
 ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExpr* hir) {
-    ElType* ref_type = el_sema_new_ref_type(lw->arena, hir->type);
-    ElMirValue* ref = el_mir_new_reg(lw->arena, ref_type, lw->current_func->reg_count++);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ref, hir->type));
+    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
+    ElMirValue* ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ptr, mir_type));
 
-    _el_lowerer_lower_array_lit(lw, ref, &hir->as.array_lit);
+    _el_lowerer_lower_array_lit(lw, ptr, &hir->as.array_lit);
 
-    ElMirValue* res = el_mir_new_reg(lw->arena, hir->type, lw->current_func->reg_count++);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res, ref));
+    ElMirValue* res = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res, ptr));
     return res;
 }
 
@@ -215,7 +218,20 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_ARRAYLIT: return _el_lowerer_lower_array_lit_expr(lw, hir);
     case EL_HIR_EXPR_CAST:     return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:   return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
-    case EL_HIR_EXPR_CONST:  return el_mir_new_const(lw->arena, hir->type, hir->as.constant);
+    case EL_HIR_EXPR_CONST: {
+        ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+        ElMirConstant mir_const;
+        if (hir->type->kind == EL_HIR_TYPE_PRIM && hir->type->as.prim.kind == EL_PRIMTYPE_BOOL) {
+            mir_const.as.int_ = hir->as.constant.as.bool_ ? 1 : 0;
+        } else if (hir->type->kind == EL_HIR_TYPE_PRIM && hir->type->as.prim.kind == EL_PRIMTYPE_CHAR) {
+            mir_const.as.int_ = (int64_t)hir->as.constant.as.char_;
+        } else {
+            mir_const.as.int_ = hir->as.constant.as.int_;
+        }
+        return el_mir_new_const(lw->arena, mir_type, mir_const);
+    }
+    case EL_HIR_EXPR_UNTYPEDLIT:
+        EL_UNREACHABLE("untyped literal in lowerer");
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
 }

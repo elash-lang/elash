@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/sema/type.h>
+#include <elash/mir/type.h>
 
 #include "value/global.h"
 #include "value/const.h"
@@ -16,7 +16,7 @@ typedef enum ElMirValueKind {
 
 typedef struct ElMirValue {
     ElMirValueKind kind;
-    ElType* type;
+    ElMirType* type;
     union {
         ElMirRegValue    reg;
         ElMirArgValue    arg;

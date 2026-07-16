@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/sema/symbol.h>
+#include <elash/hir/symbol.h>
 
 #include "decl/var-def.h"
 #include "decl/var-decl.h"

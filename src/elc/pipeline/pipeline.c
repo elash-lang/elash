@@ -3,11 +3,16 @@
 #include <elash/defs/int-types.h>
 #include <elash/util/assert.h>
 
-void elc_pipeline_init(ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins) {
+void elc_pipeline_init(
+    ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag,
+    ElBinderBuiltins* binder_builtins, ElLowererBuiltins* lowerer_builtins
+) {
     *pipeline = (ElcPipeline) {
         .context.arena = arena,
         .context.diag = diag,
-        .context.builtins = builtins,
+
+        .context.binder_builtins = binder_builtins,
+        .context.lowerer_builtins = lowerer_builtins,
     };
 }
 

@@ -6,7 +6,7 @@
 typedef struct ElMirInstr ElMirInstr;
 
 typedef struct ElMirAllocaInstr {
-    ElType* type;
+    ElMirType* type;
 } ElMirAllocaInstr;
 
-ElMirInstr* el_mir_new_alloca_instr(ElDynArena* arena, ElMirValue* result, ElType* type);
+ElMirInstr* el_mir_new_alloca_instr(ElDynArena* arena, ElMirValue* result, ElMirType* type);

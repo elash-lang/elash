@@ -1,8 +1,8 @@
 #include <elash/mir/dump/func.h>
 #include <elash/mir/dump/block.h>
 #include <elash/mir/dump/value.h>
-#include <elash/sema/symbol/dump.h>
-#include <elash/sema/type.h>
+#include <elash/mir/symbol.h>
+#include <elash/mir/type.h>
 #include <elash/defs/sv.h>
 
 #include <inttypes.h>
@@ -11,9 +11,9 @@ void el_mir_dump_func(const ElMirFunc* func, usize indent, FILE* out) {
     if (!func) return;
 
     for (usize i = 0; i < indent; ++i) fputs(" ", out);
-    
+
     fputs("define ", out);
-    el_sema_dump_type(func->symbol->as.func.ret_type, out);
+    el_mir_dump_type(func->symbol->as.func.type->as.func.ret_type, out);
     fputc(' ', out);
     fprintf(out, EL_SV_FMT "(", EL_SV_FARG(func->symbol->name));
 

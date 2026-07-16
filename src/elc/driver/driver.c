@@ -21,8 +21,14 @@
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
     el_diag_engine_init(&driver->diag, &driver->arena);
-    el_sema_init_builtins(&driver->builtins, &driver->arena);
-    elc_pipeline_init(&driver->pipeline, &driver->arena, &driver->diag, &driver->builtins);
+    el_binder_init_builtins(&driver->binder_builtins, &driver->arena);
+    el_lowerer_init_builtins(&driver->lowerer_builtins, &driver->arena);
+
+    elc_pipeline_init(
+        &driver->pipeline, &driver->arena, &driver->diag,
+        &driver->binder_builtins, &driver->lowerer_builtins
+    );
+
     return true;
 }
 
@@ -112,12 +118,12 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
 
     if (success && (target == ELC_ART_OBJ || target == ELC_ART_ASM)) {
         ElcCodegenBuffer buffer = (target == ELC_ART_OBJ) ? out.as.obj : out.as.asm;
-        
+
         ElStringView out_path = args->output;
         if (el_sv_eql(out_path, EL_SV("-")) && target == ELC_ART_OBJ) {
             out_path = EL_SV("output.o");
         }
-        
+
         FILE* f = NULL;
         if (el_sv_eql(out_path, EL_SV("-"))) {
             f = stdout;

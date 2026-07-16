@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/diag/severity.h>
-#include <elash/sema/type.h>
+#include <elash/hir/type.h>
 
 typedef enum ElDiagMetaType {
     EL_DIAG_META_STRING,
@@ -17,7 +17,7 @@ typedef struct ElDiagMetaEntry {
         ElStringView string;
         int integer;
         char character;
-        ElType* type;
+        ElHirType* type;
     } as;
 } ElDiagMetaEntry;
 
@@ -42,4 +42,3 @@ typedef struct ElDiagMeta {
         .entries = (const ElDiagMetaEntry[]) { __VA_ARGS__ },                                 \
         .count = sizeof((const ElDiagMetaEntry[]) { __VA_ARGS__ }) / sizeof(ElDiagMetaEntry), \
     })
-

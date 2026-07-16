@@ -1,7 +1,7 @@
 #include <elash/hir/tree/expr/const.h>
 #include <elash/hir/tree/expr.h>
 
-ElHirExpr* el_hir_new_int_constant(ElDynArena* arena, ElType* type, int64_t value) {
+ElHirExpr* el_hir_new_int_constant(ElDynArena* arena, ElHirType* type, int64_t value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_CONST,
         .type = type,
@@ -9,7 +9,7 @@ ElHirExpr* el_hir_new_int_constant(ElDynArena* arena, ElType* type, int64_t valu
     });
 }
 
-ElHirExpr* el_hir_new_char_constant(ElDynArena* arena, ElType* type, char value) {
+ElHirExpr* el_hir_new_char_constant(ElDynArena* arena, ElHirType* type, char value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_CONST,
         .type = type,
@@ -17,7 +17,7 @@ ElHirExpr* el_hir_new_char_constant(ElDynArena* arena, ElType* type, char value)
     });
 }
 
-ElHirExpr* el_hir_new_bool_constant(ElDynArena* arena, ElType* type, bool value) {
+ElHirExpr* el_hir_new_bool_constant(ElDynArena* arena, ElHirType* type, bool value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_CONST,
         .type = type,

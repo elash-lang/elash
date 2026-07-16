@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/sema/expr/bin-op.h>
+#include <elash/sema/bin-op.h>
 #include <elash/util/dynarena.h>
 
 typedef struct ElHirExpr ElHirExpr;

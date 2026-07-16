@@ -7,8 +7,8 @@
 typedef struct ElMirInstr ElMirInstr;
 
 typedef struct ElMirGepInstr {
-    ElMirValue* ref;
+    ElMirValue* ptr;
     ElMirValue* index;
 } ElMirGepInstr;
 
-ElMirInstr* el_mir_new_gep_instr(ElDynArena* arena, ElMirValue* result, ElMirValue* ref, ElMirValue* index);
+ElMirInstr* el_mir_new_gep_instr(ElDynArena* arena, ElMirValue* result, ElMirValue* ptr, ElMirValue* index);

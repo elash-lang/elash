@@ -4,12 +4,12 @@
 #include <elash/srcdoc/span.h>
 
 typedef struct ElHirExpr ElHirExpr;
-typedef struct ElType ElType;
+typedef struct ElHirType ElHirType;
 
 typedef struct ElHirCastExpr {
     ElHirExpr* expr;
     // NOTE: type is stored in the ElHirExpr struct
-    //ElType* type;
+    //ElHirType* type;
 } ElHirCastExpr;
 
-ElHirExpr* el_hir_new_cast_expr(ElDynArena* arena, ElType* type, ElHirExpr* expr);
+ElHirExpr* el_hir_new_cast_expr(ElDynArena* arena, ElHirType* type, ElHirExpr* expr);

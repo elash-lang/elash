@@ -1,8 +1,8 @@
 #pragma once
 
-#include <elash/sema/type.h>
-#include <elash/sema/symbol.h>
-#include <elash/sema/const.h>
+#include <elash/hir/type.h>
+#include <elash/hir/symbol.h>
+#include <elash/hir/const.h>
 #include <elash/util/dynarena.h>
 
 #include "expr/bin.h"
@@ -26,12 +26,12 @@ typedef enum ElHirExprKind {
 
 typedef struct ElHirExpr {
     ElHirExprKind kind;
-    ElType* type; // NULL if it's untyped (i.e. kind == untyped lit)
+    ElHirType* type; // NULL if it's untyped (i.e. kind == untyped lit)
     union {
         ElHirBinExpr    binary;
         ElHirUnaryExpr  unary;
-        ElConstant      constant;
-        ElSymbol*       symbol;
+        ElHirConstant   constant;
+        ElHirSymbol*    symbol;
         ElHirCallExpr   call;
         ElHirCastExpr   cast;
         ElHirArrayLit   array_lit;
@@ -39,4 +39,4 @@ typedef struct ElHirExpr {
     } as;
 } ElHirExpr;
 
-ElHirExpr* el_hir_new_symbol_expr(ElDynArena* arena, ElType* type, ElSymbol* symbol);
+ElHirExpr* el_hir_new_symbol_expr(ElDynArena* arena, ElHirType* type, ElHirSymbol* symbol);

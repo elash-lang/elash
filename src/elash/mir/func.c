@@ -4,7 +4,7 @@
 
 #include <stddef.h>
 
-ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol) {
+ElMirFunc* el_mir_new_func(ElDynArena* arena, ElMirSymbol* symbol) {
     ElMirFunc* func = EL_DYNARENA_NEW(arena, ElMirFunc);
     *func = (ElMirFunc) {
         .symbol = symbol,
@@ -14,13 +14,13 @@ ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol) {
         .block_count = 0,
     };
 
-    if (symbol->kind == EL_SYM_FUNC) {
+    if (symbol->kind == EL_MIR_SYM_FUNC) {
         func->arg_count = symbol->as.func.param_count;
         if (func->arg_count > 0) {
             func->args = EL_DYNARENA_NEW_ARR(arena, ElMirValue*, func->arg_count);
             for (uint32_t i = 0; i < func->arg_count; i++) {
-                ElSymbol* param_sym = symbol->as.func.params[i];
-                ElType* type = param_sym->as.var.type;
+                ElMirSymbol* param_sym = symbol->as.func.params[i];
+                ElMirType* type = param_sym->as.var.type;
                 func->args[i] = el_mir_new_arg(arena, type, i);
             }
         } else {

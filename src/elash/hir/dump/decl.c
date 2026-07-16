@@ -2,24 +2,24 @@
 #include <elash/hir/dump/stmt.h>
 #include <elash/hir/dump/expr.h>
 #include <elash/hir/dump/indent.h>
-#include <elash/sema/symbol/dump.h>
+#include <elash/hir/symbol/dump.h>
 
 #include <elash/hir/tree/stmt.h>
-#include <elash/sema/type.h>
+#include <elash/hir/type.h>
 #include <elash/util/assert.h>
 
-static void el_hir_dump_func_sig(ElSymbol* symbol, usize indent, FILE* out, const char* prefix) {
-    ElFuncSymbol* sym = &symbol->as.func;
+static void el_hir_dump_func_sig(ElHirSymbol* symbol, usize indent, FILE* out, const char* prefix) {
+    ElHirFuncSymbol* sym = &symbol->as.func;
 
     el_hir_dump_print_indent(indent, out);
     fprintf(out, "%s ", prefix);
-    el_sema_dump_type(sym->ret_type, out);
+    el_sema_dump_type(sym->type->as.func.ret_type, out);
     fputc(' ', out);
     el_sema_dump_symbol(symbol, out);
     fputc('(', out);
 
     for (usize i = 0; i < sym->param_count; ++i) {
-        ElSymbol* param = sym->params[i];
+        ElHirSymbol* param = sym->params[i];
         if (i > 0) fputs(", ", out);
 
         el_sema_dump_type(param->as.var.type, out);

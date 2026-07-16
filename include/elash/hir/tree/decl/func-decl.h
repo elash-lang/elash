@@ -1,12 +1,12 @@
 #pragma once
 
-#include <elash/sema/symbol.h>
+#include <elash/hir/symbol.h>
 #include <elash/util/dynarena.h>
 
 typedef struct ElHirDecl ElHirDecl;
 
 typedef struct ElHirFuncDecl {
-    ElSymbol* symbol;
+    ElHirSymbol* symbol;
 } ElHirFuncDecl;
 
-ElHirDecl* el_hir_new_func_decl(ElDynArena* arena, ElSymbol* symbol);
+ElHirDecl* el_hir_new_func_decl(ElDynArena* arena, ElHirSymbol* symbol);

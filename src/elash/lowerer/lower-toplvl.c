@@ -1,13 +1,5 @@
 #include <elash/lowerer/lowerer.h>
-
 #include <elash/util/assert.h>
-#include <elash/util/todo.h>
-
-#include <elash/mir/func.h>
-
-#include <elash/sema/type/prim.h>
-#include <elash/sema/symbol/func.h>
-#include <elash/sema/symbol/var.h>
 
 void el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevel* hir) {
     switch (hir->kind) {

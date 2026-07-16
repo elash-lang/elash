@@ -4,7 +4,7 @@
 #include <elash/defs/sv.h>
 #include <elash/srcdoc/span.h>
 
-#include <elash/sema/expr/unary-op.h>
+#include <elash/sema/unary-op.h>
 
 typedef struct ElAstExpr ElAstExpr;
 

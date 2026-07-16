@@ -6,8 +6,8 @@
 
 #include <elash/hir/tree/expr/array-lit.h>
 
-ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElType* expected_type) {
-    if (expected_type->kind != EL_TYPE_ARRAY) {
+ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type) {
+    if (expected_type->kind != EL_HIR_TYPE_ARRAY) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.init-non-aggregate",
             in->span,
@@ -16,8 +16,8 @@ ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElType* ex
         return NULL;
     }
 
-    ElType* base_type = expected_type->as.array.base;
-    if (expected_type->kind == EL_TYPE_ARRAY && in->list.count != expected_type->as.array.size) {
+    ElHirType* base_type = expected_type->as.array.base;
+    if (expected_type->kind == EL_HIR_TYPE_ARRAY && in->list.count != expected_type->as.array.size) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.bad-init-list",
             in->span,
@@ -37,13 +37,13 @@ ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElType* ex
     return el_hir_new_array_lit(binder->hir_arena, expected_type, values, in->list.count);
 }
 
-ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElType* expected_type) {
+ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type) {
     switch (in->kind) {
     case EL_AST_INIT_EXPR: {
         ElHirExpr* expr = el_binder_bind_expr(binder, in->expr);
         if (expr == NULL) return NULL;
 
-        //if (!el_sema_type_eql(expr->type, expected_type)) {
+        //if (!el_hir_type_eql(expr->type, expected_type)) {
         //    el_diag_report(
         //        binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
         //        in->span,
