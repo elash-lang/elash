@@ -7,7 +7,7 @@ bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
 
     ElBinder binder;
     el_binder_init(&binder,
-        .diag = ctx->diag, .builtins = ctx->builtins,
+        .diag = ctx->diag, .builtins = ctx->binder_builtins,
         .hir_arena = ctx->arena, .sym_arena = ctx->arena, .type_arena = ctx->arena,
     );
 

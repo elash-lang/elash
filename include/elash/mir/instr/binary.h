@@ -2,7 +2,7 @@
 
 #include <elash/mir/value.h>
 
-#include <elash/sema/expr/bin-op.h>
+#include <elash/sema/bin-op.h>
 #include <elash/util/dynarena.h>
 
 typedef struct ElMirInstr ElMirInstr;

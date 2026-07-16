@@ -10,5 +10,5 @@ ElHirTopLevel* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevel* in) {
     }
     }
 
-    EL_UNREACHABLE_ENUM_VAL(ElAstTopLevelType, in->type);
+    EL_UNREACHABLE_ENUM_VAL(ElAstTopLevElHirType, in->type);
 }

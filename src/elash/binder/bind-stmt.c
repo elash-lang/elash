@@ -31,7 +31,7 @@ ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
 
 ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
     ElHirExpr* val = el_binder_bind_expr(binder, in->as.return_.value);
-    bool is_void_func = el_sema_type_eql(binder->current_func->as.func.ret_type, binder->builtins->type_void);
+    bool is_void_func = el_hir_type_eql(binder->current_func->as.func.type->as.func.ret_type, binder->builtins->type_void);
 
     if (val == NULL) {
         if (!is_void_func) {
@@ -42,7 +42,7 @@ ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
             );
         }
     } else {
-        bool is_val_void = el_sema_type_eql(val->type, binder->builtins->type_void);
+        bool is_val_void = el_hir_type_eql(val->type, binder->builtins->type_void);
         if (is_void_func) {
             if (!is_val_void) {
                 el_diag_report(
@@ -59,7 +59,7 @@ ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
                     "cannot return void value from non-void ction"
                 );
             } else {
-                val = _el_binder_implicit_cast(binder, in->span, val, binder->current_func->as.func.ret_type);
+                val = _el_binder_implicit_cast(binder, in->span, val, binder->current_func->as.func.type->as.func.ret_type);
                 if (val == NULL) return NULL;
             }
         }

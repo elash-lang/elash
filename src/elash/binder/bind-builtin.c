@@ -29,10 +29,10 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
     ElHirExpr* arg = el_binder_bind_expr(binder, call->args[0].expr);
     if (!arg) return NULL;
 
-    if (arg->type->kind == EL_TYPE_ARRAY) {
+    if (arg->type->kind == EL_HIR_TYPE_ARRAY) {
         return el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_int, (int64_t)arg->type->as.array.size);
     }
-    if (arg->type->kind == EL_TYPE_SLICE) {
+    if (arg->type->kind == EL_HIR_TYPE_SLICE) {
         EL_TODO("implement len for slices");
     }
 
@@ -45,7 +45,7 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
 }
 
 ElHirExpr* el_binder_bind_builtin_call(
-    ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElSymbol* builtin
+    ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElHirSymbol* builtin
 ) {
     switch (builtin->as.builtin.kind) {
     case EL_BUILTIN_LEN:

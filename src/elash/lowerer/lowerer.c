@@ -13,25 +13,25 @@
 #include <elash/mir/value/reg.h>
 #include <elash/mir/instr/binary.h>
 #include <elash/mir/instr/return.h>
+#include <elash/mir/instr/gep.h>
 
-#include <elash/sema/type/prim.h>
-#include <elash/sema/symbol/func.h>
-#include <elash/sema/symbol/var.h>
-#include <elash/sema/expr/bin-op.h>
+#include <elash/sema/bin-op.h>
 
 #include <elash/hir/tree/stmt/assign.h>
 #include <elash/mir/value/global.h>
 
 #include <stddef.h>
 
-void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins) {
+void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElLowererBuiltins* builtins) {
     lw->arena = arena;
     lw->diag = diag;
     lw->builtins = builtins;
-    el_mir_ibuf_init(&lw->ibuf);
     lw->symbol_map = NULL;
+    lw->mir_symbol_map = NULL;
     lw->break_target_id = 0;
     lw->continue_target_id = 0;
+
+    el_mir_ibuf_init(&lw->ibuf);
 }
 
 void el_lowerer_free(ElLowerer* lw) {
@@ -53,38 +53,43 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
 ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_SYMBOL: {
-        ElSymbol* sym = hir->as.symbol;
+        ElHirSymbol* sym = hir->as.symbol;
         if (sym->kind == EL_SYM_VAR) {
             if (lw->symbol_map && lw->symbol_map[sym->id]) {
                 return lw->symbol_map[sym->id];
             }
 
-            ElType* ref_type = el_sema_new_ref_type(lw->arena, sym->as.var.type);
-            ElMirValue* glob = el_mir_new_global(lw->arena, ref_type, sym);
+            ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+            ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
+            ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
+            ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym);
             if (lw->symbol_map) {
                 lw->symbol_map[sym->id] = glob;
             }
             return glob;
         }
         if (sym->kind == EL_SYM_FUNC) {
-            return el_mir_new_global(lw->arena, hir->type, sym);
+            ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+            ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
+            return el_mir_new_global(lw->arena, mir_type, mir_sym);
         }
         EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
     }
 
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
-             ElMirValue* ref;
-             if (hir->as.binary.left->type->kind == EL_TYPE_RWSLICE) {
-                 ref = el_lowerer_lower_expr(lw, hir->as.binary.left);
+             ElMirValue* ptr;
+             if (hir->as.binary.left->type->kind == EL_HIR_TYPE_RWSLICE) {
+                 ptr = el_lowerer_lower_expr(lw, hir->as.binary.left);
              } else {
-                 ref = el_lowerer_get_lvalue(lw, hir->as.binary.left);
+                 ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
              }
              ElMirValue* index = el_lowerer_lower_expr(lw, hir->as.binary.right);
 
-             ElType* result_ref_type = el_sema_new_ref_type(lw->arena, hir->type);
-             ElMirValue* res_reg = el_mir_new_reg(lw->arena, result_ref_type, lw->current_func->reg_count++);
-             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, res_reg, ref, index));
+             ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+             ElMirType* result_ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
+             ElMirValue* res_reg = el_mir_new_reg(lw->arena, result_ptr_type, lw->current_func->reg_count++);
+             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, res_reg, ptr, index));
              return res_reg;
         }
         break;
@@ -99,4 +104,32 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     default: break;
     }
     EL_UNREACHABLE("expression is not an lvalue (this should be caught during semantic analysis)");
+}
+
+ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym) {
+    if (sym == NULL) return NULL;
+    if (lw->mir_symbol_map && lw->mir_symbol_map[sym->id]) {
+        return lw->mir_symbol_map[sym->id];
+    }
+
+    ElMirSymbol* mir_sym = NULL;
+    if (sym->kind == EL_SYM_VAR) {
+        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        mir_sym = el_mir_new_var_symbol(lw->arena, sym->id, sym->name, mir_type);
+    } else if (sym->kind == EL_SYM_FUNC) {
+        ElMirType* ret_type = el_lowerer_map_type(lw, sym->as.func.type->as.func.ret_type);
+        ElMirSymbol** params = EL_DYNARENA_NEW_ARR(lw->arena, ElMirSymbol*, sym->as.func.param_count);
+        for (usize i = 0; i < sym->as.func.param_count; i++) {
+            params[i] = el_lowerer_map_symbol(lw, sym->as.func.params[i]);
+        }
+        mir_sym = el_mir_new_func_symbol(lw->arena, sym->id, sym->name, ret_type, params, sym->as.func.param_count);
+        mir_sym->as.func.is_defined = sym->as.func.is_defined;
+    } else {
+        EL_UNREACHABLE("only var and func symbols are mapped to MIR");
+    }
+
+    if (lw->mir_symbol_map) {
+        lw->mir_symbol_map[sym->id] = mir_sym;
+    }
+    return mir_sym;
 }

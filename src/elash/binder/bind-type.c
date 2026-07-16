@@ -5,10 +5,10 @@
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
 
-#include <elash/sema/type.h>
+#include <elash/hir/type.h>
 
-ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
-    ElType* base = _el_binder_bind_type(binder, array->base);
+ElHirType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
+    ElHirType* base = _el_binder_bind_type(binder, array->base);
     if (base == NULL) return NULL;
 
     ElHirExpr* size_hir = el_binder_bind_expr(binder, array->size);
@@ -25,28 +25,28 @@ ElType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
             "array size must be positive"
         );
 
-    return el_sema_new_array_type(binder->type_arena, base, (usize)size_val);
+    return el_hir_new_array_type(binder->type_arena, base, (usize)size_val);
 }
 
-ElType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
+ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
     switch (node->kind) {
     case EL_AST_TYPE_REF: {
-        ElType* base = _el_binder_bind_type(binder ,node->base);
+        ElHirType* base = _el_binder_bind_type(binder ,node->base);
         if (base == NULL) return NULL;
-        return el_sema_new_ref_type(binder->type_arena, base);
+        return el_hir_new_ref_type(binder->type_arena, base);
     }
     case EL_AST_TYPE_SLICE: {
-        ElType* base = _el_binder_bind_type(binder ,node->base);
+        ElHirType* base = _el_binder_bind_type(binder ,node->base);
         if (base == NULL) return NULL;
-        return el_sema_new_slice_type(binder->type_arena, base);
+        return el_hir_new_slice_type(binder->type_arena, base);
     }
     case EL_AST_TYPE_RAW_SLICE: {
-        ElType* base = _el_binder_bind_type(binder ,node->base);
+        ElHirType* base = _el_binder_bind_type(binder ,node->base);
         if (base == NULL) return NULL;
-        return el_sema_new_raw_slice_type(binder->type_arena, base);
+        return el_hir_new_raw_slice_type(binder->type_arena, base);
     }
     case EL_AST_TYPE_NAME: {
-        ElSymbol* sym = el_sema_scope_lookup(binder->current_scope, node->name->name);
+        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, node->name->name);
         if (sym == NULL) return NULL;
 
         if (sym->kind != EL_SYM_TYPE)

@@ -2,7 +2,7 @@
 #include <elash/hir/tree/expr.h>
 
 ElHirExpr* el_hir_new_call_expr(
-    ElDynArena* arena, ElType* type, ElHirExpr* callee, ElHirExpr** args, usize arg_count
+    ElDynArena* arena, ElHirType* type, ElHirExpr* callee, ElHirExpr** args, usize arg_count
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_CALL,

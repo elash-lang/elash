@@ -1,12 +1,12 @@
 #include <elash/hir/dump/expr.h>
-#include <elash/sema/symbol/dump.h>
+#include <elash/hir/symbol/dump.h>
 #include <elash/hir/dump/indent.h>
 #include <elash/util/assert.h>
 
 #include <elash/hir/tree/expr.h>
 
-#include <elash/sema/expr/bin-op.h>
-#include <elash/sema/expr/unary-op.h>
+#include <elash/sema/bin-op.h>
+#include <elash/sema/unary-op.h>
 
 #include <inttypes.h>
 #include <elash/defs/sv.h>
@@ -35,7 +35,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
     }
 
     case EL_HIR_EXPR_CONST:
-        if (node->type->kind == EL_TYPE_PRIM) {
+        if (node->type->kind == EL_HIR_TYPE_PRIM) {
             switch (node->type->as.prim.kind) {
             case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.constant.as.int_);        break;
             case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.constant.as.char_);          break;

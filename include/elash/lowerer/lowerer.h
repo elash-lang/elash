@@ -1,7 +1,9 @@
 #pragma once
 
-#include <elash/sema/symbol.h>
-#include <elash/sema/scope.h>
+#include <elash/lowerer/builtin.h>
+
+#include <elash/hir/symbol.h>
+#include <elash/hir/scope.h>
 
 #include <elash/hir/tree/module.h>
 #include <elash/hir/tree/toplevel.h>
@@ -13,15 +15,17 @@
 #include <elash/mir/value.h>
 #include <elash/mir/block.h>
 #include <elash/mir/func.h>
+#include <elash/mir/symbol.h>
+#include <elash/mir/type.h>
 
 #include <elash/util/dynarena.h>
-#include <elash/sema/builtin.h>
 #include <elash/diag/engine.h>
 
 typedef struct ElLowerer {
     ElDynArena*   arena;
     ElDiagEngine* diag;
-    ElBuiltins*   builtins;
+
+    ElLowererBuiltins* builtins;
 
     uint32_t current_block_id;
     ElMirFunc* current_func;
@@ -29,12 +33,13 @@ typedef struct ElLowerer {
     ElMirInstrBuf ibuf;
 
     ElMirValue** symbol_map;
+    ElMirSymbol** mir_symbol_map;
 
     uint32_t break_target_id;
     uint32_t continue_target_id;
 } ElLowerer;
 
-void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElBuiltins* builtins);
+void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElLowererBuiltins* builtins);
 void el_lowerer_free(ElLowerer* lw);
 
 bool el_lowerer_has_terminator(ElLowerer* lw);
@@ -43,10 +48,13 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id);
 ElMirValue*  el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
-void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ref, ElHirArrayLit* array_lit);
-void         _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* hir);
-void         _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* hir);
+void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit);
+void         _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl);
+void         _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl);
 
 void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir);
 void         el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevel* hir);
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
+
+ElMirType*   el_lowerer_map_type(ElLowerer* lw, const ElHirType* type);
+ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym);

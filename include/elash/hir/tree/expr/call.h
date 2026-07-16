@@ -4,7 +4,7 @@
 #include <elash/defs/int-types.h>
 
 typedef struct ElHirExpr ElHirExpr;
-typedef struct ElType ElType;
+typedef struct ElHirType ElHirType;
 
 typedef struct ElHirCallExpr {
     ElHirExpr* callee;
@@ -13,5 +13,5 @@ typedef struct ElHirCallExpr {
 } ElHirCallExpr;
 
 ElHirExpr* el_hir_new_call_expr(
-    ElDynArena* arena, ElType* type, ElHirExpr* callee, ElHirExpr** args, usize arg_count
+    ElDynArena* arena, ElHirType* type, ElHirExpr* callee, ElHirExpr** args, usize arg_count
 );

@@ -3,7 +3,7 @@
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
 
-#include <elash/sema/expr/bin-op.h>
+#include <elash/sema/bin-op.h>
 
 typedef struct ElAstExpr ElAstExpr;
 typedef struct ElAstInit ElAstInit;

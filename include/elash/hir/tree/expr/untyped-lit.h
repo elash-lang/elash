@@ -4,7 +4,7 @@
 #include <elash/defs/int-types.h>
 
 typedef struct ElHirExpr ElHirExpr;
-typedef struct ElType ElType;
+typedef struct ElHirType ElHirType;
 
 typedef enum ElHirUntypedLitKind {
     EL_HIR_UNTYPED_INT,

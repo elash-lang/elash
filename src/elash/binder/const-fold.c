@@ -151,7 +151,7 @@ static ElHirExpr* apply_unary_operator_untyped(ElBinder* binder, ElSemaUnaryOp o
 }
 
 ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
-    if (expr->type != NULL && expr->type->kind != EL_TYPE_PRIM) return expr;
+    if (expr->type != NULL && expr->type->kind != EL_HIR_TYPE_PRIM) return expr;
 
     switch (expr->kind) {
     case EL_HIR_EXPR_BINARY: {

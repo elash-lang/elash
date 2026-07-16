@@ -4,7 +4,7 @@
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
 
-#include <elash/sema/type/prim.h>
+#include <elash/hir/type/prim.h>
 
 #define IMPLICIT_CAST_IF_NEEDED(THING, SPAN, TO) \
     if (THING->type == NULL) { \
@@ -24,7 +24,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
     ElHirExpr* right = el_binder_bind_expr(binder, bin->right);
     if (left == NULL || right == NULL) return NULL;
 
-    ElType* type = left->type;
+    ElHirType* type = left->type;
     if (bin->op != EL_SEMA_BIN_OP_INDEX) {
         if (el_sema_bin_op_is_logical(bin->op)) {
             IMPLICIT_CAST_IF_NEEDED(left, bin->left->span, binder->builtins->type_bool);
@@ -47,7 +47,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
                 type = left->type;
             }
 
-            if (!el_sema_type_eql(left->type, right->type))
+            if (!el_hir_type_eql(left->type, right->type))
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
                     in->span, "left and right operand types must be identical"
@@ -60,7 +60,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
         }
     } else {
         IMPLICIT_CAST_IF_NEEDED(right, bin->right->span, binder->builtins->type_usize);
-        if (!el_sema_type_eql(right->type, binder->builtins->type_usize))
+        if (!el_hir_type_eql(right->type, binder->builtins->type_usize))
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.index-type",
                 bin->right->span, "index expression must be of type compatible with usize"
@@ -68,10 +68,10 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
         switch (left->type->kind) {
-        case EL_TYPE_ARRAY:   type = left->type->as.array.base;     break;
-        case EL_TYPE_SLICE:   type = left->type->as.slice.base;     break;
-        case EL_TYPE_RWSLICE: type = left->type->as.raw_slice.base; break;
-        default:              REPORT_NON_INDEXABLE;                 break;
+        case EL_HIR_TYPE_ARRAY:   type = left->type->as.array.base;   break;
+        case EL_HIR_TYPE_SLICE:   type = left->type->as.slice.base;   break;
+        case EL_HIR_TYPE_RWSLICE: type = left->type->as.rwslice.base; break;
+        default:                  REPORT_NON_INDEXABLE;               break;
         }
     }
 
@@ -82,13 +82,13 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
     ElHirExpr* operand = el_binder_bind_expr(binder, unary->operand);
     if (!operand) return NULL;
 
-    ElType* type = operand->type;
+    ElHirType* type = operand->type;
     if (unary->op == EL_SEMA_UNARY_OP_NOT) {
         if (operand->type == NULL) {
             operand = _el_binder_implicit_cast(binder, unary->operand->span, operand, binder->builtins->type_bool);
             if (operand == NULL) return NULL;
         }
-        if (!el_sema_type_eql(operand->type, binder->builtins->type_bool))
+        if (!el_hir_type_eql(operand->type, binder->builtins->type_bool))
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
                 in->span, "operand of logical NOT must be boolean"
@@ -102,9 +102,9 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
             );
     } else {
         if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
-            type = el_sema_new_ref_type(binder->type_arena, operand->type);
+            type = el_hir_new_ref_type(binder->type_arena, operand->type);
         } else if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
-            if (operand->type->kind != EL_TYPE_REF)
+            if (operand->type->kind != EL_HIR_TYPE_REF)
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
                     in->span, "cannot dereference non-pointer type ${type}",
@@ -136,7 +136,7 @@ ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral
 }
 
 ElHirExpr* _el_binder_bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* ident) {
-    ElSymbol* sym = el_sema_scope_lookup(binder->current_scope, ident->name);
+    ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, ident->name);
     if (sym == NULL) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.undefined-symbol",
@@ -173,14 +173,14 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
         return el_binder_bind_builtin_call(binder, in, call, callee->as.symbol);
     }
 
-    if (callee->type == NULL || callee->type->kind != EL_TYPE_FUNC)
+    if (callee->type == NULL || callee->type->kind != EL_HIR_TYPE_FUNC)
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.not-callable",
             call->callee->span,
             "expression is not callable"
         );
 
-    ElFunctionType* func = &callee->type->as.func;
+    ElHirFuncType* func = &callee->type->as.func;
     if (call->arg_count != func->param_count)
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.arg-count-mismatch",
@@ -202,13 +202,13 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
 
 ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* cast) {
     ElHirExpr* expr = el_binder_bind_expr(binder, cast->expr);
-    ElType*    type = _el_binder_bind_type(binder, cast->type);
+    ElHirType*    type = _el_binder_bind_type(binder, cast->type);
 
     return _el_binder_explicit_cast(binder, in->span, expr, type);
 }
 
 ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* _, ElAstArrayLit* array_lit) {
-    ElType* type = _el_binder_bind_type(binder, array_lit->type);
+    ElHirType* type = _el_binder_bind_type(binder, array_lit->type);
     if (type == NULL) return NULL;
 
     return el_binder_bind_init(binder, array_lit->init, type);

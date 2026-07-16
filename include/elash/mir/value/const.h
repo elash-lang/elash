@@ -1,10 +1,15 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
-#include <elash/sema/const.h>
-#include <elash/sema/type.h>
+#include <elash/mir/type.h>
 
 typedef struct ElMirValue ElMirValue;
 
-typedef ElConstant ElMirConstValue;
-ElMirValue* el_mir_new_const(ElDynArena* arena, ElType* type, ElConstant constant);
+typedef struct ElMirConstant {
+    union {
+        int64_t int_;
+    } as;
+} ElMirConstant;
+
+typedef ElMirConstant ElMirConstValue;
+ElMirValue* el_mir_new_const(ElDynArena* arena, ElMirType* type, ElMirConstant constant);

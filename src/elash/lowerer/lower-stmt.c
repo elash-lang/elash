@@ -6,6 +6,9 @@
 #include <elash/mir/block.h>
 #include <elash/mir/instr.h>
 #include <elash/mir/value.h>
+#include <elash/mir/value/const.h>
+#include <elash/mir/value/reg.h>
+#include <elash/mir/type.h>
 
 #include <elash/hir/tree/stmt/break.h>
 #include <elash/hir/tree/stmt/continue.h>
@@ -98,16 +101,17 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
 
 void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmt* assign) {
     ElMirValue* value = el_lowerer_lower_expr(lw, assign->value);
-    ElMirValue* ref = el_lowerer_get_lvalue(lw, assign->target);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, value));
+    ElMirValue* ptr = el_lowerer_get_lvalue(lw, assign->target);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
 }
 
 void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
-    ElMirValue* ref = el_lowerer_get_lvalue(lw, cassign->target);
+    ElMirValue* ptr = el_lowerer_get_lvalue(lw, cassign->target);
+    ElMirType* target_mir_type = el_lowerer_map_type(lw, cassign->target->type);
 
     if (cassign->op == EL_SEMA_BIN_OP_AND || cassign->op == EL_SEMA_BIN_OP_OR || cassign->op == EL_SEMA_BIN_OP_IMP) {
-        ElMirValue* current_val = el_mir_new_reg(lw->arena, cassign->target->type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ref));
+        ElMirValue* current_val = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
 
         uint32_t rhs_id = lw->current_func->block_count++;
         uint32_t merge_id = lw->current_func->block_count++;
@@ -118,7 +122,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
 
             lw->current_block_id = rhs_id;
             ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, rhs));
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
         } else if (cassign->op == EL_SEMA_BIN_OP_OR) {
@@ -127,7 +131,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
 
             lw->current_block_id = rhs_id;
             ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, rhs));
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
         } else if (cassign->op == EL_SEMA_BIN_OP_IMP) {
@@ -136,14 +140,15 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = lhs_false_id;
-            ElMirValue* true_val = el_mir_new_const(lw->arena, cassign->target->type, (ElConstant) { .as.bool_ = true });
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, true_val));
+            ElMirConstant true_lit = { .as.int_ = 1 };
+            ElMirValue* true_val = el_mir_new_const(lw->arena, target_mir_type, true_lit);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, true_val));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = rhs_id;
             ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, rhs));
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
         }
@@ -153,18 +158,18 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
     }
 
     // Load current value
-    ElMirValue* current_val = el_mir_new_reg(lw->arena, cassign->target->type, lw->current_func->reg_count++);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ref));
+    ElMirValue* current_val = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
 
     // Lower RHS
     ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
 
     // Perform op
-    ElMirValue* result = el_mir_new_reg(lw->arena, cassign->target->type, lw->current_func->reg_count++);
+    ElMirValue* result = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, cassign->op, current_val, rhs));
 
     // Store back
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ref, result));
+    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, result));
 }
 
 void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
