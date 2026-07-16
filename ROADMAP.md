@@ -18,7 +18,7 @@
 - [ ] Floating-point types
 - [x] Pointer types
 - [x] Function types
-- [ ] Slice types
+- [x] Slice types
 - [x] Raw slice types
 - [x] Array types
 - [ ] Struct types
