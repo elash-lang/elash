@@ -9,7 +9,7 @@
 
 #include <elash/defs/int-types.h>
 
-typedef struct ElAstTopLevel ElAstTopLevel;
+typedef struct ElAstDecl ElAstDecl;
 
 typedef struct ElAstFuncParam ElAstFuncParam;
 struct ElAstFuncParam {

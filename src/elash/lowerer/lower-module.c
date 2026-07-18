@@ -6,8 +6,8 @@ ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
     lw->symbol_map = EL_DYNARENA_NEW_ARR_ZEROED(lw->arena, ElMirValue*, hir->sym_count);
     lw->mir_symbol_map = EL_DYNARENA_NEW_ARR_ZEROED(lw->arena, ElMirSymbol*, hir->sym_count);
 
-    for (ElHirTopLevel* node = hir->head; node != NULL; node = node->next) {
-        el_lowerer_lower_toplvl(lw, node);
+    for (ElHirDecl* decl = hir->head; decl != NULL; decl = decl->next) {
+        _el_lowerer_lower_global_decl(lw, decl);
     }
 
     return lw->current_mod;

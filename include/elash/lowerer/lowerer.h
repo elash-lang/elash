@@ -6,7 +6,7 @@
 #include <elash/hir/scope.h>
 
 #include <elash/hir/tree/module.h>
-#include <elash/hir/tree/toplevel.h>
+#include <elash/hir/tree/decl.h>
 #include <elash/hir/tree/stmt.h>
 #include <elash/hir/tree/expr.h>
 
@@ -61,7 +61,6 @@ void         _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl);
 void         _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl);
 
 void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir);
-void         el_lowerer_lower_toplvl(ElLowerer* lw, ElHirTopLevel* hir);
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
 
 ElMirType*   el_lowerer_map_type(ElLowerer* lw, const ElHirType* type);

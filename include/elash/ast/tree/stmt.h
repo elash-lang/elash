@@ -5,7 +5,7 @@
 
 #include "expr.h"
 
-#include "common/decl.h"
+#include "decl.h"
 #include "common/block.h"
 
 #include "stmt/cassign.h"

@@ -23,4 +23,5 @@ typedef struct ElAstDecl {
         ElAstFuncDef func_def;
         ElAstFuncDecl func_decl;
     } as;
+    ElAstDecl* next;
 } ElAstDecl;

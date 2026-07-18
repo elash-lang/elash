@@ -9,11 +9,10 @@
 
 #include <elash/ast/tree/expr.h>
 #include <elash/ast/tree/stmt.h>
-#include <elash/ast/tree/toplevel.h>
+#include <elash/ast/tree/decl.h>
 #include <elash/ast/tree/module.h>
 #include <elash/ast/tree/common/type.h>
 #include <elash/ast/tree/common/init.h>
-#include <elash/ast/tree/common/decl.h>
 
 #include <elash/diag/engine.h>
 
@@ -54,5 +53,4 @@ ElAstDecl*     el_parser_parse_decl(ElParser* parser);
 ElAstInit*     el_parser_parse_init(ElParser* parser);
 ElAstExpr*     el_parser_parse_expr(ElParser* parser);
 ElAstStmt*     el_parser_parse_stmt(ElParser* parser);
-ElAstTopLevel* el_parser_parse_toplevel(ElParser* parser);
 ElAstModule*   el_parser_parse_module(ElParser* parser);

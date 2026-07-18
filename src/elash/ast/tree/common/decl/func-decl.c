@@ -1,4 +1,4 @@
-#include <elash/ast/tree/common/decl.h>
+#include <elash/ast/tree/decl.h>
 
 ElAstDecl* el_ast_new_func_decl(ElDynArena* arena, ElSourceSpan span, ElAstFuncSignature sig) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstDecl, {

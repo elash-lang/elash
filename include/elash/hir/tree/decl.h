@@ -22,4 +22,5 @@ typedef struct ElHirDecl {
         ElHirFuncDef  func_def;
         ElHirFuncDecl func_decl;
     } as;
+    ElHirDecl* next;
 } ElHirDecl;

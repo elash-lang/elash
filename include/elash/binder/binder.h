@@ -6,12 +6,12 @@
 #include <elash/hir/scope.h>
 
 #include <elash/hir/tree/module.h>
-#include <elash/hir/tree/toplevel.h>
+#include <elash/hir/tree/decl.h>
 #include <elash/hir/tree/stmt.h>
 #include <elash/hir/tree/expr.h>
 
 #include <elash/ast/tree/module.h>
-#include <elash/ast/tree/toplevel.h>
+#include <elash/ast/tree/decl.h>
 #include <elash/ast/tree/stmt.h>
 #include <elash/ast/tree/expr.h>
 
@@ -67,5 +67,5 @@ ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expec
 ElHirExpr*     el_binder_bind_expr(ElBinder* binder,   ElAstExpr* in);
 ElHirDecl*     el_binder_bind_decl(ElBinder* binder,   ElAstDecl* in);
 ElHirStmt*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmt* in);
-ElHirTopLevel* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevel* in);
+ElHirDecl* el_binder_bind_toplvl(ElBinder* binder, ElAstDecl* in);
 ElHirModule*   el_binder_bind_module(ElBinder* binder, ElAstModule* in);

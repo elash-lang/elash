@@ -7,7 +7,7 @@ ElAstModule* el_ast_new_module(ElDynArena* arena, ElSourceSpan span) {
     return node;
 }
 
-void el_ast_module_append(ElAstModule* module, ElAstTopLevel* node) {
+void el_ast_module_append(ElAstModule* module, ElAstDecl* node) {
     if (module->head == NULL) {
         module->head = node;
         module->tail = node;

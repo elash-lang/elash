@@ -15,7 +15,7 @@ ElAstModule* el_parser_parse_module(ElParser* parser) {
     ElAstModule* module = el_ast_new_module(parser->arena, module_span);
 
     while (parser->current.type != EL_TT_EOF) {
-        ElAstTopLevel* node = el_parser_parse_toplevel(parser);
+        ElAstDecl* node = el_parser_parse_decl(parser);
         if (node == NULL) {
             continue;
         }

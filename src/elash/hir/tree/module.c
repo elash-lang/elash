@@ -9,7 +9,7 @@ ElHirModule* el_hir_new_module(ElDynArena* arena) {
     return mod;
 }
 
-void el_hir_module_append(ElHirModule* mod, ElHirTopLevel* node) {
+void el_hir_module_append(ElHirModule* mod, ElHirDecl* node) {
     if (mod->head == NULL) {
         mod->head = node;
         mod->tail = node;

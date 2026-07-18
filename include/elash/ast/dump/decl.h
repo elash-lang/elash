@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/ast/tree/common/decl.h>
+#include <elash/ast/tree/decl.h>
 #include <elash/defs/int-types.h>
 #include <stdio.h>
 

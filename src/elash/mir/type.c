@@ -39,29 +39,25 @@ void el_mir_format_type_internal(const ElMirType* type, void (*write)(const char
         }
         return;
     case EL_MIR_TYPE_PTR:
-        if (type->as.ptr.base) {
-            el_mir_format_type_internal(type->as.ptr.base, write, ctx);
-        } else {
-            write("void", ctx);
-        }
+        el_mir_format_type_internal(type->as.ptr.base, write, ctx);
         write("*", ctx);
         return;
     case EL_MIR_TYPE_ARRAY:
-        if (type->as.array.base) {
-            el_mir_format_type_internal(type->as.array.base, write, ctx);
-        } else {
-            write("void", ctx);
-        }
+        el_mir_format_type_internal(type->as.array.base, write, ctx);
         write("[", ctx);
         writeint(type->as.array.size, write, ctx);
         write("]", ctx);
         return;
-    case EL_MIR_TYPE_FUNC:
-        if (type->as.func.ret_type) {
-            el_mir_format_type_internal(type->as.func.ret_type, write, ctx);
-        } else {
-            write("void", ctx);
+    case EL_MIR_TYPE_TUPLE:
+        write("{ ", ctx);
+        for (usize i = 0; i < type->as.tuple.item_count; ++i) {
+            el_mir_format_type_internal(type->as.tuple.items[i], write, ctx);
+            if (i + 1 < type->as.tuple.item_count) write(", ", ctx);
         }
+        write(" }", ctx);
+        return;
+    case EL_MIR_TYPE_FUNC:
+        el_mir_format_type_internal(type->as.func.ret_type, write, ctx);
         write("(", ctx);
         for (usize i = 0; i < type->as.func.param_count; i++) {
             el_mir_format_type_internal(type->as.func.params[i], write, ctx);
@@ -89,6 +85,16 @@ bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs) {
     case EL_MIR_TYPE_ARRAY:
         return lhs->as.array.size == rhs->as.array.size &&
                el_mir_type_eql(lhs->as.array.base, rhs->as.array.base);
+    case EL_MIR_TYPE_TUPLE:
+        if (lhs->as.tuple.item_count != rhs->as.tuple.item_count) {
+            return false;
+        }
+        for (usize i = 0; i < lhs->as.tuple.item_count; ++i) {
+            if (!el_mir_type_eql(lhs->as.tuple.items[i], rhs->as.tuple.items[i])) {
+                return false;
+            }
+        }
+        return true;
     case EL_MIR_TYPE_FUNC:
         if (lhs->as.func.param_count != rhs->as.func.param_count) {
             return false;
