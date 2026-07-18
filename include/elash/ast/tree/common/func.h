@@ -2,7 +2,7 @@
 
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/common/block.h>
-#include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/type.h>
 
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>

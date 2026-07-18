@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/ident.h"
+
 #include "expr/bin.h"
 #include "expr/unary.h"
 #include "expr/literal.h"
@@ -7,8 +9,7 @@
 #include "expr/call.h"
 #include "expr/cast.h"
 
-#include "common/ident.h"
-#include "common/type.h"
+#include "type.h"
 
 #include <elash/defs/int-types.h>
 #include <elash/srcdoc/span.h>

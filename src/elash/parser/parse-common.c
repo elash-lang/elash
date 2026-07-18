@@ -1,6 +1,6 @@
 #include <elash/parser/parser.h>
 
-#include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/type.h>
 #include <elash/ast/tree/common/ident.h>
 
 ElAstIdent* _el_parser_parse_ident(ElParser* parser) {
@@ -33,7 +33,7 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
             if (el_parser_check(parser, EL_TT_RBRACKET)) {
                 ElToken rbracket_tok = parser->current;
                 el_parser_advance(parser);
-                type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, rbracket_tok.span), type);
+                type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, rbracket_tok.span), type, false);
                 continue;
             }
 
@@ -41,7 +41,7 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
             if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
                 ElToken amp_tok = parser->current;
                 el_parser_advance(parser);
-                type = el_ast_new_type_raw_slice(parser->arena, el_source_span_merge(type->span, amp_tok.span), type);
+                type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, amp_tok.span), type, true);
                 el_parser_expect(parser, EL_TT_RBRACKET);
                 continue;
             }

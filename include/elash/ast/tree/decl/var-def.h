@@ -4,8 +4,7 @@
 #include <elash/srcdoc/span.h>
 
 #include <elash/ast/tree/common/ident.h>
-#include <elash/ast/tree/common/type.h>
-
+#include <elash/ast/tree/type.h>
 #include <elash/ast/tree/init.h>
 
 typedef struct ElAstDecl ElAstDecl;

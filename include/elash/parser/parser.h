@@ -12,7 +12,7 @@
 #include <elash/ast/tree/init.h>
 #include <elash/ast/tree/decl.h>
 #include <elash/ast/tree/module.h>
-#include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/type.h>
 
 #include <elash/diag/engine.h>
 

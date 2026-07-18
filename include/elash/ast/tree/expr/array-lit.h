@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/type.h>
 #include <elash/ast/tree/init.h>
 
 typedef struct ElAstArrayLit {

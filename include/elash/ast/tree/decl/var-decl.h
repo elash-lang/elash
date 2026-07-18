@@ -2,8 +2,9 @@
 
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
+
 #include <elash/ast/tree/common/ident.h>
-#include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/type.h>
 
 typedef struct ElAstDecl ElAstDecl;
 

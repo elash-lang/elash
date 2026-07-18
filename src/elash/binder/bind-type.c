@@ -28,31 +28,26 @@ ElHirType* _el_binder_bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     return el_hir_new_array_type(binder->type_arena, base, (usize)size_val);
 }
 
-ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
-    switch (node->kind) {
+ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* type) {
+    switch (type->kind) {
     case EL_AST_TYPE_REF: {
-        ElHirType* base = _el_binder_bind_type(binder ,node->base);
+        ElHirType* base = _el_binder_bind_type(binder ,type->as.ref.base);
         if (base == NULL) return NULL;
         return el_hir_new_ref_type(binder->type_arena, base);
     }
     case EL_AST_TYPE_SLICE: {
-        ElHirType* base = _el_binder_bind_type(binder ,node->base);
+        ElHirType* base = _el_binder_bind_type(binder, type->as.slice.base);
         if (base == NULL) return NULL;
-        return el_hir_new_slice_type(binder->type_arena, base);
-    }
-    case EL_AST_TYPE_RAW_SLICE: {
-        ElHirType* base = _el_binder_bind_type(binder ,node->base);
-        if (base == NULL) return NULL;
-        return el_hir_new_raw_slice_type(binder->type_arena, base);
+        return (type->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->type_arena, base);
     }
     case EL_AST_TYPE_NAME: {
-        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, node->name->name);
+        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, type->as.name->name);
         if (sym == NULL) return NULL;
 
         if (sym->kind != EL_SYM_TYPE)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.unexpected-symbol-kind",
-                node->span, "${type} ${name} used as a type",
+                type->span, "${type} ${name} used as a type",
                 EL_DIAG_STRING("type", sym->kind == EL_SYM_VAR ? EL_SV("variable") : EL_SV("function")),
                 EL_DIAG_STRING("name", sym->name),
             );
@@ -60,8 +55,8 @@ ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* node) {
         return sym->as.type.type;
     }
     case EL_AST_TYPE_ARRAY:
-        return _el_binder_bind_array_type(binder, &node->array);
+        return _el_binder_bind_array_type(binder, &type->as.array);
     }
 
-    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, node->kind);
+    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, type->kind);
 }
