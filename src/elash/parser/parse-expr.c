@@ -15,7 +15,7 @@
 #include <elash/ast/tree/expr/cast.h>
 
 #include <elash/ast/tree/common/ident.h>
-#include <elash/ast/tree/common/init.h>
+#include <elash/ast/tree/init.h>
 
 static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
 

@@ -9,10 +9,10 @@
 
 #include <elash/ast/tree/expr.h>
 #include <elash/ast/tree/stmt.h>
+#include <elash/ast/tree/init.h>
 #include <elash/ast/tree/decl.h>
 #include <elash/ast/tree/module.h>
 #include <elash/ast/tree/common/type.h>
-#include <elash/ast/tree/common/init.h>
 
 #include <elash/diag/engine.h>
 

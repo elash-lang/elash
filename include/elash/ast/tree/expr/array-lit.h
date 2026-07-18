@@ -1,7 +1,7 @@
 #pragma once
 
-#include <elash/ast/tree/common/init.h>
 #include <elash/ast/tree/common/type.h>
+#include <elash/ast/tree/init.h>
 
 typedef struct ElAstArrayLit {
     ElAstType* type;

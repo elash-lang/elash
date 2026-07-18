@@ -1,4 +1,4 @@
-#include <elash/ast/tree/common/init.h>
+#include <elash/ast/tree/init.h>
 
 ElAstInit* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInit* head, usize count) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstInit, {

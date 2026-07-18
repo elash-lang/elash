@@ -9,7 +9,6 @@
 
 #include "common/ident.h"
 #include "common/type.h"
-#include "common/init.h"
 
 #include <elash/defs/int-types.h>
 #include <elash/srcdoc/span.h>

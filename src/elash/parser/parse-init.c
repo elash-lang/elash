@@ -1,5 +1,5 @@
 #include <elash/parser/parser.h>
-#include <elash/ast/tree/common/init.h>
+#include <elash/ast/tree/init.h>
 
 ElAstInit* el_parser_parse_init(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_LBRACE)) {

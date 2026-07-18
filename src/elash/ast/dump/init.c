@@ -1,4 +1,4 @@
-#include <elash/ast/tree/common/init.h>
+#include <elash/ast/tree/init.h>
 #include <elash/ast/dump/indent.h>
 #include <elash/ast/dump/init.h>
 #include <elash/ast/dump/expr.h>

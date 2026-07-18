@@ -1,4 +1,4 @@
-#include <elash/ast/tree/common/init.h>
+#include <elash/ast/tree/init.h>
 #include <elash/ast/tree/expr.h>
 
 ElAstInit* el_ast_new_init_expr(ElDynArena* arena, ElAstExpr* expr) {
