@@ -25,11 +25,13 @@ test-dirs:
 
 $(TESTS_OUT_DIR)/elash/%$(EXE_EXT): $(TESTS_DIR)/elash/%.c $(LIBELASH_STATIC) | test-dirs
 	@$(call CMD_MKDIR_P,$(dir $@))
-	$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(TESTS_LDFLAGS) -o $@
+	$(ECHO) "LD $@"
+	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(TESTS_LDFLAGS) -o $@
 
 $(TESTS_OUT_DIR)/elc/%$(EXE_EXT): $(TESTS_DIR)/elc/%.c $(LIBELC_STATIC) $(LIBELASH_STATIC) | test-dirs
 	@$(call CMD_MKDIR_P,$(dir $@))
-	$(CC) $(TESTS_CFLAGS) $< $(LIBELC_STATIC) $(LIBELASH_STATIC) $(TESTS_LDFLAGS) $(LLVM_LDFLAGS) -o $@
+	$(ECHO) "CC $@"
+	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELC_STATIC) $(LIBELASH_STATIC) $(TESTS_LDFLAGS) $(LLVM_LDFLAGS) -o $@
 
 test-elash: $(ELASH_TESTS_BINS)
 	@$(foreach t,$(ELASH_TESTS_BINS), \

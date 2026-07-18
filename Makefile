@@ -1,4 +1,5 @@
 CC ?= cc
+AR ?= ar
 BUILD ?= release
 
 ifeq ($(OS),Windows_NT)
@@ -119,6 +120,18 @@ else ifeq ($(PLATFORM),posix)
 	FIXPATH     = $(1)
 endif
 
+ifeq ($(V),1)
+    Q =
+    ifeq ($(OS),Windows_NT)
+        ECHO = @rem
+    else
+        ECHO = @:
+    endif
+else
+    Q = @
+    ECHO = @echo
+endif
+
 rwildcard = \
 	$(foreach d,$(wildcard $(1)/*),$(call rwildcard,$(d),$(2))) \
 	$(filter $(subst *,%,$(2)),$(wildcard $(1)/$(2)))
@@ -186,33 +199,47 @@ lint:
 
 $(LIBELASH_STATIC): $(LIBELASH_OBJ_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
-	ar rcs $@ $^
+
+	$(ECHO) "AR $@"
+	$(Q)$(AR) rcs $@ $^
 
 $(LIBELASH_SHARED): $(LIBELASH_OBJ_SHARED)
 	@$(call CMD_MKDIR_P,$(dir $@))
-	$(CC) -shared $^ $(LDFLAGS) -o $@
+
+	$(ECHO) "CC $@"
+	$(Q)$(CC) -shared $^ $(LDFLAGS) -o $@
 
 $(LIBELC_STATIC): $(LIBELC_OBJ_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
-	ar rcs $@ $^
+
+	$(ECHO) "AR $@"
+	$(Q)$(AR) rcs $@ $^
 
 $(LIBELC_SHARED): $(LIBELC_OBJ_SHARED) $(LIBELASH_SHARED)
 	@$(call CMD_MKDIR_P,$(dir $@))
-	$(CC) -shared $(LIBELC_OBJ_SHARED) -L$(LIB_DIR) -lelash $(LDFLAGS) -o $@
+
+	$(ECHO) "LD $@"
+	$(Q)$(CC) -shared $(LIBELC_OBJ_SHARED) -L$(LIB_DIR) -lelash $(LDFLAGS) -o $@
 
 $(ELC_BIN): $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
-	$(CC) $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC) $(LDFLAGS) -o $@
+
+	$(ECHO) "LD $@"
+	$(Q)$(CC) $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC) $(LDFLAGS) -o $@
 
 $(OBJ_ROOT_DIR)/%.o: %.c
 	@$(call CMD_MKDIR_P,$(dir $@))
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR)/$(dir $<))
-	$(CC) $(CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/$*.d -c $< -o $@
+
+	$(ECHO) "CC $@"
+	$(Q)$(CC) $(CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/$*.d -c $< -o $@
 
 $(OBJ_ROOT_DIR)/shared/%.o: %.c
 	@$(call CMD_MKDIR_P,$(dir $@))
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR)/shared/$(dir $<))
-	$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
+
+	$(ECHO) "CC $@"
+	$(Q)$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
 
 -include $(DEPS)
 
