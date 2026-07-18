@@ -148,9 +148,8 @@ static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
             el_ast_init_list_append(&args_head, &args_tail, arg);
             arg_count++;
 
-            if (!el_parser_match(parser, EL_TT_COMMA)) {
-                break;
-            }
+            if (!el_parser_match(parser, EL_TT_COMMA)) break;
+            if (el_parser_check(parser, EL_TT_RPAREN)) break;
         }
     }
 

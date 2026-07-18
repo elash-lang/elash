@@ -19,6 +19,7 @@ ElAstInit* el_parser_parse_init(ElParser* parser) {
                 count++;
 
                 if (!el_parser_match(parser, EL_TT_COMMA)) break;
+                if (el_parser_check(parser, EL_TT_RBRACE)) break;
             }
         }
 
