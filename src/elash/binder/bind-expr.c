@@ -207,7 +207,9 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     return _el_binder_explicit_cast(binder, in->span, expr, type);
 }
 
-ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* _, ElAstArrayLit* array_lit) {
+ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstArrayLit* array_lit) {
+    (void) in;
+
     ElHirType* type = _el_binder_bind_type(binder, array_lit->type);
     if (type == NULL) return NULL;
 
