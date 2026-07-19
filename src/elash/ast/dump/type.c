@@ -27,6 +27,20 @@ void el_ast_dump_type(ElAstType* node, usize indent, FILE* out) {
         fprintf(out, "size:\n");
         el_ast_dump_expr(node->as.array.size, indent + 2, out);
         return;
+    case EL_AST_TYPE_STRUCT:
+        fprintf(out, "StructType:\n");
+        for (ElAstStructField* field = node->as.struct_.fields; field != NULL; field = field->next) {
+            el_ast_dump_print_indent(indent + 1, out);
+            fprintf(out, "field: \""EL_SV_FMT"\"\n", EL_SV_FARG(field->name->name));
+            el_ast_dump_type(field->type, indent + 2, out);
+        }
+        return;
+    case EL_AST_TYPE_TUPLE:
+        fprintf(out, "TupleType:\n");
+        for (ElAstTupleElement* elem = node->as.tuple.head; elem != NULL; elem = elem->next) {
+            el_ast_dump_type(elem->type, indent + 1, out);
+        }
+        return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, node->kind);
 }

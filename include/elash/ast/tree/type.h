@@ -6,6 +6,8 @@
 
 #include "common/ident.h"
 
+#include "type/struct.h"
+#include "type/tuple.h"
 #include "type/slice.h"
 #include "type/array.h"
 #include "type/ref.h"
@@ -18,16 +20,20 @@ typedef enum ElAstTypeKind {
     EL_AST_TYPE_REF,
     EL_AST_TYPE_ARRAY,
     EL_AST_TYPE_SLICE,
+    EL_AST_TYPE_STRUCT,
+    EL_AST_TYPE_TUPLE,
 } ElAstTypeKind;
 
 struct ElAstType {
     ElAstTypeKind kind;
     ElSourceSpan span;
     union {
-        ElAstIdent*    name;
-        ElAstRefType   ref;
-        ElAstArrayType array;
-        ElAstSliceType slice;
+        ElAstIdent*     name;
+        ElAstRefType    ref;
+        ElAstArrayType  array;
+        ElAstSliceType  slice;
+        ElAstStructType struct_;
+        ElAstTupleType  tuple;
     } as;
 };
 
