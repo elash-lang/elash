@@ -37,15 +37,12 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     }
 
     if (el_parser_check(parser, EL_TT_IDENT)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
-
+        ElToken tok = el_parser_advance(parser);
         return el_ast_new_ident(parser->arena, tok.span, tok.lexeme);
     }
 
     if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
 
         int64_t val = 0;
         if (!el_string_to_i64(tok.lexeme, 10, &val)) {
@@ -60,8 +57,7 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     }
 
     if (el_parser_check(parser, EL_TT_FLOAT_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
 
         long double val = 0.0L;
         if (!el_string_to_long_double(tok.lexeme, &val)) {
@@ -76,34 +72,29 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     }
 
     if (el_parser_check(parser, EL_TT_STRING_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         return el_ast_new_string_literal(parser->arena, tok.span, tok.lexeme);
     }
 
     if (el_parser_check(parser, EL_TT_CHAR_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
 
         char val = tok.lexeme.data[0];
         return el_ast_new_char_literal(parser->arena, tok.span, val);
     }
 
     if (el_parser_check(parser, EL_TT_TRUE_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         return el_ast_new_bool_literal(parser->arena, tok.span, true);
     }
 
     if (el_parser_check(parser, EL_TT_FALSE_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         return el_ast_new_bool_literal(parser->arena, tok.span, false);
     }
 
     if (el_parser_check(parser, EL_TT_NULL_LITERAL)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         return el_ast_new_null_literal(parser->arena, tok.span);
     }
 
@@ -155,14 +146,12 @@ static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
 
     ElToken rparen = parser->current;
     if (el_parser_check(parser, EL_TT_RPAREN)) {
-        rparen = parser->current;
-        el_parser_advance(parser);
+        rparen = el_parser_advance(parser);
     } else {
         el_parser_expect(parser, EL_TT_RPAREN);
         el_parser_skip_to(parser, EL_TT_RPAREN);
         if (el_parser_check(parser, EL_TT_RPAREN)) {
-            rparen = parser->current;
-            el_parser_advance(parser);
+            rparen = el_parser_advance(parser);
         }
     }
 
@@ -179,18 +168,15 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
 
     while (true) {
         if (el_parser_check(parser, EL_TT_INC)) {
-            ElToken tok = parser->current;
-            el_parser_advance(parser);
+            ElToken tok = el_parser_advance(parser);
             expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
         } else if (el_parser_check(parser, EL_TT_DEC)) {
-            ElToken tok = parser->current;
-            el_parser_advance(parser);
+            ElToken tok = el_parser_advance(parser);
             expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
         } else if (el_parser_match(parser, EL_TT_LPAREN)) {
             expr = _el_parser_parse_call(parser, expr);
         } else if (el_parser_check(parser, EL_TT_CARET)) {
-            ElToken tok = parser->current;
-            el_parser_advance(parser);
+            ElToken tok = el_parser_advance(parser);
             expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
@@ -200,14 +186,12 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
 
             ElToken rbracket = parser->current;
             if (el_parser_check(parser, EL_TT_RBRACKET)) {
-                rbracket = parser->current;
-                el_parser_advance(parser);
+                rbracket = el_parser_advance(parser);
             } else {
                 el_parser_expect(parser, EL_TT_RBRACKET);
                 el_parser_skip_to(parser, EL_TT_RBRACKET);
                 if (el_parser_check(parser, EL_TT_RBRACKET)) {
-                    rbracket = parser->current;
-                    el_parser_advance(parser);
+                    rbracket = el_parser_advance(parser);
                 }
             }
 
@@ -227,50 +211,43 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
 
 ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_PLUS)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_POS, operand);
     }
     if (el_parser_check(parser, EL_TT_MINUS)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_NEG, operand);
     }
     if (el_parser_check(parser, EL_TT_LOGICAL_NOT)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_NOT, operand);
     }
     if (el_parser_check(parser, EL_TT_BITWISE_NOT)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_BW_NOT, operand);
     }
     if (el_parser_check(parser, EL_TT_INC)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_PRE_INC, operand);
     }
     if (el_parser_check(parser, EL_TT_DEC)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_PRE_DEC, operand);
     }
     if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
-        ElToken tok = parser->current;
-        el_parser_advance(parser);
+        ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
         return el_ast_new_unary_expr(parser->arena, el_source_span_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_ADDROF, operand);

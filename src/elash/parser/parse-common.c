@@ -8,9 +8,7 @@ ElAstIdent* _el_parser_parse_ident(ElParser* parser) {
         return NULL;
     }
 
-    ElToken tok = parser->current;
-    el_parser_advance(parser);
-
+    ElToken tok = el_parser_advance(parser);
     return el_ast_new_ident_raw(parser->arena, tok.span, tok.lexeme);
 }
 

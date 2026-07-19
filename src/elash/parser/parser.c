@@ -34,7 +34,9 @@ bool el_parser_had_new_errors(const ElParser* parser, uint error_count_before) {
     return parser->diag->summary.total_errors > error_count_before;
 }
 
-void el_parser_advance(ElParser* parser) {
+ElToken el_parser_advance(ElParser* parser) {
+    ElToken prev = parser->current;
+
     if (parser->lookahead.len > 0) {
         el_tkque_pop(&parser->lookahead, &parser->current);
     } else {
@@ -44,6 +46,8 @@ void el_parser_advance(ElParser* parser) {
     if (parser->current.type == EL_TT_UNKNOWN) {
         _el_parser_report_unexpected(parser, parser->current);
     }
+
+    return prev;
 }
 
 ElToken el_parser_peek(ElParser* parser) {
@@ -75,12 +79,13 @@ bool el_parser_check(ElParser* parser, ElTokenType type) {
     return parser->current.type == type;
 }
 
-void el_parser_expect(ElParser* parser, ElTokenType type) {
+ElToken el_parser_expect(ElParser* parser, ElTokenType type) {
     if (el_parser_check(parser, type)) {
-        el_parser_advance(parser);
-        return;
+        return el_parser_advance(parser);
     }
+
     _el_parser_report_expected(parser, type);
+    return parser->current;
 }
 
 void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena) {

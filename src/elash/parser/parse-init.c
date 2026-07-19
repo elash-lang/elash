@@ -3,8 +3,7 @@
 
 ElAstInit* el_parser_parse_init(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_LBRACE)) {
-        ElToken lbrace = parser->current;
-        el_parser_advance(parser);
+        ElToken lbrace = el_parser_advance(parser);
 
         ElAstInit* head = NULL;
         ElAstInit* tail = NULL;

@@ -33,7 +33,7 @@ uint el_parser_error_count(const ElParser* parser);
 bool el_parser_had_new_errors(const ElParser* parser, uint error_count_before);
 
 ElToken el_parser_advance(ElParser* parser);
-void el_parser_expect(ElParser* parser, ElTokenType type);
+ElToken el_parser_expect(ElParser* parser, ElTokenType type);
 
 bool    el_parser_match(ElParser* parser, ElTokenType type);
 bool    el_parser_check(ElParser* parser, ElTokenType type);
