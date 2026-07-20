@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
       - name: Update repos
-      - run: sudo apt update
+        run: sudo apt update
 
       - name: Install LLVM
         run: sudo apt install -y llvm

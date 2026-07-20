@@ -3,7 +3,7 @@
 #include <elc/cli/args.h>
 #include <elc/cli/argparse.h>
 
-int main(int argc, const char* const* argv) {
+int main(int argc, const char* argv[]) {
     ElcArgs args;
     ElcCliParseResult result = elc_cli_parse_args(argc, argv, &args);
     if (result.code != ELC_CLI_PARSE_OK) {
