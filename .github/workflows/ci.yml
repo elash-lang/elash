@@ -12,31 +12,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
       CC: ccache cc
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Update repos
-        run: sudo apt update
 
-      - name: Install LLVM
-        run: sudo apt install -y llvm
-      - name: Install Criterion
-        run: sudo apt install -y libcriterion-dev
-      - name: Install ccache
-        run: sudo apt install -y ccache
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y llvm libcriterion-dev ccache
 
       - name: Cache ccache
         uses: actions/cache@v6
         with:
-          path: ~/.ccache
+          path: ~/.cache/ccache
           key: ${{ runner.os }}-ccache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-ccache-
 
+      - name: Zero ccache stats
+        run: ccache -z
+
       - name: Build
         run: make libelash-static elc V=1
+
+      - name: Show ccache stats
+        run: ccache -s
 
       - name: Unit tests
         run: make unit-test
