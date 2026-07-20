@@ -22,9 +22,7 @@ void el_mir_ibuf_destroy(ElMirInstrBuf* ibuf) {
 bool el_mir_ibuf_copy(const ElMirInstrBuf* src, ElMirInstrBuf* dst) {
     el_mir_ibuf_init(dst);
 
-    if (src->len == 0) {
-        return true;
-    }
+    if (src->len == 0) return true;
 
     dst->items = malloc(src->len * sizeof(ElMirInstr*));
     if (dst->items == NULL) {
@@ -88,8 +86,8 @@ bool el_mir_ibuf_resize(ElMirInstrBuf* ibuf, usize new_size) {
 
     if (new_size > ibuf->len) {
         memset(
-            ibuf->items + ibuf->len, 
-            0, 
+            ibuf->items + ibuf->len,
+            0,
             (new_size - ibuf->len) * sizeof(ElMirInstr*)
         );
     }
