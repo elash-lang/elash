@@ -8,6 +8,7 @@
 #include "expr/array-lit.h"
 #include "expr/call.h"
 #include "expr/cast.h"
+#include "expr/member.h"
 
 #include "type.h"
 
@@ -22,19 +23,23 @@ typedef enum ElAstExprType {
     EL_AST_EXPR_IDENT,
     EL_AST_EXPR_CALL,
     EL_AST_EXPR_CAST,
+    EL_AST_EXPR_MEMBER,
+    EL_AST_EXPR_TMEMBER,
 } ElAstExprType;
 
 typedef struct ElAstExpr {
     ElAstExprType type;
     ElSourceSpan span;
     union {
-        ElAstBinExpr   binary;
-        ElAstUnaryExpr unary;
-        ElAstLiteral   literal;
-        ElAstArrayLit  array_lit;
-        ElAstIdent     ident;
-        ElAstCallExpr  call;
-        ElAstCastExpr  cast;
+        ElAstBinExpr     binary;
+        ElAstUnaryExpr   unary;
+        ElAstLiteral     literal;
+        ElAstArrayLit    array_lit;
+        ElAstIdent       ident;
+        ElAstCallExpr    call;
+        ElAstCastExpr    cast;
+        ElAstMemberExpr  member;
+        ElAstTMemberExpr tmember;
     } as;
     ElAstExpr* next;
 } ElAstExpr;
