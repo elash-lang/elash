@@ -1,0 +1,25 @@
+name: Dev CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: make
+
+      - name: Unit tests
+        run: make unit-test
+
+      - name: End-to-End tests
+        run: make test-e2e
