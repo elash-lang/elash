@@ -12,6 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
       CC: ccache gcc
     steps:
       - name: Checkout repository
@@ -30,7 +31,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.ccache
-          key: ${{ runner.os }}-ccache-${{ hashFiles('**/*.c', '**/*.h') }}
+          key: ${{ runner.os }}-ccache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-ccache-
 
