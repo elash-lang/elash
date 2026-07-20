@@ -23,15 +23,12 @@ void el_ansi_apply_style(ElAnsiStyle style, FILE* out) {
     // start with reset to ensure a clean state.
     fprintf(out, "\033[0");
 
-    if (style.dec & EL_ANSI_DEC_BOLD) {
+    if (style.dec & EL_ANSI_DEC_BOLD)
         fprintf(out, ";1");
-    }
-    if (style.dec & EL_ANSI_DEC_ITALIC) {
+    if (style.dec & EL_ANSI_DEC_ITALIC)
         fprintf(out, ";3");
-    }
-    if (style.dec & EL_ANSI_DEC_UNDERLINE) {
+    if (style.dec & EL_ANSI_DEC_UNDERLINE)
         fprintf(out, ";4");
-    }
 
     if (style.fg_color != EL_ANSI_CLR_DEFAULT) {
         fprintf(out, ";%d", (int)style.fg_color);
