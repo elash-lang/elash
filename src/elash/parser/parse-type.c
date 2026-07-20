@@ -1,11 +1,63 @@
 #include <elash/parser/parser.h>
 #include <elash/ast/tree/type.h>
 
-ElAstType* _el_parser_parse_type(ElParser* parser) {
-    ElAstIdent* name = _el_parser_parse_ident(parser);
-    if (name == NULL) return NULL;
+static ElAstType* parse_tuple_type(ElParser* parser, ElToken struct_tok) {
+    el_parser_advance(parser); // (
 
-    ElAstType* type = el_ast_new_type_name(parser->arena, name->span, name);
+    ElAstType* head = NULL;
+    ElAstType* tail = NULL;
+    usize count = 0;
+
+    if (!el_parser_check(parser, EL_TT_RPAREN)) {
+        while (true) {
+            ElAstType* elem = _el_parser_parse_type(parser);
+            if (elem == NULL) break;
+
+            el_ast_type_list_append(&head, &tail, elem);
+            count++;
+
+            if (!el_parser_match(parser, EL_TT_COMMA)) break;
+            if (el_parser_check(parser, EL_TT_RPAREN)) break;
+        }
+    }
+
+    ElToken rparen_tok = el_parser_expect(parser, EL_TT_RPAREN);
+    return el_ast_new_type_tuple(parser->arena, el_source_span_merge(struct_tok.span, rparen_tok.span), head, count);
+}
+
+static ElAstType* parse_struct_type(ElParser* parser, ElToken struct_tok) {
+    el_parser_advance(parser); // {
+
+    ElAstDecl* head = NULL;
+    ElAstDecl* tail = NULL;
+    usize count = 0;
+
+    while (!el_parser_check(parser, EL_TT_RBRACE)) {
+        ElAstDecl* elem = el_parser_parse_decl(parser);
+        if (elem == NULL) break;
+
+        el_ast_append_decl(&head, &tail, elem);
+        count++;
+    }
+
+    ElToken rbrace_tok = el_parser_expect(parser, EL_TT_RBRACE);
+    return el_ast_new_type_struct(parser->arena, el_source_span_merge(struct_tok.span, rbrace_tok.span), head, count);
+}
+
+ElAstType* _el_parser_parse_type(ElParser* parser) {
+    ElAstType* type;
+    if (el_parser_check(parser, EL_TT_KW_STRUCT)) {
+        ElToken struct_tok = el_parser_advance(parser);
+        if (el_parser_check(parser, EL_TT_LPAREN)) {
+            type = parse_tuple_type(parser, struct_tok);
+        } else if (el_parser_check(parser, EL_TT_LBRACE)) {
+            type= parse_struct_type(parser, struct_tok);
+        }
+    } else {
+        ElAstIdent* name = _el_parser_parse_ident(parser);
+        if (name == NULL) return NULL;
+        type = el_ast_new_type_name(parser->arena, name->span, name);
+    }
 
     while (true) {
         if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
@@ -40,28 +92,4 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
     }
 
     return type;
-}
-
-bool _el_parser_lookahead_skip_type(ElParser* parser, usize* idx) {
-    if (el_parser_peek_at(parser, *idx).type != EL_TT_IDENT) return false;
-    (*idx)++;
-
-    while (true) {
-        ElToken tok = el_parser_peek_at(parser, *idx);
-        if (tok.type == EL_TT_BITWISE_AND) {
-            (*idx)++;
-        } else if (tok.type == EL_TT_LBRACKET) {
-            (*idx)++;
-            int depth = 1;
-            while (depth > 0) {
-                tok = el_parser_peek_at(parser, (*idx)++);
-                if (tok.type == EL_TT_EOF) return false;
-                if (tok.type == EL_TT_LBRACKET) depth++;
-                if (tok.type == EL_TT_RBRACKET) depth--;
-            }
-        } else {
-            break;
-        }
-    }
-    return true;
 }
