@@ -11,11 +11,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CC: ccache gcc
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
+      - name: Update repos
+      - run: sudo apt update
+
       - name: Install LLVM
-        run: sudo apt-get update && sudo apt-get install -y llvm
+        run: sudo apt install -y llvm
+      - name: Install Criterion
+        run: sudo apt install -y libcriterion-dev
+      - name: Install ccache
+        run: sudo apt install -y ccache
+
+      - name: Cache ccache
+        uses: actions/cache@v6
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/*.c', '**/*.h') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
 
       - name: Build
         run: make
