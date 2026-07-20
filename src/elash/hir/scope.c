@@ -8,7 +8,7 @@
 
 ElScope* el_hir_scope_new(ElScope* parent) {
     ElScope* scope = malloc(sizeof(ElScope));
-    if (!scope) return NULL;
+    if (scope == NULL) return NULL;
 
     scope->parent = parent;
     scope->capacity = INITIAL_CAPACITY;
