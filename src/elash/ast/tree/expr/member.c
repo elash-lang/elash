@@ -1,7 +1,7 @@
 #include <elash/ast/tree/expr/member.h>
 #include <elash/ast/tree/expr.h>
 
-ElAstExpr* el_ast_new_member_expr(ElDynArena* arena, ElSourceSpan span, ElAstExpr* expr, ElAstIdent* name) {
+ElAstExpr* el_ast_new_member_expr(ElDynArena* arena, ElSourceSpan span, ElAstExpr* expr, ElStringView name) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstExpr, {
         .type = EL_AST_EXPR_MEMBER,
         .span = span,

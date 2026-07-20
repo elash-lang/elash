@@ -120,6 +120,33 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     return NULL;
 }
 
+static ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
+    if (!expr) return NULL;
+    if (el_parser_check(parser, EL_TT_IDENT)) {
+        ElToken name_ident = el_parser_expect(parser, EL_TT_IDENT);
+        ElSourceSpan span = el_source_span_merge(expr->span, name_ident.span);
+        return el_ast_new_member_expr(parser->arena, span, expr, name_ident.lexeme);
+    } else if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
+        ElToken index_tok = el_parser_advance(parser);
+        // TODO: i think we need a function for parsing integer literals
+        //       so we'll be able to add for example hex-literals in the
+        //       future without duplicating the same code in many places
+        uint64_t val = 0;
+        if (!el_string_to_u64(index_tok.lexeme, /* NOLINTBEGIN(readability-magic-numbers): SHUT UP CLANG-TIDY */ 10 /* NOLINTEND(readability-magic-numbers) */, &val)) {
+            return el_diag_report(
+                parser->diag, EL_DIAG_ERROR, "syntax.invalid-number",
+                index_tok.span, "invalid integer literal"
+            );
+        }
+
+        ElSourceSpan span = el_source_span_merge(expr->span, index_tok.span);
+        return el_ast_new_tmember_expr(parser->arena, span, expr, (usize)val, index_tok.span);
+    } else {
+        el_parser_expect(parser, EL_TT_IDENT);
+        return NULL;
+    }
+}
+
 static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
     ElAstInit* args_head = NULL;
     ElAstInit* args_tail = NULL;
@@ -200,6 +227,8 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
                 el_source_span_merge(expr->span, rbracket.span),
                 EL_SEMA_BIN_OP_INDEX, expr, index
             );
+        } else if (el_parser_match(parser, EL_TT_DOT)) {
+            expr = _el_parser_parse_member(parser, expr);
         } else {
             break;
         }
