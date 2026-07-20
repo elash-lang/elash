@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-ccache-
 
       - name: Build
-        run: libelash-static elc
+        run: make libelash-static elc
 
       - name: Unit tests
         run: make unit-test
