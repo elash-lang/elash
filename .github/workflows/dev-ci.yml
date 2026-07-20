@@ -34,7 +34,7 @@ jobs:
         run: ccache -z
 
       - name: Build
-        run: make libelash-static elc V=1
+        run: make libelash-static elc -j$(nproc)
 
       - name: Show ccache stats
         run: ccache -s
