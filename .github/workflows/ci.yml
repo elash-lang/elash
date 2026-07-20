@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CC: ccache gcc
+      CC: ccache cc
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -36,7 +36,7 @@ jobs:
             ${{ runner.os }}-ccache-
 
       - name: Build
-        run: make libelash-static elc
+        run: make libelash-static elc V=1
 
       - name: Unit tests
         run: make unit-test

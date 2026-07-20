@@ -3,9 +3,8 @@
 #include <elash/lexer/token.h>
 
 static bool _el_parser_at_sync_point(ElTokenType tok, ElParserSyncKind kind, int brace_depth, int paren_depth) {
-    if (tok == EL_TT_EOF) {
+    if (tok == EL_TT_EOF)
         return true;
-    }
 
     switch (kind) {
     case EL_PARSER_SYNC_STMT:
