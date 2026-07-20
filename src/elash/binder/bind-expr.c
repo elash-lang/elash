@@ -19,6 +19,33 @@
     ); \
 } while (0)
 
+static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr** left, ElHirExpr** right) {
+    ElHirType* type = (*left)->type;
+    if ((*left)->type == NULL && (*right)->type != NULL) {
+        (*left) = _el_binder_implicit_cast(binder, bin->left->span, *left, (*right)->type);
+        if ((*left) == NULL) return NULL;
+        type = (*left)->type;
+    } else if ((*right)->type == NULL && (*left)->type != NULL) {
+        (*right) = _el_binder_implicit_cast(binder, bin->right->span, *right, (*left)->type);
+        if ((*right) == NULL) return NULL;
+        type = (*left)->type;
+    }
+
+    if (!el_hir_type_eql((*left)->type, (*right)->type))
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+            in->span, "left and right operand types must be identical"
+        );
+
+    if (el_sema_bin_op_is_comparison(bin->op)) {
+        if ((*left)->type == NULL) type = NULL;
+        else type = binder->builtins->type_bool;
+    }
+
+    return type;
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): AGAIN, clang-tidy doesn't understand macros
 ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
     ElHirExpr* left  = el_binder_bind_expr(binder, bin->left);
     ElHirExpr* right = el_binder_bind_expr(binder, bin->right);
@@ -37,26 +64,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 
             type = binder->builtins->type_bool;
         } else {
-            if (left->type == NULL && right->type != NULL) {
-                left = _el_binder_implicit_cast(binder, bin->left->span, left, right->type);
-                if (left == NULL) return NULL;
-                type = left->type;
-            } else if (right->type == NULL && left->type != NULL) {
-                right = _el_binder_implicit_cast(binder, bin->right->span, right, left->type);
-                if (right == NULL) return NULL;
-                type = left->type;
-            }
-
-            if (!el_hir_type_eql(left->type, right->type))
-                return el_diag_report(
-                    binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-                    in->span, "left and right operand types must be identical"
-                );
-
-            if (el_sema_bin_op_is_comparison(bin->op)) {
-                if (left->type == NULL) type = NULL;
-                else type = binder->builtins->type_bool;
-            }
+            type = bind_arith_op(binder, in, bin, &left, &right);
         }
     } else {
         IMPLICIT_CAST_IF_NEEDED(right, bin->right->span, binder->builtins->type_usize);
