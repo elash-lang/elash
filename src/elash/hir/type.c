@@ -70,6 +70,30 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         }
         write(")", ctx);
         return;
+    case EL_HIR_TYPE_STRUCT:
+        write("struct {", ctx);
+        for (usize i = 0; i < type->as.struct_.count; i++) {
+            // TODO: this SUCKS. write probably should accept a string view.
+            ElStringView name = type->as.struct_.fields[i].name;
+            char buf[2] = { '\0', '\0' };
+            for (usize j = 0; j < name.len; j++) {
+                buf[0] = name.data[j];
+                write(buf, ctx);
+            }
+            write(": ", ctx);
+            el_sema_format_type_internal(type->as.struct_.fields[i].type, write, ctx);
+            if (i + 1 < type->as.struct_.count) write(", ", ctx);
+        }
+        write("}", ctx);
+        return;
+    case EL_HIR_TYPE_TUPLE:
+        write("(", ctx);
+        for (usize i = 0; i < type->as.tuple.count; i++) {
+            el_sema_format_type_internal(type->as.tuple.elements[i], write, ctx);
+            if (i + 1 < type->as.tuple.count) write(", ", ctx);
+        }
+        write(")", ctx);
+        return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirTypeKind, type->kind);
 }
@@ -109,6 +133,19 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
             if (!el_hir_type_eql(lhs->as.func.params[i], rhs->as.func.params[i])) {
                 return false;
             }
+        }
+        return true;
+    case EL_HIR_TYPE_STRUCT:
+        if (lhs->as.struct_.count != rhs->as.struct_.count) return false;
+        for (usize i = 0; i < lhs->as.struct_.count; i++) {
+            if (!el_sv_eql(lhs->as.struct_.fields[i].name, rhs->as.struct_.fields[i].name)) return false;
+            if (!el_hir_type_eql(lhs->as.struct_.fields[i].type, rhs->as.struct_.fields[i].type)) return false;
+        }
+        return true;
+    case EL_HIR_TYPE_TUPLE:
+        if (lhs->as.tuple.count != rhs->as.tuple.count) return false;
+        for (usize i = 0; i < lhs->as.tuple.count; i++) {
+            if (!el_hir_type_eql(lhs->as.tuple.elements[i], rhs->as.tuple.elements[i])) return false;
         }
         return true;
     }

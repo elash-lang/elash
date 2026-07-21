@@ -93,7 +93,7 @@ void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
         break;
     case EL_AST_EXPR_MEMBER:
         el_ast_dump_print_indent(indent, out);
-        fprintf(out, "MemberExpr(\""EL_SV_FMT"\"):\n", EL_SV_FARG(node->as.member.name->name));
+        fprintf(out, "MemberExpr(\""EL_SV_FMT"\"):\n", EL_SV_FARG(node->as.member.name));
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "expr:\n");
         el_ast_dump_expr(node->as.member.expr, indent + 2, out);

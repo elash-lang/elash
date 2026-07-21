@@ -8,6 +8,8 @@
 #include "type/func.h"
 #include "type/array.h"
 #include "type/slice.h"
+#include "type/tuple.h"
+#include "type/struct.h"
 #include "type/raw-slice.h"
 
 typedef enum ElHirTypeKind {
@@ -17,6 +19,8 @@ typedef enum ElHirTypeKind {
     EL_HIR_TYPE_ARRAY,
     EL_HIR_TYPE_SLICE,
     EL_HIR_TYPE_RWSLICE,
+    EL_HIR_TYPE_STRUCT,
+    EL_HIR_TYPE_TUPLE,
 } ElHirTypeKind;
 
 typedef struct ElHirType ElHirType;
@@ -28,6 +32,8 @@ struct ElHirType {
         ElHirSliceType    slice;
         ElHirArrayType    array;
         ElHirRawSliceType rwslice;
+        ElHirStructType   struct_;
+        ElHirTupleType    tuple;
         ElHirFuncType     func;
     } as;
 };
