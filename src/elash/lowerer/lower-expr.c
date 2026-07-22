@@ -17,6 +17,23 @@ static inline bool is_int_or_char(ElMirType* type) {
     return type->kind == EL_MIR_TYPE_INT;
 }
 
+static bool el_hir_expr_is_lvalue(const ElHirExpr* hir) {
+    switch (hir->kind) {
+    case EL_HIR_EXPR_SYMBOL:
+        return hir->as.symbol->kind == EL_SYM_VAR || hir->as.symbol->kind == EL_SYM_FUNC;
+    case EL_HIR_EXPR_BINARY:
+        return hir->as.binary.op == EL_SEMA_BIN_OP_INDEX;
+    case EL_HIR_EXPR_UNARY:
+        return hir->as.unary.op == EL_SEMA_UNARY_OP_DEREF;
+    case EL_HIR_EXPR_MEMBER:
+        return el_hir_expr_is_lvalue(hir->as.member.expr);
+    case EL_HIR_EXPR_TMEMBER:
+        return el_hir_expr_is_lvalue(hir->as.tmember.expr);
+    default:
+        return false;
+    }
+}
+
 ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirValue* operand = el_lowerer_lower_expr(lw, hir->as.cast.expr);
     ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
@@ -240,6 +257,30 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_ARRAYLIT: return _el_lowerer_lower_array_lit_expr(lw, hir);
     case EL_HIR_EXPR_CAST:     return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:   return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
+    case EL_HIR_EXPR_TMEMBER: {
+        if (el_hir_expr_is_lvalue(hir->as.tmember.expr)) {
+            ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
+            ElMirType* field_type = el_lowerer_map_type(lw, hir->type);
+            ElMirValue* result = el_mir_new_reg(lw->arena, field_type, lw->current_func->reg_count++);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, field_ptr));
+            return result;
+        } else {
+            ElMirValue* val = el_lowerer_lower_expr(lw, hir->as.tmember.expr);
+            return _el_lowerer_extract_tuple_field(lw, val, hir->as.tmember.index);
+        }
+    }
+    case EL_HIR_EXPR_MEMBER: {
+        if (el_hir_expr_is_lvalue(hir->as.member.expr)) {
+            ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
+            ElMirType* field_type = el_lowerer_map_type(lw, hir->type);
+            ElMirValue* result = el_mir_new_reg(lw->arena, field_type, lw->current_func->reg_count++);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, field_ptr));
+            return result;
+        } else {
+            ElMirValue* val = el_lowerer_lower_expr(lw, hir->as.member.expr);
+            return _el_lowerer_extract_tuple_field(lw, val, hir->as.member.index);
+        }
+    }
     case EL_HIR_EXPR_CONST: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
         ElMirConstant mir_const;

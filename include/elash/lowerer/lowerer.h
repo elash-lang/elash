@@ -53,6 +53,7 @@ enum {
 };
 
 ElMirValue*  _el_lowerer_extract_tuple_field(ElLowerer* lw, ElMirValue* tuple, usize index);
+ElMirValue*  _el_lowerer_get_tuple_field_ptr(ElLowerer* lw, ElMirValue* tuple_ptr, usize index);
 ElMirValue* _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirValue** fields);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);

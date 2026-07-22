@@ -22,9 +22,7 @@ ElAstInit* el_parser_parse_init(ElParser* parser) {
             }
         }
 
-        ElToken rbrace = parser->current;
-        el_parser_expect(parser, EL_TT_RBRACE);
-
+        ElToken rbrace = el_parser_expect(parser, EL_TT_RBRACE);
         return el_ast_new_init_list(parser->arena, el_source_span_merge(lbrace.span, rbrace.span), head, count);
     }
 

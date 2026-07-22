@@ -36,7 +36,8 @@ def print_info(msg: str):
 
 def print_pass(name: str):
     print(f'[{CLR_GREEN}PASS{CLR_RESET}] Test passed: {name}')
-
+def print_skip(name: str):
+    print(f'[{CLR_BLUE}SKIP{CLR_RESET}] Test skipped: {name}')
 def print_fail(name: str):
     print(f'[{CLR_RED}FAIL{CLR_RESET}] Test failed: {name}')
 
@@ -77,10 +78,14 @@ def print_diff(expected: str, actual: str, stream_name: str):
     for line in diff:
         print_info(f'  {line.rstrip()}')
 
-def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult:
+def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult | None:
     input_file = path.joinpath('input.ei')
     if not input_file.is_file():
         error(f"ill-formed test case '{name}': no input.ei")
+
+    skip_file = path.joinpath('skip')
+    if skip_file.is_file():
+        return None
 
     safe_name = name.replace(os.sep, '_')
     obj = work_dir.joinpath(f'{safe_name}.o')
@@ -159,8 +164,9 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
         return True
 
 def run_suite(elc_bin: Path, work_dir: Path) -> bool:
-    passed_count = 0
-    failed_count = 0
+    passed_count  = 0
+    failed_count  = 0
+    skipped_count = 0
 
     test_dirs = _collect_test_dirs()
 
@@ -169,19 +175,23 @@ def run_suite(elc_bin: Path, work_dir: Path) -> bool:
         expected = get_expectation(path, name)
         actual = run_test_case(elc_bin, work_dir, path, name, expected.diags is not None)
 
-        if _is_success(expected, actual):
+        if actual is None:
+            print_skip(name)
+            skipped_count += 1
+        elif _is_success(expected, actual):
             print_pass(name)
             passed_count += 1
         else:
             report_failure(name, expected, actual)
             failed_count += 1
 
-    tested_count = passed_count + failed_count
+    tested_count = passed_count + failed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
     print(f'Tested: {CLR_BLUE}{tested_count}{CLR_RESET}{CLR_BOLD} ', end='')
     print(f'| Passing: {CLR_GREEN}{passed_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD}', end='')
-    print()
+    print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD} ', end='')
+    print(f'| Skipped: {CLR_BLUE}{skipped_count}{CLR_RESET}{CLR_BOLD}', end='')
+    print(CLR_RESET)
 
     return failed_count == 0
 

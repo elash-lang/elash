@@ -25,3 +25,5 @@ typedef struct ElAstDecl {
     } as;
     ElAstDecl* next;
 } ElAstDecl;
+
+void el_ast_append_decl(ElAstDecl** head, ElAstDecl** tail, ElAstDecl* decl);

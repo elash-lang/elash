@@ -102,6 +102,16 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
             case EL_HIR_UNTYPED_BOOL: fputs(node->as.untyped_lit.of.bool_ ? "true" : "false", out); break;
         }
         break;
+
+    case EL_HIR_EXPR_MEMBER:
+        el_hir_dump_expr(node->as.member.expr, 0, out);
+        fprintf(out, "." EL_SV_FMT, EL_SV_FARG(node->as.member.name));
+        break;
+
+    case EL_HIR_EXPR_TMEMBER:
+        el_hir_dump_expr(node->as.tmember.expr, 0, out);
+        fprintf(out, ".%"PRIu64, (uint64_t)node->as.tmember.index);
+        break;
     }
 
     fputs(" : ", out);

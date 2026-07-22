@@ -35,6 +35,8 @@ struct ElAstType {
         ElAstStructType struct_;
         ElAstTupleType  tuple;
     } as;
+    ElAstType* next;
 };
 
 ElAstType* el_ast_new_type_name(ElDynArena* arena, ElSourceSpan span, ElAstIdent* name);
+void el_ast_type_list_append(ElAstType** head, ElAstType** tail, ElAstType* type);

@@ -23,7 +23,8 @@
 - [x] Slice types
 - [x] Raw slice types
 - [x] Array types
-- [ ] Struct types
+- [x] Struct types
+- [x] Tuple types
 - [ ] Enum types
 - [x] Type casting
 
@@ -34,9 +35,8 @@
 - [x] Function calls
 - [x] Pointer dereference operator
 - [x] Array subscript operator
-- [ ] Member access operator
+- [x] Member access operator
 - [x] Increment and decrement operators
-- [ ] Pointer arithmetic
 - [x] Variable assignment operator
 - [x] Compound assignment operators (+=, -=, ...)
 - [ ] String literals

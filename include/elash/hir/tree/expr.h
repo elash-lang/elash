@@ -13,6 +13,7 @@
 #include "expr/cast.h"
 #include "expr/array-lit.h"
 #include "expr/untyped-lit.h"
+#include "expr/member.h"
 
 typedef enum ElHirExprKind {
     EL_HIR_EXPR_BINARY,
@@ -24,21 +25,25 @@ typedef enum ElHirExprKind {
     EL_HIR_EXPR_CAST,
     EL_HIR_EXPR_ARRAYLIT,
     EL_HIR_EXPR_UNTYPEDLIT,
+    EL_HIR_EXPR_MEMBER,
+    EL_HIR_EXPR_TMEMBER,
 } ElHirExprKind;
 
 typedef struct ElHirExpr {
     ElHirExprKind kind;
     ElHirType* type; // NULL if it's untyped (i.e. kind == untyped lit)
     union {
-        ElHirBinExpr    binary;
-        ElHirUnaryExpr  unary;
-        ElHirConstant   constant;
-        ElHirSymbol*    symbol;
-        ElHirCallExpr   call;
-        ElHirIntrExpr   intr;
-        ElHirCastExpr   cast;
-        ElHirArrayLit   array_lit;
-        ElHirUntypedLit untyped_lit;
+        ElHirBinExpr     binary;
+        ElHirUnaryExpr   unary;
+        ElHirConstant    constant;
+        ElHirSymbol*     symbol;
+        ElHirCallExpr    call;
+        ElHirIntrExpr    intr;
+        ElHirCastExpr    cast;
+        ElHirArrayLit    array_lit;
+        ElHirUntypedLit  untyped_lit;
+        ElHirMemberExpr  member;
+        ElHirTMemberExpr tmember;
     } as;
 } ElHirExpr;
 
