@@ -14,6 +14,8 @@
 - [ ] For loops
 
 ### Type system
+- [ ] Strong aliases (typedef)
+- [ ] Structs syntactic sugar
 - [x] Basic primitive types
 - [ ] Floating-point types
 - [x] Pointer types
