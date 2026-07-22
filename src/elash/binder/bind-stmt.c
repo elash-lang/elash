@@ -9,10 +9,12 @@
 #include <elash/hir/tree/stmt/return.h>
 
 bool _el_binder_is_lvalue(ElHirExpr* expr) {
-    // TODO: simplified
+    if (expr == NULL) return false;
     return (expr->kind == EL_HIR_EXPR_UNARY && expr->as.unary.op == EL_SEMA_UNARY_OP_DEREF)
         || (expr->kind == EL_HIR_EXPR_BINARY && expr->as.binary.op == EL_SEMA_BIN_OP_INDEX)
-        || (expr->kind == EL_HIR_EXPR_SYMBOL);
+        || (expr->kind == EL_HIR_EXPR_SYMBOL)
+        || (expr->kind == EL_HIR_EXPR_MEMBER)
+        || (expr->kind == EL_HIR_EXPR_TMEMBER);
 }
 
 ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {

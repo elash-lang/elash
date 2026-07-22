@@ -65,6 +65,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
             type = binder->builtins->type_bool;
         } else {
             type = bind_arith_op(binder, in, bin, &left, &right);
+            if (left == NULL || right == NULL) return NULL;
         }
     } else {
         IMPLICIT_CAST_IF_NEEDED(right, bin->right->span, binder->builtins->type_usize);
@@ -210,7 +211,7 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
 
 ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* cast) {
     ElHirExpr* expr = el_binder_bind_expr(binder, cast->expr);
-    ElHirType*    type = _el_binder_bind_type(binder, cast->type);
+    ElHirType* type = _el_binder_bind_type(binder, cast->type);
 
     return _el_binder_explicit_cast(binder, in->span, expr, type);
 }
@@ -224,6 +225,73 @@ ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstArray
     return el_binder_bind_init(binder, array_lit->init, type);
 }
 
+ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
+    ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
+    if (expr == NULL) return NULL;
+
+    if (expr->type == NULL || expr->type->kind != EL_HIR_TYPE_STRUCT) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.not-struct",
+            member->expr->span, "member access requires a struct value"
+        );
+    }
+
+    ElHirStructType* stype = &expr->type->as.struct_;
+
+    bool found = false;
+    usize field_index;
+    for (usize i = 0; i < stype->count; i++) {
+        if (el_sv_eql(stype->fields[i].name, member->name)) {
+            found = true, field_index = i;
+            break;
+        }
+    }
+
+    if (!found) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.unknown-field",
+            in->span, "struct has no field named '${name}'",
+            EL_DIAG_STRING("name", member->name)
+        );
+    }
+
+    return el_hir_new_member_expr(
+        binder->hir_arena, stype->fields[field_index].type,
+        expr, member->name
+    );
+}
+
+ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr* tmember) {
+    (void) in;
+    ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
+    if (expr == NULL) return NULL;
+
+    if (expr->type == NULL || expr->type->kind != EL_HIR_TYPE_TUPLE) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.not-tuple",
+            tmember->expr->span, "tuple element access requires a tuple value",
+        );
+    }
+
+    ElHirTupleType* type = &expr->type->as.tuple;
+    if (tmember->index >= type->count) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.tuple-index-bounds",
+            tmember->index_span, "out of bounds tuple element access",
+        );
+        el_diag_help(
+            binder->diag, "expected value in range 0..${count}",
+            EL_DIAG_INT("count", type->count),
+        );
+        return NULL;
+    }
+
+    return el_hir_new_tmember_expr(
+        binder->hir_arena, type->elements[tmember->index],
+        expr, tmember->index
+    );
+}
+
 ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     if (in == NULL) return NULL;
 
@@ -235,6 +303,8 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     case EL_AST_EXPR_CALL:     return _el_binder_bind_call(binder, in, &in->as.call);
     case EL_AST_EXPR_CAST:     return _el_binder_bind_cast(binder, in, &in->as.cast);
     case EL_AST_EXPR_ARRAYLIT: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
+    case EL_AST_EXPR_MEMBER:   return _el_binder_bind_member_expr(binder, in, &in->as.member);
+    case EL_AST_EXPR_TMEMBER:  return _el_binder_bind_tmember_expr(binder, in, &in->as.tmember);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }

@@ -18,7 +18,7 @@ int main() {
         return 1;
     }
 
-    if (getX(&point2) != point2.0 || point2.y != point3.y) {
+    if (getX(&point2) != point2.0 || point2.1 != point3.y) {
         return 2;
     }
 
