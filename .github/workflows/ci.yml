@@ -1,13 +1,5 @@
 name: Dev CI
 
-on:
-  push:
-    branches-ignore:
-      - main
-  pull_request:
-    branches-ignore:
-      - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
