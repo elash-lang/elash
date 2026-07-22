@@ -79,9 +79,9 @@
 
 - [x] Define preprocessor directive syntax
 - [x] Implement preprocessing phase as a token-stream transform
-- [ ] Implement file inclusion directive
-- [ ] Resolve relative and module-based include paths
-- [ ] Prevent recursive inclusion
+- [ ] ~~Implement file inclusion directive~~ *(moved to 0.2.0)*
+- [ ] ~~Resolve relative and module-based include paths~~ *(moved to 0.2.0)*
+- [ ] ~~Prevent recursive inclusion~~ *(moved to 0.2.0)*
 - [ ] ~~Implement function-like macros~~ *(moved to 0.2.0)*
 - [ ] ~~Implement macro expansion engine~~ *(moved to 0.2.0)*
 - [ ] ~~Handle nested macro expansion~~ *(moved to 0.2.0)*
@@ -89,7 +89,7 @@
 - [ ] ~~Implement conditional compilation directives~~ *(moved to 0.2.0)*
 - [ ] ~~Evaluate constant expressions in conditionals~~ *(moved to 0.2.0)*
 - [ ] ~~Support predefined compiler macros~~ *(moved to 0.2.0)*
-- [ ] Add preprocessor test suite (includes, macros, conditionals, edge cases)
+- [ ] ~~Add preprocessor test suite (includes, macros, conditionals, edge cases)~~ *(moved to 0.2.0)*
 
 
 ### 3. Parser - AST
@@ -106,7 +106,7 @@
 - [x] Implement top-level/module parsing
 - [x] Attach source spans to AST nodes
 - [x] Implement error recovery
-- [ ] Add parser test suite
+- [ ] ~~Add parser test suite~~ *(moved to 0.2.0 or later)*
 
 
 ### 4. Semantic Analysis & ELHIR Generation (Binder)
@@ -125,7 +125,7 @@
 - [ ] Check whether function returns in all execution paths
 - [ ] Implement implicit and explicit conversions
 - [x] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
-- [ ] Add semantic & ELHIR test suite
+- [ ] ~~Add semantic & ELHIR test suite~~ *(moved to 0.2.0 or later)*
 
 
 ### 5. ELHIR -> ELMIR Lowering
