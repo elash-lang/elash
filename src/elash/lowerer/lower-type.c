@@ -54,6 +54,20 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
         ElMirType* base = el_lowerer_map_type(lw, type->as.array.base);
         return el_mir_new_array_type(lw->arena, base, type->as.array.size);
     }
+    case EL_HIR_TYPE_STRUCT: {
+        ElMirType** elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, type->as.struct_.count);
+        for (usize i = 0; i < type->as.struct_.count; ++i) {
+            elements[i] = el_lowerer_map_type(lw, type->as.struct_.fields[i].type);
+        }
+        return el_mir_new_tuple_type(lw->arena, elements, type->as.struct_.count);
+    }
+    case EL_HIR_TYPE_TUPLE: {
+        ElMirType** elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, type->as.tuple.count);
+        for (usize i = 0; i < type->as.tuple.count; ++i) {
+            elements[i] = el_lowerer_map_type(lw, type->as.tuple.elements[i]);
+        }
+        return el_mir_new_tuple_type(lw->arena, elements, type->as.tuple.count);
+    }
     case EL_HIR_TYPE_REF:
         return el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, type->as.ref.base));
     case EL_HIR_TYPE_RWSLICE:

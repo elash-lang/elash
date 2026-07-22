@@ -113,6 +113,16 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         return ptr;
     }
 
+    case EL_HIR_EXPR_TMEMBER: {
+        ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir->as.tmember.expr);
+        return _el_lowerer_get_tuple_field_ptr(lw, ptr, hir->as.tmember.index);
+    }
+
+    case EL_HIR_EXPR_MEMBER: {
+        ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir->as.member.expr);
+        return _el_lowerer_get_tuple_field_ptr(lw, ptr, hir->as.member.index);
+    }
+
     default: break;
     }
     EL_UNREACHABLE("expression is not an lvalue (this should be caught during semantic analysis)");

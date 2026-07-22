@@ -8,6 +8,7 @@ typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirMemberExpr {
     ElHirExpr* expr;
     ElStringView name;
+    usize index; // for performance reasons.
 } ElHirMemberExpr;
 
 typedef struct ElHirTMemberExpr {
@@ -15,5 +16,5 @@ typedef struct ElHirTMemberExpr {
     usize index;
 } ElHirTMemberExpr;
 
-ElHirExpr* el_hir_new_member_expr(ElDynArena* arena, ElHirType* type, ElHirExpr* expr, ElStringView name);
+ElHirExpr* el_hir_new_member_expr(ElDynArena* arena, ElHirType* type, ElHirExpr* expr, ElStringView name, usize index);
 ElHirExpr* el_hir_new_tmember_expr(ElDynArena* arena, ElHirType* type, ElHirExpr* expr, usize index);

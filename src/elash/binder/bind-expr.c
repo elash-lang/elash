@@ -257,7 +257,7 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
 
     return el_hir_new_member_expr(
         binder->hir_arena, stype->fields[field_index].type,
-        expr, member->name
+        expr, member->name, field_index
     );
 }
 
