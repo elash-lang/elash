@@ -4,6 +4,7 @@
 #include <elash/hir/symbol.h>
 #include <elash/hir/const.h>
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 
 #include "expr/bin.h"
 #include "expr/unary.h"
@@ -31,6 +32,7 @@ typedef enum ElHirExprKind {
 
 typedef struct ElHirExpr {
     ElHirExprKind kind;
+    ElSourceSpan span;
     ElHirType* type; // NULL if it's untyped (i.e. kind == untyped lit)
     union {
         ElHirBinExpr     binary;
@@ -47,4 +49,4 @@ typedef struct ElHirExpr {
     } as;
 } ElHirExpr;
 
-ElHirExpr* el_hir_new_symbol_expr(ElDynArena* arena, ElHirType* type, ElHirSymbol* symbol);
+ElHirExpr* el_hir_new_symbol_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElHirSymbol* symbol);

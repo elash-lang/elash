@@ -2,6 +2,7 @@
 
 #include <elash/hir/type.h>
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 #include <elash/defs/sv.h>
 
 typedef struct ElHirSymbol ElHirSymbol;

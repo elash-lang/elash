@@ -2,6 +2,7 @@
 
 #include <elash/hir/type.h>
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 
 typedef struct ElHirExpr ElHirExpr;
 
@@ -16,5 +17,5 @@ typedef struct ElHirTMemberExpr {
     usize index;
 } ElHirTMemberExpr;
 
-ElHirExpr* el_hir_new_member_expr(ElDynArena* arena, ElHirType* type, ElHirExpr* expr, ElStringView name, usize index);
-ElHirExpr* el_hir_new_tmember_expr(ElDynArena* arena, ElHirType* type, ElHirExpr* expr, usize index);
+ElHirExpr* el_hir_new_member_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElHirExpr* expr, ElStringView name, usize index);
+ElHirExpr* el_hir_new_tmember_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElHirExpr* expr, usize index);

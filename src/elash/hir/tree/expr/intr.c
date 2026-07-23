@@ -12,11 +12,12 @@
         "usize_type param must be instance of usize type" \
     );
 
-ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElHirType* usize_type, ElHirExpr* slice) {
+ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice) {
     NICE_TO_HAVE_ASSERTIONS(usize_type, slice);
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,
         .type = usize_type,
+        .span = span,
         .as.intr = {
             .kind = EL_HIR_INTR_SLICE_LEN,
             .params.slice = slice,
@@ -24,11 +25,12 @@ ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElHirType* usize_type, E
     });
 }
 
-ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElHirType* usize_type, ElHirExpr* slice) {
+ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice) {
     NICE_TO_HAVE_ASSERTIONS(usize_type, slice);
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,
         .type = usize_type,
+        .span = span,
         .as.intr = {
             .kind = EL_HIR_INTR_SLICE_DATA,
             .params.slice = slice,
@@ -36,10 +38,11 @@ ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElHirType* usize_type, 
     });
 }
 
-ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElHirExpr* rwslice, ElHirExpr* len) {
+ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHirExpr* rwslice, ElHirExpr* len) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,
         .type = el_hir_new_slice_type(arena, rwslice->type->as.rwslice.base),
+        .span = span,
         .as.intr = {
             .kind = EL_HIR_INTR_MAKE_SLICE,
             .params = { .rwslice = rwslice, .len = len },
