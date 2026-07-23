@@ -3,6 +3,7 @@ FROM alpine:latest
 RUN apk add --no-cache \
     build-base \
     llvm \
+    llvm-dev \
     ccache \
     git \
     meson \
