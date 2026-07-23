@@ -109,7 +109,9 @@ static ElcArtifactKind determine_target(const ElcArgs* args) {
 
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
     ElSourceDocument src;
-    if (!init_source_document(driver, args, &src)) return false;
+    if (!init_source_document(driver, args, &src)) {
+        return false;
+    }
 
     ElcArtifactKind target = determine_target(args);
 
