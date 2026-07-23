@@ -1,13 +1,11 @@
-FROM archlinux:latest
+FROM alpine:latest
 
-RUN pacman -Syu --noconfirm && \
-    pacman -S --noconfirm \
-        base-devel \
-        llvm \
-        criterion \
-        ccache \
-        git && \
-    pacman -Scc --noconfirm
+RUN apk add --no-cache \
+    build-base \
+    llvm \
+    ccache \
+    git \
+    criterion
 
 RUN mkdir -p /ccache
 
