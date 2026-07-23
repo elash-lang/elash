@@ -26,9 +26,9 @@ bool _el_strdoc_get_file_size(FILE* f, usize* out_size) {
     }
     *out_size = (usize)signed_size;
 
-    if (fseek(f, 0, SEEK_SET) != 0) {
+    if (fseek(f, 0, SEEK_SET) != 0)
         return false;
-    }
+
     return true;
 }
 
