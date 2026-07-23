@@ -1,4 +1,4 @@
-name: Dev CI
+name: CI
 
 on:
   push:
@@ -11,23 +11,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/elash-ci:latest
+
     env:
       CC: ccache cc
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y llvm libcriterion-dev ccache
-
       - name: Cache ccache
         uses: actions/cache@v6
         with:
-          path: ~/.cache/ccache
-          key: ${{ runner.os }}-ccache-${{ github.run_id }}
+          path: /ccache
+          key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-ccache-${{ github.ref_name }}-
             ${{ runner.os }}-ccache-
 
       - name: Zero ccache stats
