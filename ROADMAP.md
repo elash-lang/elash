@@ -98,7 +98,7 @@
 - [x] Implement expression parser with precedence handling
 - [x] Implement variable definitions
 - [x] Implement function definitions
-- [ ] Implement variable declarations (extern)
+- [x] Implement variable declarations (extern)
 - [x] Implement function declarations (extern)
 - [x] Implement blocks
 - [x] Implement control flow statements
@@ -123,10 +123,10 @@
 - [x] Validate return types
 - [x] Implement constant folding
 - [ ] Check whether function returns in all execution paths
-- [ ] Implement implicit and explicit conversions
+- [x] Implement implicit and explicit conversions
 - [x] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
 - [ ] ~~Add semantic & ELHIR test suite~~ *(moved to 0.2.0 or later)*
-
+- [x] Attach source spans to HIR nodes
 
 ### 5. ELHIR -> ELMIR Lowering
 
@@ -135,7 +135,7 @@
 - [x] Flatten nested expressions into linear ELMIR instructions
 - [x] Implement temporary variable generation
 - [ ] Perform early ELMIR optimizations (e.g., dead code elimination)
-
+- [ ] ~~Attach source spans to MIR structures~~ *(moved to 0.2.0 or later)*
 
 ### 6. ELMIR -> LLVM IR Lowering
 
@@ -153,7 +153,7 @@
 - [x] Verify LLVM module
 - [x] Emit LLVM IR (.ll)
 - [x] Emit object file
-
+- [ ] ~~Attach DWARF debug info~~ *(moved to 0.2.0 or later)*
 
 ### 7. Linking
 
@@ -179,7 +179,7 @@
 - [x] Implement useful flags
 - [ ] Implement optimization flags
 - [x] Implement colored diagnostics
-- [ ] Return proper exit codes
+- [x] Return proper exit codes
 
 ### 10. Standard Library
 - [ ] ~~`io` module~~ *(moved to 0.2.0 or later)*
