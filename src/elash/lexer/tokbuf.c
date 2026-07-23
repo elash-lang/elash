@@ -22,9 +22,8 @@ void el_tkbuf_destroy(ElTokenBuf* tkbuf) {
 bool el_tkbuf_copy(const ElTokenBuf* src, ElTokenBuf* dst) {
     el_tkbuf_init(dst);
 
-    if (src->len == 0) {
+    if (src->len == 0)
         return true;
-    }
 
     dst->data = malloc(src->len * sizeof(ElToken));
     if (dst->data == NULL) {
@@ -89,8 +88,8 @@ bool el_tkbuf_resize(ElTokenBuf* tkbuf, usize new_size) {
 
     if (new_size > tkbuf->len) {
         memset(
-            tkbuf->data + tkbuf->len, 
-            0, 
+            tkbuf->data + tkbuf->len,
+            0,
             (new_size - tkbuf->len) * sizeof(ElToken)
         );
     }
