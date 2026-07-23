@@ -20,7 +20,7 @@ void elc_dump_ast_observer_exec(
         FILE* out = stdout;
         if (path && strcmp(path, "-") != 0) {
             out = fopen(path, "w");
-            if (!out) return;
+            if (out == NULL) return;
         }
 
         fprintf(out, "ast dump:\n");

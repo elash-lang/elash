@@ -12,7 +12,7 @@ void elc_dump_lir_observer_exec(
 ) {
     (void) ctx, (void) stage_name;
     const char* path = (const char*) user_data;
-    
+
     if (artifact == NULL || artifact->kind != ELC_ART_LIR) return;
 
     const ElcLirHandle* lir = &artifact->as.lir;
@@ -21,7 +21,7 @@ void elc_dump_lir_observer_exec(
         FILE* out = stdout;
         if (path && strcmp(path, "-") != 0) {
             out = fopen(path, "w");
-            if (!out) return;
+            if (out == NULL) return;
         }
 
         fprintf(out, "lir dump:\n");

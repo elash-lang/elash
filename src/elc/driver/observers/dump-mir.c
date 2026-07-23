@@ -20,7 +20,7 @@ void elc_dump_mir_observer_exec(
         FILE* out = stdout;
         if (path && strcmp(path, "-") != 0) {
             out = fopen(path, "w");
-            if (!out) return;
+            if (out == NULL) return;
         }
 
         fprintf(out, "mir dump:\n");
