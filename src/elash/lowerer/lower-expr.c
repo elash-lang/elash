@@ -42,9 +42,13 @@ ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirType* from_type = el_lowerer_map_type(lw, hir->as.cast.expr->type);
     bool from_is_integral = is_int_or_char(from_type);
     bool to_is_integral = is_int_or_char(mir_type);
+    bool from_is_float = from_type->kind == EL_MIR_TYPE_FLOAT;
+    bool to_is_float = mir_type->kind == EL_MIR_TYPE_FLOAT;
 
     if (from_is_integral && to_is_integral) {
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_intcast_instr(lw->arena, result, operand));
+    } else if (from_is_float || to_is_float) {
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_fpcast_instr(lw->arena, result, operand));
     } else {
         // TODO: implement sizeof
         /* EL_ASSERT(sizeof hir->type == sizeof hir->as.cast.expr->type or sth) */;
@@ -103,7 +107,12 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
     ElMirValue* current = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current, ptr));
 
-    ElMirConstant one_lit = { .as.int_ = 1 };
+    ElMirConstant one_lit;
+    if (val_type->kind == EL_MIR_TYPE_FLOAT) {
+        one_lit.as.float_ = 1.0;
+    } else {
+        one_lit.as.int_ = 1;
+    }
     ElMirValue* one = el_mir_new_const(lw->arena, val_type, one_lit);
 
     ElSemaBinOp bin_op = (expr->op == EL_SEMA_UNARY_OP_PRE_INC || expr->op == EL_SEMA_UNARY_OP_POST_INC)
@@ -284,12 +293,18 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_CONST: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
         ElMirConstant mir_const;
-        if (hir->type->kind == EL_HIR_TYPE_PRIM && hir->type->as.prim.kind == EL_PRIMTYPE_BOOL) {
-            mir_const.as.int_ = hir->as.constant.as.bool_ ? 1 : 0;
-        } else if (hir->type->kind == EL_HIR_TYPE_PRIM && hir->type->as.prim.kind == EL_PRIMTYPE_CHAR) {
-            mir_const.as.int_ = (int64_t)hir->as.constant.as.char_;
-        } else {
+
+        EL_ASSERT(hir->type->kind == EL_HIR_TYPE_PRIM, "constant of non-primitive type");
+        if (hir->type->as.prim.kind == EL_PRIMTYPE_INT) {
             mir_const.as.int_ = hir->as.constant.as.int_;
+        } else if (hir->type->as.prim.kind == EL_PRIMTYPE_BOOL) {
+            mir_const.as.int_ = hir->as.constant.as.bool_ ? 1 : 0;
+        } else if (hir->type->as.prim.kind == EL_PRIMTYPE_CHAR) {
+            mir_const.as.int_ = (int64_t)hir->as.constant.as.char_;
+        } else if (hir->type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+            mir_const.as.float_ = hir->as.constant.as.float_;
+        } else {
+            EL_UNREACHABLE("invalid hir constant");
         }
         return el_mir_new_const(lw->arena, mir_type, mir_const);
     }

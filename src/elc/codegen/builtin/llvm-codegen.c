@@ -44,6 +44,17 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
         free(elem_types);
         return struct_type;
     }
+    case EL_MIR_TYPE_FLOAT:
+        // TODO: REMOVE FUCKING CLANG-TIDY FROM THIS PROJECT
+        // NOLINTBEGIN(readability-magic-numbers)
+        switch (type->as.float_.width) {
+        case 16:  return LLVMHalfTypeInContext(ctx->context);
+        case 32:  return LLVMFloatTypeInContext(ctx->context);
+        case 64:  return LLVMDoubleTypeInContext(ctx->context);
+        case 128: return LLVMFP128TypeInContext(ctx->context);
+        default:  EL_UNREACHABLE("unknown float width");
+        }
+        // NOLINTEND(readability-magic-numbers)
     case EL_MIR_TYPE_FUNC: {
         LLVMTypeRef ret_type = elc_llvm_map_type(ctx, type->as.func.ret_type);
         LLVMTypeRef* param_types = malloc(sizeof(LLVMTypeRef) * type->as.func.param_count);
@@ -66,6 +77,8 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
         LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
         if (value->type->kind == EL_MIR_TYPE_INT) {
             return LLVMConstInt(type, value->as.constant.as.int_, true);
+        } else if (value->type->kind == EL_MIR_TYPE_FLOAT) {
+            return LLVMConstReal(type, value->as.constant.as.float_);
         }
         EL_UNREACHABLE("unhandled constant type in codegen");
     }
@@ -114,21 +127,34 @@ bool elc_llvm_is_type_signed(const ElMirType* type) {
     return false;
 }
 
+LLVMRealPredicate elc_llvm_get_fp_predicate_of(ElSemaBinOp op) {
+    switch (op) {
+    case EL_SEMA_BIN_OP_EQ:  return LLVMRealOEQ;
+    case EL_SEMA_BIN_OP_NEQ: return LLVMRealONE;
+    case EL_SEMA_BIN_OP_GT:  return LLVMRealOGT;
+    case EL_SEMA_BIN_OP_GTE: return LLVMRealOGE;
+    case EL_SEMA_BIN_OP_LT:  return LLVMRealOLT;
+    case EL_SEMA_BIN_OP_LTE: return LLVMRealOLE;
+    default:
+        EL_UNREACHABLE("op should be a comparison operator");
+    }
+}
+
 void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     ElMirBinInstr* bin = &instr->as.bin;
     LLVMValueRef lhs = elc_llvm_map_value(ctx, func, bin->lhs);
     LLVMValueRef rhs = elc_llvm_map_value(ctx, func, bin->rhs);
 
     bool is_signed = elc_llvm_is_type_signed(bin->lhs->type);
+    bool is_float = bin->lhs->type->kind == EL_MIR_TYPE_FLOAT;
 
     LLVMValueRef res = NULL;
     switch (bin->op) {
-    case EL_SEMA_BIN_OP_ADD: res = LLVMBuildAdd(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_SUB: res = LLVMBuildSub(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_MUL: res = LLVMBuildMul(ctx->builder, lhs, rhs, ""); break;
-
-    case EL_SEMA_BIN_OP_DIV: res = (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv)(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_MOD: res = (is_signed ? LLVMBuildSRem : LLVMBuildURem)(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_ADD: res = (is_float ? LLVMBuildFAdd : LLVMBuildAdd)(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_SUB: res = (is_float ? LLVMBuildFSub : LLVMBuildSub)(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_MUL: res = (is_float ? LLVMBuildFMul : LLVMBuildMul)(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_DIV: res = (is_float ? LLVMBuildFDiv : (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv))(ctx->builder, lhs, rhs, ""); break;
+    case EL_SEMA_BIN_OP_MOD: res = (is_float ? LLVMBuildFRem : (is_signed ? LLVMBuildSRem : LLVMBuildURem))(ctx->builder, lhs, rhs, ""); break;
 
     case EL_SEMA_BIN_OP_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
     case EL_SEMA_BIN_OP_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
@@ -144,8 +170,13 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
 
     default:
         if (el_sema_bin_op_is_comparison(bin->op)) {
-            LLVMIntPredicate pred = elc_llvm_get_predicate_of(bin->op, is_signed);
-            res = LLVMBuildICmp(ctx->builder, pred, lhs, rhs, "");
+            if (is_float) {
+                LLVMRealPredicate pred = elc_llvm_get_fp_predicate_of(bin->op);
+                res = LLVMBuildFCmp(ctx->builder, pred, lhs, rhs, "");
+            } else {
+                LLVMIntPredicate pred = elc_llvm_get_predicate_of(bin->op, is_signed);
+                res = LLVMBuildICmp(ctx->builder, pred, lhs, rhs, "");
+            }
             break;
         }
         EL_UNREACHABLE_ENUM_VAL(ElSemaBinOp, bin->op);
@@ -259,15 +290,22 @@ void elc_llvm_compile_gfp_instr(Context* ctx, FunctionContext* func, ElMirInstr*
 }
 
 void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
-    LLVMValueRef operand = elc_llvm_map_value(ctx, func, instr->kind == EL_MIR_INSTR_INTCAST ? instr->as.intcast.operand : instr->as.bitcast.operand);
+    ElMirValue* mir_operand = NULL;
+    if (instr->kind == EL_MIR_INSTR_INTCAST) mir_operand = instr->as.intcast.operand;
+    else if (instr->kind == EL_MIR_INSTR_FPCAST) mir_operand = instr->as.fpcast.operand;
+    else mir_operand = instr->as.bitcast.operand;
+
+    LLVMValueRef operand = elc_llvm_map_value(ctx, func, mir_operand);
     LLVMTypeRef  to_type = elc_llvm_map_type(ctx, instr->result->type);
-    LLVMTypeRef  from_type = LLVMTypeOf(operand);
+
+    ElMirType* from_type = mir_operand->type;
+    ElMirType* to_type_mir = instr->result->type;
 
     LLVMValueRef res = NULL;
     if (instr->kind == EL_MIR_INSTR_INTCAST) {
-        bool is_signed = elc_llvm_is_type_signed(instr->result->type);
-        unsigned from_width = LLVMGetIntTypeWidth(from_type);
-        unsigned to_width = LLVMGetIntTypeWidth(to_type);
+        bool is_signed = elc_llvm_is_type_signed(to_type_mir);
+        unsigned from_width = from_type->as.integer.width;
+        unsigned to_width = to_type_mir->as.integer.width;
 
         if (to_width > from_width) {
             res = is_signed ? LLVMBuildSExt(ctx->builder, operand, to_type, "")
@@ -277,10 +315,38 @@ void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr
         } else {
             res = operand;
         }
+    } else if (instr->kind == EL_MIR_INSTR_FPCAST) {
+        bool from_is_float = from_type->kind == EL_MIR_TYPE_FLOAT;
+        bool to_is_float = to_type_mir->kind == EL_MIR_TYPE_FLOAT;
+
+        if (from_is_float && to_is_float) {
+            if (from_type->as.float_.width < to_type_mir->as.float_.width) {
+                res = LLVMBuildFPExt(ctx->builder, operand, to_type, "");
+            } else if (from_type->as.float_.width > to_type_mir->as.float_.width) {
+                res = LLVMBuildFPTrunc(ctx->builder, operand, to_type, "");
+            } else {
+                res = operand;
+            }
+        } else if (from_is_float && !to_is_float) {
+            bool is_signed = to_type_mir->as.integer.is_signed;
+            res = is_signed ? LLVMBuildFPToSI(ctx->builder, operand, to_type, "")
+                            : LLVMBuildFPToUI(ctx->builder, operand, to_type, "");
+        } else if (!from_is_float && to_is_float) {
+            bool is_signed = from_type->as.integer.is_signed;
+            res = is_signed ? LLVMBuildSIToFP(ctx->builder, operand, to_type, "")
+                            : LLVMBuildUIToFP(ctx->builder, operand, to_type, "");
+        }
     } else {
         res = LLVMBuildBitCast(ctx->builder, operand, to_type, "");
     }
-    ASSIGN_REG(func, instr->result, res, instr->kind == EL_MIR_INSTR_INTCAST ? "intcast" : "bitcast");
+
+    if (instr->kind == EL_MIR_INSTR_INTCAST) {
+        ASSIGN_REG(func, instr->result, res, "intcast");
+    } else if (instr->kind == EL_MIR_INSTR_FPCAST) {
+        ASSIGN_REG(func, instr->result, res, "fpcast");
+    } else {
+        ASSIGN_REG(func, instr->result, res, "bitcast");
+    }
 }
 
 void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
@@ -332,6 +398,7 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         elc_llvm_compile_gfp_instr(ctx, func, instr);
         return;
     case EL_MIR_INSTR_INTCAST:
+    case EL_MIR_INSTR_FPCAST:
     case EL_MIR_INSTR_BITCAST:
         elc_llvm_compile_cast_instr(ctx, func, instr);
         return;

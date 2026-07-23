@@ -28,8 +28,7 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         case EL_PRIMTYPE_VOID: write("void", ctx); return;
         case EL_PRIMTYPE_CHAR: write("char", ctx); return;
         case EL_PRIMTYPE_BOOL: write("bool", ctx); return;
-
-        case EL_PRIMTYPE_INT: {
+        case EL_PRIMTYPE_INT:
             write((const char* const [][2]) {
                 [EL_HIR_IWIDTH_NATIVE]    = { "usize",   "isize"  },
                 [EL_HIR_IWIDTH_EFFICIENT] = { "uint",    "int"    },
@@ -40,7 +39,15 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
                 [EL_HIR_IWIDTH_128]       = { "uint128", "int128" },
             }[type->as.prim.as.integral.width][type->as.prim.as.integral.is_signed], ctx);
             return;
-        }
+        case EL_PRIMTYPE_FLOAT:
+            write((const char* const[]) {
+                [EL_HIR_FPWIDTH_EFFICIENT] = "float",
+                [EL_HIR_FPWIDTH_16]        = "float16",
+                [EL_HIR_FPWIDTH_32]        = "float32",
+                [EL_HIR_FPWIDTH_64]        = "float64",
+                [EL_HIR_FPWIDTH_128]       = "float128",
+            }[type->as.prim.as.fp.width], ctx);
+            return;
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
     case EL_HIR_TYPE_REF:
@@ -105,14 +112,19 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
 
     switch (rhs->kind) {
     case EL_HIR_TYPE_PRIM:
-        if (lhs->as.prim.kind != rhs->as.prim.kind) {
-            return false;
-        }
-        if (lhs->as.prim.kind == EL_PRIMTYPE_INT) {
+        if (lhs->as.prim.kind != rhs->as.prim.kind) return false;
+        switch (lhs->as.prim.kind) {
+        case EL_PRIMTYPE_INT:
             return lhs->as.prim.as.integral.width == rhs->as.prim.as.integral.width &&
                    lhs->as.prim.as.integral.is_signed == rhs->as.prim.as.integral.is_signed;
+        case EL_PRIMTYPE_FLOAT:
+            return lhs->as.prim.as.fp.width == rhs->as.prim.as.fp.width;
+        case EL_PRIMTYPE_VOID:
+        case EL_PRIMTYPE_CHAR:
+        case EL_PRIMTYPE_BOOL:
+            return true;
         }
-        return true;
+        EL_UNREACHABLE("unknown primitive type kind");
     case EL_HIR_TYPE_REF:
         return el_hir_type_eql(lhs->as.ref.base, rhs->as.ref.base);
     case EL_HIR_TYPE_SLICE:

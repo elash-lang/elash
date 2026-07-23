@@ -11,6 +11,9 @@
 static inline bool is_fixed_width(ElHirIntWidth width) {
     return width != EL_HIR_IWIDTH_NATIVE && width != EL_HIR_IWIDTH_EFFICIENT;
 }
+static inline bool is_fixed_fp_width(ElHirFpWidth width) {
+    return width != EL_HIR_FPWIDTH_EFFICIENT;
+}
 
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 
@@ -25,7 +28,9 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         bool is_int_conv = from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT;
         bool is_char_int_conv = (from->as.prim.kind == EL_PRIMTYPE_INT || from->as.prim.kind == EL_PRIMTYPE_CHAR)
                                 && (to->as.prim.kind == EL_PRIMTYPE_INT || to->as.prim.kind == EL_PRIMTYPE_CHAR);
-        if (is_int_conv || is_char_int_conv) {
+        bool is_float_conv = (from->as.prim.kind == EL_PRIMTYPE_FLOAT || from->as.prim.kind == EL_PRIMTYPE_INT || from->as.prim.kind == EL_PRIMTYPE_CHAR)
+                            && (to->as.prim.kind == EL_PRIMTYPE_FLOAT || to->as.prim.kind == EL_PRIMTYPE_INT || to->as.prim.kind == EL_PRIMTYPE_CHAR);
+        if (is_int_conv || is_char_int_conv || is_float_conv) {
             return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, expr);
         }
     }
@@ -89,6 +94,14 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
                         || (is_fixed_width(from_itype->width) && is_fixed_width(to_itype->width)
                         &&  from_itype->width     <= to_itype->width));
             if (is_valid) return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, expr);
+        } else if (from->as.prim.kind == EL_PRIMTYPE_FLOAT && to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+            // same reason as before, don't blame me plz
+            #define from_fptype (&from->as.prim.as.fp)
+            #define to_fptype   (&to->as.prim.as.fp)
+            bool is_valid = from_fptype->width == to_fptype->width
+                        || (is_fixed_fp_width(from_fptype->width) && is_fixed_fp_width(to_fptype->width)
+                        &&  from_fptype->width < to_fptype->width);
+            if (is_valid) return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, expr);
         }
     }
 
@@ -109,6 +122,8 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
                 return el_hir_new_int_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.int_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
                 return el_hir_new_char_constant(binder->hir_arena, expr->span, to, (char)expr->as.untyped_lit.of.int_);
+            } else if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, (double)expr->as.untyped_lit.of.int_);
             }
             break;
         case EL_HIR_UNTYPED_CHAR:
@@ -121,6 +136,13 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         case EL_HIR_UNTYPED_BOOL:
             if (to->as.prim.kind == EL_PRIMTYPE_BOOL) {
                 return el_hir_new_bool_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.bool_);
+            }
+            break;
+        case EL_HIR_UNTYPED_FLOAT:
+            if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.float_);
+            } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
+                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.untyped_lit.of.float_);
             }
             break;
         }
@@ -144,6 +166,8 @@ ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
             return el_hir_new_char_constant(binder->hir_arena, expr->span, binder->builtins->type_char, expr->as.untyped_lit.of.char_);
         case EL_HIR_UNTYPED_BOOL:
             return el_hir_new_bool_constant(binder->hir_arena, expr->span, binder->builtins->type_bool, expr->as.untyped_lit.of.bool_);
+        case EL_HIR_UNTYPED_FLOAT:
+            return el_hir_new_float_constant(binder->hir_arena, expr->span, binder->builtins->type_float, expr->as.untyped_lit.of.float_);
         }
     }
     return expr;

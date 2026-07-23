@@ -13,6 +13,16 @@ ElHirType* el_hir_new_int_type(ElDynArena* arena, ElHirIntWidth width, bool is_s
     });
 }
 
+ElHirType* el_hir_new_float_type(ElDynArena* arena, ElHirFpWidth width) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirType, {
+        .kind = EL_HIR_TYPE_PRIM,
+        .as.prim = {
+            .kind = EL_PRIMTYPE_FLOAT,
+            .as.fp = { width },
+        },
+    });
+}
+
 ElHirType* el_hir_new_prim_type(ElDynArena* arena, ElHirPrimTypeKind kind) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirType, {
         .kind = EL_HIR_TYPE_PRIM,

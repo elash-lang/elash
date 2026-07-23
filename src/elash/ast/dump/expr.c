@@ -22,7 +22,7 @@ void el_ast_dump_expr_literal(ElAstLiteral* lit, usize indent, FILE* out) {
         fprintf(out, "IntLiteral(%"PRId64")\n", lit->of.int_.value);
         break;
     case EL_AST_LIT_FLOAT:
-        fprintf(out, "FloatLiteral(%Lf)\n", lit->of.float_.value);
+        fprintf(out, "FloatLiteral(%lf)\n", lit->of.float_.value);
         break;
     case EL_AST_LIT_STRING:
         fprintf(out, "StringLiteral(\""EL_SV_FMT"\")\n", EL_SV_FARG(lit->of.str_.value));

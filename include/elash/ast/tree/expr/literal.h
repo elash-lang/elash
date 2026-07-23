@@ -16,11 +16,13 @@ typedef enum ElAstLiteralType {
 } ElAstLiteralType;
 
 typedef struct ElAstIntLiteral {
+    // TODO: use arbitrary precision integers
     int64_t value;
 } ElAstIntLiteral;
 
 typedef struct ElAstFloatLiteral {
-    long double value;
+    // TODO: use arbitrary precision floats
+    double value;
 } ElAstFloatLiteral;
 
 typedef struct ElAstCharLiteral {

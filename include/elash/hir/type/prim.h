@@ -15,11 +15,20 @@ typedef enum ElHirIntWidth {
     EL_HIR_IWIDTH_128,       // int128/uint128
 } ElHirIntWidth;
 
+typedef enum ElHirFpWidth {
+    EL_HIR_FPWIDTH_EFFICIENT, // float
+    EL_HIR_FPWIDTH_16,        // float16
+    EL_HIR_FPWIDTH_32,        // float32
+    EL_HIR_FPWIDTH_64,        // float64
+    EL_HIR_FPWIDTH_128,       // float128
+} ElHirFpWidth;
+
 typedef enum ElHirPrimTypeKind {
     EL_PRIMTYPE_VOID,
     EL_PRIMTYPE_INT,
     EL_PRIMTYPE_CHAR,
     EL_PRIMTYPE_BOOL,
+    EL_PRIMTYPE_FLOAT,
 } ElHirPrimTypeKind;
 
 typedef struct ElHirPrimType {
@@ -29,8 +38,12 @@ typedef struct ElHirPrimType {
             ElHirIntWidth width;
             bool is_signed;
         } integral;
+        struct {
+            ElHirFpWidth width;
+        } fp;
     } as;
 } ElHirPrimType;
 
 ElHirType* el_hir_new_prim_type(ElDynArena* arena, ElHirPrimTypeKind kind);
 ElHirType* el_hir_new_int_type(ElDynArena* arena, ElHirIntWidth width, bool is_signed);
+ElHirType* el_hir_new_float_type(ElDynArena* arena, ElHirFpWidth width);

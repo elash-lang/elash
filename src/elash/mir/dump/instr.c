@@ -73,6 +73,10 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         fputs("intcast ", out);
         el_mir_dump_value(instr->as.intcast.operand, out);
         break;
+    case EL_MIR_INSTR_FPCAST:
+        fputs("fpcast ", out);
+        el_mir_dump_value(instr->as.fpcast.operand, out);
+        break;
     case EL_MIR_INSTR_BITCAST:
         fputs("bitcast ", out);
         el_mir_dump_value(instr->as.intcast.operand, out);
