@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 #include <elash/defs/int-types.h>
 
 typedef struct ElHirType ElHirType;

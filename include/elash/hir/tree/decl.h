@@ -16,6 +16,7 @@ typedef enum ElHirDeclKind {
 
 typedef struct ElHirDecl {
     ElHirDeclKind kind;
+    ElSourceSpan span;
     union {
         ElHirVarDef   var_def;
         ElHirVarDecl  var_decl;

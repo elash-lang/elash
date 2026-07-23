@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 
 typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirType ElHirType;
@@ -22,6 +23,6 @@ typedef struct ElHirIntrExpr {
     } params;
 } ElHirIntrExpr;
 
-ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElHirType* usize_type, ElHirExpr* slice);
-ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElHirType* usize_type, ElHirExpr* slice);
-ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElHirExpr* rwslice, ElHirExpr* len);
+ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice);
+ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice);
+ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHirExpr* rwslice, ElHirExpr* len);

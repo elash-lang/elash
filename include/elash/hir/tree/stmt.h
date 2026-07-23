@@ -3,6 +3,7 @@
 #include <elash/hir/type.h>
 #include <elash/hir/symbol.h>
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 
 #include "decl.h"
 #include "stmt/cassign.h"
@@ -31,6 +32,7 @@ typedef enum ElHirStmtKind {
 
 typedef struct ElHirStmt {
     ElHirStmtKind kind;
+    ElSourceSpan span;
     union {
         ElHirExpr* expr;
 
@@ -50,6 +52,6 @@ typedef struct ElHirStmt {
     ElHirStmt* next;
 } ElHirStmt;
 
-ElHirStmt* el_hir_new_expr_stmt(ElDynArena* arena, ElHirExpr* expr);
-ElHirStmt* el_hir_new_decl_stmt(ElDynArena* arena, ElHirDecl* decl);
+ElHirStmt* el_hir_new_expr_stmt(ElDynArena* arena, ElSourceSpan span, ElHirExpr* expr);
+ElHirStmt* el_hir_new_decl_stmt(ElDynArena* arena, ElSourceSpan span, ElHirDecl* decl);
 void el_hir_stmt_list_append(ElHirStmt** head, ElHirStmt** tail, ElHirStmt* stmt);

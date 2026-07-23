@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 #include <elash/defs/int-types.h>
 
 typedef struct ElHirExpr ElHirExpr;
@@ -23,8 +24,8 @@ typedef struct ElHirUntypedLit {
     } of;
 } ElHirUntypedLit;
 
-ElHirExpr* el_hir_new_untyped_int_lit(ElDynArena* arena, int64_t value);
-ElHirExpr* el_hir_new_untyped_char_lit(ElDynArena* arena, char value);
-ElHirExpr* el_hir_new_untyped_bool_lit(ElDynArena* arena, bool value);
+ElHirExpr* el_hir_new_untyped_int_lit(ElDynArena* arena, ElSourceSpan span, int64_t value);
+ElHirExpr* el_hir_new_untyped_char_lit(ElDynArena* arena, ElSourceSpan span, char value);
+ElHirExpr* el_hir_new_untyped_bool_lit(ElDynArena* arena, ElSourceSpan span, bool value);
 
 ElStringView el_hir_untyped_lit_kind_to_string(ElHirUntypedLitKind lit);

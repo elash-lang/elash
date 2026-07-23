@@ -26,10 +26,10 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
     if (!arg) return NULL;
 
     if (arg->type->kind == EL_HIR_TYPE_ARRAY) {
-        return el_hir_new_int_constant(binder->hir_arena, binder->builtins->type_usize, (int64_t)arg->type->as.array.size);
+        return el_hir_new_int_constant(binder->hir_arena, in->span, binder->builtins->type_usize, (int64_t)arg->type->as.array.size);
     }
     if (arg->type->kind == EL_HIR_TYPE_SLICE) {
-        return el_hir_new_slice_len_intr(binder->hir_arena, binder->builtins->type_usize, arg);
+        return el_hir_new_slice_len_intr(binder->hir_arena, in->span, binder->builtins->type_usize, arg);
     }
 
     return el_diag_report(
@@ -78,7 +78,7 @@ ElHirExpr* _el_binder_bind_mkslice_call(ElBinder* binder, ElAstExpr* in, ElAstCa
         );
     }
 
-    return el_hir_new_make_slice_intr(binder->hir_arena, raw, len);
+    return el_hir_new_make_slice_intr(binder->hir_arena, in->span, raw, len);
 }
 
 ElHirExpr* el_binder_bind_builtin_call(

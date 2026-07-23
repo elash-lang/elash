@@ -3,10 +3,11 @@
 
 #include <elash/util/assert.h>
 
-ElHirExpr* el_hir_new_untyped_int_lit(ElDynArena* arena, int64_t value) {
+ElHirExpr* el_hir_new_untyped_int_lit(ElDynArena* arena, ElSourceSpan span, int64_t value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_UNTYPEDLIT,
         .type = NULL,
+        .span = span,
         .as.untyped_lit = {
             .kind = EL_HIR_UNTYPED_INT,
             .of.int_ = value,
@@ -14,10 +15,11 @@ ElHirExpr* el_hir_new_untyped_int_lit(ElDynArena* arena, int64_t value) {
     });
 }
 
-ElHirExpr* el_hir_new_untyped_char_lit(ElDynArena* arena, char value) {
+ElHirExpr* el_hir_new_untyped_char_lit(ElDynArena* arena, ElSourceSpan span, char value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_UNTYPEDLIT,
         .type = NULL,
+        .span = span,
         .as.untyped_lit = {
             .kind = EL_HIR_UNTYPED_CHAR,
             .of.char_ = value,
@@ -25,10 +27,11 @@ ElHirExpr* el_hir_new_untyped_char_lit(ElDynArena* arena, char value) {
     });
 }
 
-ElHirExpr* el_hir_new_untyped_bool_lit(ElDynArena* arena, bool value) {
+ElHirExpr* el_hir_new_untyped_bool_lit(ElDynArena* arena, ElSourceSpan span, bool value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_UNTYPEDLIT,
         .type = NULL,
+        .span = span,
         .as.untyped_lit = {
             .kind = EL_HIR_UNTYPED_BOOL,
             .of.bool_ = value,
