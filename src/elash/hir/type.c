@@ -112,14 +112,19 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
 
     switch (rhs->kind) {
     case EL_HIR_TYPE_PRIM:
-        if (lhs->as.prim.kind != rhs->as.prim.kind) {
-            return false;
-        }
-        if (lhs->as.prim.kind == EL_PRIMTYPE_INT) {
+        if (lhs->as.prim.kind != rhs->as.prim.kind) return false;
+        switch (lhs->as.prim.kind) {
+        case EL_PRIMTYPE_INT:
             return lhs->as.prim.as.integral.width == rhs->as.prim.as.integral.width &&
                    lhs->as.prim.as.integral.is_signed == rhs->as.prim.as.integral.is_signed;
+        case EL_PRIMTYPE_FLOAT:
+            return lhs->as.prim.as.fp.width == rhs->as.prim.as.fp.width;
+        case EL_PRIMTYPE_VOID:
+        case EL_PRIMTYPE_CHAR:
+        case EL_PRIMTYPE_BOOL:
+            return true;
         }
-        return true;
+        EL_UNREACHABLE("unknown primitive type kind");
     case EL_HIR_TYPE_REF:
         return el_hir_type_eql(lhs->as.ref.base, rhs->as.ref.base);
     case EL_HIR_TYPE_SLICE:

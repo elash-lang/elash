@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "type/int.h"
+#include "type/float.h"
 #include "type/ptr.h"
 #include "type/void.h"
 #include "type/func.h"
@@ -17,6 +18,7 @@
 typedef enum ElMirTypeKind {
     EL_MIR_TYPE_VOID,
     EL_MIR_TYPE_INT,
+    EL_MIR_TYPE_FLOAT,
     EL_MIR_TYPE_PTR,
     EL_MIR_TYPE_FUNC,
     EL_MIR_TYPE_ARRAY,
@@ -27,6 +29,7 @@ struct ElMirType {
     ElMirTypeKind kind;
     union {
         ElMirIntType   integer;
+        ElMirFloatType float_;
         ElMirPtrType   ptr;
         ElMirFuncType  func;
         ElMirArrayType array;

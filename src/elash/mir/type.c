@@ -31,12 +31,16 @@ void el_mir_format_type_internal(const ElMirType* type, void (*write)(const char
             write("bool", ctx);
         } else {
             if (!type->as.integer.is_signed) {
-                write("u", ctx);
+                write("uint", ctx);
             } else {
-                write("i", ctx);
+                write("int", ctx);
             }
             writeint(type->as.integer.width, write, ctx);
         }
+        return;
+    case EL_MIR_TYPE_FLOAT:
+        write("float", ctx);
+        writeint(type->as.float_.width, write, ctx);
         return;
     case EL_MIR_TYPE_PTR:
         el_mir_format_type_internal(type->as.ptr.base, write, ctx);
@@ -80,6 +84,8 @@ bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs) {
     case EL_MIR_TYPE_INT:
         return lhs->as.integer.width == rhs->as.integer.width &&
                lhs->as.integer.is_signed == rhs->as.integer.is_signed;
+    case EL_MIR_TYPE_FLOAT:
+        return lhs->as.float_.width == rhs->as.float_.width;
     case EL_MIR_TYPE_PTR:
         return el_mir_type_eql(lhs->as.ptr.base, rhs->as.ptr.base);
     case EL_MIR_TYPE_ARRAY:

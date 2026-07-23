@@ -4,10 +4,10 @@
 #include <elash/mir/type.h>
 
 typedef struct ElMirValue ElMirValue;
-
 typedef struct ElMirConstant {
     union {
         int64_t int_;
+        double float_;
     } as;
 } ElMirConstant;
 

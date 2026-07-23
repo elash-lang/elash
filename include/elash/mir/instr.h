@@ -7,6 +7,7 @@
 #include "instr/binary.h"
 #include "instr/unary.h"
 #include "instr/intcast.h"
+#include "instr/fpcast.h"
 #include "instr/bitcast.h"
 #include "instr/return.h"
 #include "instr/call.h"
@@ -21,6 +22,7 @@ typedef enum ElMirInstrKind {
     EL_MIR_INSTR_BIN,
     EL_MIR_INSTR_UNARY,
     EL_MIR_INSTR_INTCAST,
+    EL_MIR_INSTR_FPCAST,
     EL_MIR_INSTR_BITCAST,
     EL_MIR_INSTR_RET,
     EL_MIR_INSTR_CALL,
@@ -44,6 +46,7 @@ struct ElMirInstr {
         ElMirBinInstr     bin;
         ElMirUnaryInstr   unary;
         ElMirIntCastInstr intcast;
+        ElMirFpCastInstr  fpcast;
         ElMirBitCastInstr bitcast;
         ElMirRetInstr     return_;
         ElMirCallInstr    call;

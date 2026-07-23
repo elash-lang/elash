@@ -40,8 +40,20 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
             // NOLINTEND(readability-magic-numbers)
             return el_mir_new_int_type(lw->arena, width, type->as.prim.as.integral.is_signed);
         }
-        case EL_PRIMTYPE_FLOAT:
-            EL_TODO("support float types");
+        case EL_PRIMTYPE_FLOAT: {
+            uint32_t width = 0;
+            // TODO: actually map efficient floats to correct width
+            // NOLINTBEGIN(readability-magic-numbers)
+            switch (type->as.prim.as.fp.width) {
+            case EL_HIR_FPWIDTH_EFFICIENT: width = 32; break;
+            case EL_HIR_FPWIDTH_16:        width = 16; break;
+            case EL_HIR_FPWIDTH_32:        width = 32; break;
+            case EL_HIR_FPWIDTH_64:        width = 64; break;
+            case EL_HIR_FPWIDTH_128:       width = 128; break;
+            }
+            // NOLINTEND(readability-magic-numbers)
+            return el_mir_new_float_type(lw->arena, width);
+        }
         }
         EL_UNREACHABLE("unknown prim type kind");
     case EL_HIR_TYPE_FUNC: {

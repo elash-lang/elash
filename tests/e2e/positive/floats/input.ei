@@ -61,11 +61,14 @@ int main() {
     f--;
     if (f != 1.0) return 73;
 
+    if (f++ != 1.0) return 74;
+    if (++f != 3.0) return 75;
+
     // comparisons
     if (!(2.0 == 2.0)) return 80;
     if (!(2.0 != 3.0)) return 81;
-    if (!(2.0 < 3.0)) return 82;
-    if (!(3.0 > 2.0)) return 83;
+    if (!(2.0 < 3.0))  return 82;
+    if (!(3.0 > 2.0))  return 83;
     if (!(2.0 <= 2.0)) return 84;
     if (!(2.0 >= 2.0)) return 85;
 
@@ -83,7 +86,6 @@ int main() {
 
     // negative zero
     f = -0.0;
-
     if (f != 0.0)
         return 140;
 
