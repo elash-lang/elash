@@ -27,3 +27,12 @@ ElHirExpr* el_hir_new_bool_constant(ElDynArena* arena, ElSourceSpan span, ElHirT
         .as.constant.as.bool_ = value,
     });
 }
+
+ElHirExpr* el_hir_new_float_constant(ElDynArena* arena, ElSourceSpan span, ElHirType* type, double value) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
+        .kind = EL_HIR_EXPR_CONST,
+        .type = type,
+        .span = span,
+        .as.constant.as.float_ = value,
+    });
+}

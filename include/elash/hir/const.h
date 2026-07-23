@@ -6,8 +6,9 @@
 typedef struct ElHirConstant {
     // tagged by the type field of Expr
     union {
-        int64_t int_; // TODO: use something like bigint here
+        int64_t int_;   // TODO: use something like bigint here
         char    char_;
         bool    bool_;
+        double  float_; // TODO: use arbitrary precision floats here
     } as;
 } ElHirConstant;

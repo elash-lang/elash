@@ -11,7 +11,7 @@ typedef enum ElHirUntypedLitKind {
     EL_HIR_UNTYPED_INT,
     EL_HIR_UNTYPED_CHAR,
     EL_HIR_UNTYPED_BOOL,
-    //EL_HIR_UNTYPED_FLOAT, // TODO: floats
+    EL_HIR_UNTYPED_FLOAT,
 } ElHirUntypedLitKind;
 
 typedef struct ElHirUntypedLit {
@@ -20,12 +20,13 @@ typedef struct ElHirUntypedLit {
         int64_t int_; // TODO: use bigints or something like llvm's APInt
         char    char_;
         bool    bool_;
-        //double float_;
+        double float_; // TODO: use arbitrary precision floats
     } of;
 } ElHirUntypedLit;
 
 ElHirExpr* el_hir_new_untyped_int_lit(ElDynArena* arena, ElSourceSpan span, int64_t value);
 ElHirExpr* el_hir_new_untyped_char_lit(ElDynArena* arena, ElSourceSpan span, char value);
 ElHirExpr* el_hir_new_untyped_bool_lit(ElDynArena* arena, ElSourceSpan span, bool value);
+ElHirExpr* el_hir_new_untyped_float_lit(ElDynArena* arena, ElSourceSpan span, double value);
 
 ElStringView el_hir_untyped_lit_kind_to_string(ElHirUntypedLitKind lit);

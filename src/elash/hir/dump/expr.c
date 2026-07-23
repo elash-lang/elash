@@ -38,6 +38,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         if (node->type->kind == EL_HIR_TYPE_PRIM) {
             switch (node->type->as.prim.kind) {
             case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.constant.as.int_);        break;
+            case EL_PRIMTYPE_FLOAT: fprintf(out, "%lf", node->as.constant.as.float_);          break;
             case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.constant.as.char_);          break;
             case EL_PRIMTYPE_BOOL:  fputs(node->as.constant.as.bool_ ? "true" : "false", out); break;
             case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                            break;
@@ -97,9 +98,10 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
 
     case EL_HIR_EXPR_UNTYPEDLIT:
         switch (node->as.untyped_lit.kind) {
-            case EL_HIR_UNTYPED_INT:  fprintf(out, "%"PRId64, node->as.untyped_lit.of.int_); break;
-            case EL_HIR_UNTYPED_CHAR: fprintf(out, "'%c'", node->as.untyped_lit.of.char_);   break;
-            case EL_HIR_UNTYPED_BOOL: fputs(node->as.untyped_lit.of.bool_ ? "true" : "false", out); break;
+            case EL_HIR_UNTYPED_INT:   fprintf(out, "%"PRId64, node->as.untyped_lit.of.int_);        break;
+            case EL_HIR_UNTYPED_FLOAT: fprintf(out, "%lf", node->as.untyped_lit.of.float_);          break;
+            case EL_HIR_UNTYPED_CHAR:  fprintf(out, "'%c'", node->as.untyped_lit.of.char_);          break;
+            case EL_HIR_UNTYPED_BOOL:  fputs(node->as.untyped_lit.of.bool_ ? "true" : "false", out); break;
         }
         break;
 

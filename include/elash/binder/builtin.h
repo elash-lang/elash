@@ -12,6 +12,12 @@ typedef struct ElBinderBuiltins {
     ElHirType *type_int64,  *type_uint64;
     ElHirType *type_int128, *type_uint128;
 
+    ElHirType* type_float;
+    ElHirType* type_float16;
+    ElHirType* type_float32;
+    ElHirType* type_float64;
+    ElHirType* type_float128;
+
     ElHirType* type_char;
     ElHirType* type_bool;
     ElHirType* type_void;

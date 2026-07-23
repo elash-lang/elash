@@ -42,6 +42,12 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
     register_builtin_type(binder, EL_SV("int128"),  binder->builtins->type_int128);
     register_builtin_type(binder, EL_SV("uint128"), binder->builtins->type_uint128);
 
+    register_builtin_type(binder, EL_SV("float"),    binder->builtins->type_float);
+    register_builtin_type(binder, EL_SV("float16"),  binder->builtins->type_float16);
+    register_builtin_type(binder, EL_SV("float32"),  binder->builtins->type_float32);
+    register_builtin_type(binder, EL_SV("float64"),  binder->builtins->type_float64);
+    register_builtin_type(binder, EL_SV("float128"), binder->builtins->type_float128);
+
     register_builtin_func(binder, EL_SV("len"), EL_BUILTIN_LEN);
     register_builtin_func(binder, EL_SV("mkslice"), EL_BUILTIN_MKSLICE);
 

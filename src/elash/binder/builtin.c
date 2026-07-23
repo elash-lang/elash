@@ -18,4 +18,10 @@ void el_binder_init_builtins(ElBinderBuiltins* builtins, ElDynArena* arena) {
     INIT_INT_PAIR(int128, uint128, EL_HIR_IWIDTH_128);
 
 #undef INIT_INT_PAIR
+
+    builtins->type_float    = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_EFFICIENT);
+    builtins->type_float16  = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_16);
+    builtins->type_float32  = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_32);
+    builtins->type_float64  = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_64);
+    builtins->type_float128 = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_128);
 }

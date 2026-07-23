@@ -1,5 +1,6 @@
 #include <elash/binder/binder.h>
 #include <elash/util/assert.h>
+#include <elash/util/todo.h>
 
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
@@ -134,13 +135,10 @@ ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral
         return el_hir_new_untyped_char_lit(binder->hir_arena, in->span, lit->of.char_.value);
     case EL_AST_LIT_BOOL:
         return el_hir_new_untyped_bool_lit(binder->hir_arena, in->span, lit->of.bool_.value);
+    case EL_AST_LIT_FLOAT:
+        return el_hir_new_untyped_float_lit(binder->hir_arena, in->span, lit->of.float_.value);
     default:
-        // TODO: handle other literal types
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.unsupported-literal",
-            in->span,
-            "unsupported literal type"
-        );
+        EL_TODO("support all literal types");
     }
 }
 

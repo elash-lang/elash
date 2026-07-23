@@ -39,11 +39,24 @@ ElHirExpr* el_hir_new_untyped_bool_lit(ElDynArena* arena, ElSourceSpan span, boo
     });
 }
 
+ElHirExpr* el_hir_new_untyped_float_lit(ElDynArena* arena, ElSourceSpan span, double value) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
+        .kind = EL_HIR_EXPR_UNTYPEDLIT,
+        .type = NULL,
+        .span = span,
+        .as.untyped_lit = {
+            .kind = EL_HIR_UNTYPED_FLOAT,
+            .of.float_ = value,
+        },
+    });
+}
+
 ElStringView el_hir_untyped_lit_kind_to_string(ElHirUntypedLitKind lit) {
     switch (lit) {
-    case EL_HIR_UNTYPED_INT:  return EL_SV("integer");
-    case EL_HIR_UNTYPED_CHAR: return EL_SV("character");
-    case EL_HIR_UNTYPED_BOOL: return EL_SV("boolean");
+    case EL_HIR_UNTYPED_INT:   return EL_SV("integer");
+    case EL_HIR_UNTYPED_CHAR:  return EL_SV("character");
+    case EL_HIR_UNTYPED_BOOL:  return EL_SV("boolean");
+    case EL_HIR_UNTYPED_FLOAT: return EL_SV("float");
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElHirUntypedLitKind, lit);

@@ -40,6 +40,8 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
             // NOLINTEND(readability-magic-numbers)
             return el_mir_new_int_type(lw->arena, width, type->as.prim.as.integral.is_signed);
         }
+        case EL_PRIMTYPE_FLOAT:
+            EL_TODO("support float types");
         }
         EL_UNREACHABLE("unknown prim type kind");
     case EL_HIR_TYPE_FUNC: {
