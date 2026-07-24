@@ -8,6 +8,18 @@ typedef struct ElcCliDumpSwitch {
     ElStringView output;
 } ElcCliDumpSwitch;
 
+typedef enum ElcOptLevel {
+    ELC_OPT_UNSPEC,
+    ELC_OPT_O0,
+    ELC_OPT_O1,
+    ELC_OPT_O2,
+    ELC_OPT_O3,
+    ELC_OPT_Og,
+    ELC_OPT_Os,
+    ELC_OPT_Oz,
+    ELC_OPT_Of,
+} ElcOptLevel;
+
 typedef struct ElcArgs {
     ElStringView input;  // filename or - for stdin
     ElStringView output; // filename or - for stdout
@@ -22,6 +34,8 @@ typedef struct ElcArgs {
 
     ElcArtifactKind until;
     ElcArtifactKind emit;
+
+    ElcOptLevel opt;
 
     bool help;
     bool version;

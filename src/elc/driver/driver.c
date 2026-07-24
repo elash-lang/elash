@@ -1,4 +1,5 @@
 #include <elc/driver/driver.h>
+#include <elash/util/todo.h>
 
 #include <elash/diag/engine.h>
 #include <elash/diag/handle.h>
@@ -108,6 +109,10 @@ static ElcArtifactKind determine_target(const ElcArgs* args) {
 }
 
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
+    if (args->opt != ELC_OPT_UNSPEC) {
+        EL_TODO("implement optimization levels");
+    }
+
     ElSourceDocument src;
     if (!init_source_document(driver, args, &src)) {
         return false;

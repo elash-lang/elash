@@ -20,6 +20,7 @@ void elc_cli_print_usage(FILE* out, const char* program_name) {
     fprt(out, "  help        show this help message"                                 );
     fprt(out, "\nOptions:"                                                           );
     fprt(out, "  -o, --output <file>    specify output file (default: -)"            );
+    fprt(out, "  -O, --opt <level>      specify optimization level"                  );
     fprt(out, "  --dump-toks[=file]     dump tokens (default: -)"                    );
     fprt(out, "  --dump-pp-toks[=file]  dump preprocessed tokens (default: -)"       );
     fprt(out, "  --dump-ast[=file]      dump AST (default: -)"                       );
@@ -27,6 +28,7 @@ void elc_cli_print_usage(FILE* out, const char* program_name) {
     fprt(out, "  --dump-mir[=file]      dump ELMIR (default: -)"                     );
     fprt(out, "  --dump-lir[=file]      dump backend-specific LIR (default: -)"      );
     fprt(out, "  --dump-asm[=file]      dump assembly (default: -)"                  );
+    fprt(out, "\nOptimization Levels: 0, 1, 2, 3, g (debug), s (size), z, f (fast)"  );
     fprt(out, "\nAdvanced Options (for inspect command):"                            );
     fprt(out, "  --until=<artifact>     Stop after generating <artifact>"            );
     fprt(out, "  --emit=<artifact>      Emit <artifact> to output"                   );
@@ -61,6 +63,9 @@ void elc_cli_print_error(FILE* out, ElcCliParseResult res) {
         break;
     case ELC_CLI_PARSE_MULTIPLE_INPUTS:
         fprintf(out, "error: multiple input files specified (at '" EL_SV_FMT "')\n", EL_SV_FARG(res.ctx.str));
+        break;
+    case ELC_CLI_PARSE_UNKNOWN_OPT_LEVEL:
+        fprintf(out, "error: unknown optimization level '" EL_SV_FMT "'\n", EL_SV_FARG(res.ctx.str));
         break;
     }
 }

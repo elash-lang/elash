@@ -69,6 +69,41 @@ static ElcCliParseResult handle_emit_flag(ElcArgParseContext *p, ElStringView ar
     return handle_artifact_flag(p, arg, EL_SV("--emit"), &p->out->emit);
 }
 
+static ElcOptLevel elc_opt_level_from_string(ElStringView s) {
+    if (el_sv_eql(s, EL_SV("0")))     return ELC_OPT_O0;
+    if (el_sv_eql(s, EL_SV("1")))     return ELC_OPT_O1;
+    if (el_sv_eql(s, EL_SV("2")))     return ELC_OPT_O2;
+    if (el_sv_eql(s, EL_SV("3")))     return ELC_OPT_O3;
+    if (el_sv_eql(s, EL_SV("g")))     return ELC_OPT_Og;
+    if (el_sv_eql(s, EL_SV("s")))     return ELC_OPT_Os;
+    if (el_sv_eql(s, EL_SV("z")))     return ELC_OPT_Oz;
+    if (el_sv_eql(s, EL_SV("f")))     return ELC_OPT_Of;
+    if (el_sv_eql(s, EL_SV("debug"))) return ELC_OPT_Og;
+    if (el_sv_eql(s, EL_SV("fast")))  return ELC_OPT_Of;
+    if (el_sv_eql(s, EL_SV("size")))  return ELC_OPT_Os;
+    return ELC_OPT_UNSPEC;
+}
+
+static ElcCliParseResult handle_opt_flag(ElcArgParseContext* p, ElStringView arg) {
+    ElStringView val = get_value(p, arg, EL_SV("--opt"));
+    if (val.len == 0) {
+        return (ElcCliParseResult) {
+            .code = ELC_CLI_PARSE_EXPECTED_VALUE,
+            .ctx.str = EL_SV("--opt")
+        };
+    }
+    ElcOptLevel level = elc_opt_level_from_string(val);
+    if (level == ELC_OPT_UNSPEC) {
+         return (ElcCliParseResult) {
+             .code = ELC_CLI_PARSE_UNKNOWN_OPT_LEVEL,
+             .ctx.str = val
+         };
+    }
+
+    p->out->opt = level;
+    return ELC_CLI_PARSE_RESULT_OK;
+}
+
 static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView arg) {
     if (el_sv_eql(arg, EL_SV("--help")))    { p->out->help = true;    return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--version"))) { p->out->version = true; return ELC_CLI_PARSE_RESULT_OK; }
@@ -83,6 +118,10 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     }
     if (el_sv_starts_with(arg, EL_SV("--emit"))) {
         ElcCliParseResult err = handle_emit_flag(p, arg);
+        return err;
+    }
+    if (el_sv_starts_with(arg, EL_SV("--opt"))) {
+        ElcCliParseResult err = handle_opt_flag(p, arg);
         return err;
     }
 
@@ -100,6 +139,17 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     };
 }
 
+static ElStringView get_short_value(ElcArgParseContext* p, ElStringView arg, usize j) {
+    if (j + 1 < arg.len) {
+        return el_sv_slice(arg, j + 1, arg.len);
+    }
+    if (p->i + 1 < p->argc) {
+        p->i++;
+        return el_sv_from_cstr(p->argv[p->i]);
+    }
+    return EL_SV_NULL;
+}
+
 static ElcCliParseResult handle_short_flag(ElcArgParseContext* p, ElStringView arg) {
     for (usize j = 1; j < arg.len; j++) {
         char c = arg.data[j];
@@ -107,20 +157,24 @@ static ElcCliParseResult handle_short_flag(ElcArgParseContext* p, ElStringView a
         case 'h': p->out->help    = true; break;
         case 'v': p->out->version = true; break;
         case 'o': {
-            if (j + 1 < arg.len) {
-                p->out->output = el_sv_slice(arg, j + 1, arg.len);
-                return ELC_CLI_PARSE_RESULT_OK;
+            ElStringView val = get_short_value(p, arg, j);
+            if (val.len == 0) {
+                return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = EL_SV("-o") };
             }
-            if (p->i + 1 < p->argc) {
-                p->i++;
-                p->out->output = el_sv_from_cstr(p->argv[p->i]);
-                return ELC_CLI_PARSE_RESULT_OK;
-            }
+            p->out->output = val;
+            return ELC_CLI_PARSE_RESULT_OK;
+        }
+        case 'O': {
+            ElStringView val = get_short_value(p, arg, j);
+            if (val.len == 0)
+                return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = EL_SV("-O") };
 
-            return (ElcCliParseResult) {
-                .code = ELC_CLI_PARSE_EXPECTED_VALUE,
-                .ctx.str = EL_SV("-o")
-            };
+            ElcOptLevel level = elc_opt_level_from_string(val);
+            if (level == ELC_OPT_UNSPEC)
+                return (ElcCliParseResult) { .code = ELC_CLI_PARSE_UNKNOWN_OPT_LEVEL, .ctx.str = val };
+
+            p->out->opt = level;
+            return ELC_CLI_PARSE_RESULT_OK;
         }
         default:
             return (ElcCliParseResult) {
@@ -174,6 +228,7 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
 ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out) {
     memset(out, 0, sizeof(ElcArgs));
     out->output = el_sv_from_cstr("-");
+    out->opt = ELC_OPT_UNSPEC;
     out->until = ELC_ART_OBJ;
     out->emit = ELC_ART_OBJ;
 
