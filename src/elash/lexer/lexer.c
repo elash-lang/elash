@@ -112,6 +112,7 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
     } StringToKeyword;
 
     static StringToKeyword default_keywords[] = {
+        { EL_SV("as"),       EL_TT_KW_AS         },
         { EL_SV("do"),       EL_TT_KW_DO         },
         { EL_SV("if"),       EL_TT_KW_IF         },
         { EL_SV("for"),      EL_TT_KW_FOR        },
@@ -124,7 +125,7 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
         { EL_SV("break"),    EL_TT_KW_BREAK      },
         { EL_SV("const"),    EL_TT_KW_CONST      },
         { EL_SV("write"),    EL_TT_KW_WRITE      },
-        { EL_SV("as"),       EL_TT_KW_AS         },
+        { EL_SV("alias"),    EL_TT_KW_ALIAS      },
         { EL_SV("false"),    EL_TT_FALSE_LITERAL },
         { EL_SV("union"),    EL_TT_KW_UNION      },
         { EL_SV("while"),    EL_TT_KW_WHILE      },

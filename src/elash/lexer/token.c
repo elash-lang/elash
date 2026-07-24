@@ -53,6 +53,7 @@ static struct {
     [EL_TT_KW_UNION]   = F("KW_UNION", "union"),
     [EL_TT_KW_STRUCT]  = F("KW_STRUCT", "struct"),
     [EL_TT_KW_TYPEDEF] = F("KW_TYPEDEF", "typedef"),
+    [EL_TT_KW_ALIAS]   = F("KW_ALIAS", "alias"),
 
     [EL_TT_SIZEOF] = F("SIZEOF", "sizeof"),
 
