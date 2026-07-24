@@ -103,6 +103,8 @@ void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
     case EL_HIR_DECL_FUNC_DECL:
         _el_lowerer_lower_func_decl(lw, &decl->as.func_decl);
         break;
+    case EL_HIR_DECL_NONE:
+        break;
     }
 }
 
@@ -140,6 +142,8 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         break;
     case EL_HIR_DECL_FUNC_DECL:
         _el_lowerer_lower_func_decl(lw, &decl->as.func_decl);
+        break;
+    case EL_HIR_DECL_NONE:
         break;
     }
 }

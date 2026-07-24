@@ -8,6 +8,7 @@
 #include "decl/func-decl.h"
 
 typedef enum ElHirDeclKind {
+    EL_HIR_DECL_NONE,
     EL_HIR_DECL_VAR_DEF,
     EL_HIR_DECL_VAR_DECL,
     EL_HIR_DECL_FUNC_DEF,
@@ -25,3 +26,5 @@ typedef struct ElHirDecl {
     } as;
     ElHirDecl* next;
 } ElHirDecl;
+
+ElHirDecl* el_hir_decl_none(ElDynArena* arena, ElSourceSpan span);
