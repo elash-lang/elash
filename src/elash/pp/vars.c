@@ -60,7 +60,7 @@ void _el_pp_vars_maybe_shrink(ElPpVars* vars) {
     }
 }
 
-Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool *found) {
+Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool* found) {
     usize index = el_hash_string(key) & (vars->capacity - 1);
     Entry* first_tombstone = NULL;
 
