@@ -1,5 +1,7 @@
 #include <elc/driver/driver.h>
 
+#include <elash/util/ansi.h>
+
 #include <elc/cli/args.h>
 #include <elc/cli/argparse.h>
 
@@ -10,6 +12,12 @@ int main(int argc, const char* argv[]) {
         elc_cli_print_error(stderr, result);
         return 1;
     }
+
+    el_ansi_pref = args.color == ELC_PREF_ALWAYS
+        ? EL_ANSI_ENABLED
+        : args.color == ELC_PREF_AUTO
+            ? EL_ANSI_AUTO
+            : EL_ANSI_DISABLED;
 
     if (args.help) {
         // in elash this would be

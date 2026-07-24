@@ -20,6 +20,12 @@ typedef enum ElcOptLevel {
     ELC_OPT_Of,
 } ElcOptLevel;
 
+typedef enum ElcPreference {
+    ELC_PREF_AUTO,
+    ELC_PREF_NEVER,
+    ELC_PREF_ALWAYS,
+} ElcPreference;
+
 typedef struct ElcArgs {
     ElStringView input;  // filename or - for stdin
     ElStringView output; // filename or - for stdout
@@ -36,6 +42,7 @@ typedef struct ElcArgs {
     ElcArtifactKind emit;
 
     ElcOptLevel opt;
+    ElcPreference color;
 
     bool help;
     bool version;

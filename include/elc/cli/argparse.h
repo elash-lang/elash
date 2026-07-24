@@ -27,6 +27,7 @@ typedef enum ElcCliParseErrorCode {
     ELC_CLI_PARSE_UNKNOWN_ARTIFACT,
     ELC_CLI_PARSE_MULTIPLE_INPUTS,
     ELC_CLI_PARSE_UNKNOWN_OPT_LEVEL,
+    ELC_CLI_PARSE_UNKNOWN_PREFERENCE,
 } ElcCliParseErrorCode;
 
 typedef struct ElcCliParseResult {

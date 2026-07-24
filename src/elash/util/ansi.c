@@ -13,8 +13,16 @@
     #define FILENO fileno
 #endif
 
+#include <elash/util/assert.h>
+
+ElAnsiPref el_ansi_pref;
 bool el_ansi_is_supported(FILE* out) {
-    return ISATTY(FILENO(out));
+    switch (el_ansi_pref) {
+    case EL_ANSI_DISABLED: return false;
+    case EL_ANSI_AUTO:     return ISATTY(FILENO(out));
+    case EL_ANSI_ENABLED:  return true;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElAnsiPref, el_ansi_pref);
 }
 
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out) {

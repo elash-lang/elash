@@ -104,6 +104,26 @@ static ElcCliParseResult handle_opt_flag(ElcArgParseContext* p, ElStringView arg
     return ELC_CLI_PARSE_RESULT_OK;
 }
 
+static ElcCliParseResult parse_preference_flag(
+    ElcArgParseContext* p, ElStringView arg, ElStringView flag_name, ElcPreference* out
+) {
+    ElStringView val = get_value(p, arg, flag_name);
+    if (val.len == 0)
+        return (ElcCliParseResult) {
+            .code = ELC_CLI_PARSE_EXPECTED_VALUE,
+            .ctx.str = flag_name
+        };
+
+    if (el_sv_eql(val, EL_SV("never")))  { *out = ELC_PREF_NEVER;  return ELC_CLI_PARSE_RESULT_OK; }
+    if (el_sv_eql(val, EL_SV("auto")))   { *out = ELC_PREF_AUTO;   return ELC_CLI_PARSE_RESULT_OK; }
+    if (el_sv_eql(val, EL_SV("always"))) { *out = ELC_PREF_ALWAYS; return ELC_CLI_PARSE_RESULT_OK; }
+
+    return (ElcCliParseResult) {
+        .code = ELC_CLI_PARSE_UNKNOWN_PREFERENCE,
+        .ctx.str = val
+    };
+}
+
 static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView arg) {
     if (el_sv_eql(arg, EL_SV("--help")))    { p->out->help = true;    return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--version"))) { p->out->version = true; return ELC_CLI_PARSE_RESULT_OK; }
@@ -122,6 +142,10 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     }
     if (el_sv_starts_with(arg, EL_SV("--opt"))) {
         ElcCliParseResult err = handle_opt_flag(p, arg);
+        return err;
+    }
+    if (el_sv_starts_with(arg, EL_SV("--color"))) {
+        ElcCliParseResult err = parse_preference_flag(p, arg, EL_SV("--color"), &p->out->color);
         return err;
     }
 

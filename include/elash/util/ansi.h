@@ -42,6 +42,13 @@ typedef struct ElAnsiStyle {
         .dec = EL_ANSI_DEC_NONE                \
     })
 
+typedef enum ElAnsiPref {
+    EL_ANSI_DISABLED,
+    EL_ANSI_AUTO,
+    EL_ANSI_ENABLED,
+} ElAnsiPref;
+
+extern ElAnsiPref el_ansi_pref;
 bool el_ansi_is_supported(FILE* out);
 
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out);
