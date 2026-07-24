@@ -157,7 +157,7 @@ static ElAstDecl* el_parser_parse_alias_decl(ElParser* parser, ElToken alias_tok
     el_parser_expect(parser, EL_TT_ASSIGN);
     if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-    ElAstTypeOrExpr* target = _el_parser_parse_type_or_expr(parser);
+    ElAstToE* target = _el_parser_parse_type_or_expr(parser);
     if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
     ElToken semi_tok = parser->current;

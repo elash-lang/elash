@@ -7,7 +7,7 @@
 
 #include <elash/util/assert.h>
 
-void el_ast_dump_type_or_expr(ElAstTypeOrExpr* node, usize indent, FILE* out) {
+void el_ast_dump_type_or_expr(ElAstToE* node, usize indent, FILE* out) {
     el_ast_dump_print_indent(indent, out);
     switch (node->kind) {
     case EL_AST_TOE_TYPE:
@@ -34,5 +34,5 @@ void el_ast_dump_type_or_expr(ElAstTypeOrExpr* node, usize indent, FILE* out) {
         el_ast_dump_type_or_expr(node->as.unr_index.index, indent + 2, out);
         return;
     }
-    EL_UNREACHABLE_ENUM_VAL(ElAstTypeOrExprKind, node->kind);
+    EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, node->kind);
 }

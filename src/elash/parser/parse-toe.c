@@ -68,7 +68,7 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
     return expr;
 }
 
-static ElAstTypeOrExpr* force_type_with_suffixes(ElParser* parser, ElAstTypeOrExpr* toe) {
+static ElAstToE* force_type_with_suffixes(ElParser* parser, ElAstToE* toe) {
     ElAstType* type = el_ast_toe_as_type(parser->arena, toe);
     if (type == NULL) return NULL;
     type = _el_parser_parse_type_suffixes(parser, type);
@@ -79,10 +79,10 @@ static ElAstTypeOrExpr* force_type_with_suffixes(ElParser* parser, ElAstTypeOrEx
 // i don't even want to think about how complicated this will get once we add function types
 // ReturnType(ParamType1, ...)
 
-static ElAstTypeOrExpr* parse_toe_bracket_suffix(ElParser* parser, ElAstTypeOrExpr* toe) {
+static ElAstToE* parse_toe_bracket_suffix(ElParser* parser, ElAstToE* toe) {
     el_parser_advance(parser); // [
 
-    ElAstTypeOrExpr* index = _el_parser_parse_type_or_expr(parser);
+    ElAstToE* index = _el_parser_parse_type_or_expr(parser);
     if (index == NULL) return NULL;
 
     ElToken rbracket = parser->current;
@@ -106,7 +106,7 @@ static ElAstTypeOrExpr* parse_toe_bracket_suffix(ElParser* parser, ElAstTypeOrEx
     );
 }
 
-static ElAstTypeOrExpr* parse_toe_suffixes(ElParser* parser, ElAstTypeOrExpr* toe) {
+static ElAstToE* parse_toe_suffixes(ElParser* parser, ElAstToE* toe) {
     while (toe != NULL) {
         // slices and refs
         if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
@@ -144,7 +144,7 @@ static ElAstTypeOrExpr* parse_toe_suffixes(ElParser* parser, ElAstTypeOrExpr* to
     return toe;
 }
 
-ElAstTypeOrExpr* _el_parser_parse_type_or_expr(ElParser* parser) {
+ElAstToE* _el_parser_parse_type_or_expr(ElParser* parser) {
     // unambiguous cases
 
     // Type { ... }
@@ -167,7 +167,7 @@ ElAstTypeOrExpr* _el_parser_parse_type_or_expr(ElParser* parser) {
         ElAstIdent* ident = _el_parser_parse_ident(parser);
         if (ident == NULL) return NULL;
 
-        ElAstTypeOrExpr* toe = el_ast_new_toe_unr_ident(parser->arena, ident->span, ident);
+        ElAstToE* toe = el_ast_new_toe_unr_ident(parser->arena, ident->span, ident);
         return parse_toe_suffixes(parser, toe);
     }
 

@@ -56,7 +56,7 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser);
 ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr);
 ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
 
-ElAstTypeOrExpr* _el_parser_parse_type_or_expr(ElParser* parser);
+ElAstToE* _el_parser_parse_type_or_expr(ElParser* parser);
 
 ElAstDecl*     el_parser_parse_decl(ElParser* parser);
 ElAstInit*     el_parser_parse_init(ElParser* parser);
