@@ -2,30 +2,35 @@
 
 #include <stdio.h>
 
+static inline void fprt(FILE* out, const char* str) {
+    fputs(str, out);
+    fputc('\n',out);
+}
+
 void elc_cli_print_usage(FILE* out, const char* program_name) {
     fprintf(out, "Usage: %s [command] [options] <input.ela>\n", program_name);
-    fputs("\nCommands:",                                                          out);
-    fputs("  build       build an executable (default)",                          out);
-    fputs("  compile     compile to an object file",                              out);
-    fputs("  check       check for errors without emitting code",                 out);
-    fputs("  preprocess  output preprocessed source code",                        out);
-    fputs("  lower       output ELMIR",                                           out);
-    fputs("  inspect     advanced inspection mode",                               out);
-    fputs("  version     show version information",                               out);
-    fputs("  help        show this help message",                                 out);
-    fputs("\nOptions:",                                                           out);
-    fputs("  -o, --output <file>    specify output file (default: -)",            out);
-    fputs("  --dump-toks[=file]     dump tokens (default: -)",                    out);
-    fputs("  --dump-pp-toks[=file]  dump preprocessed tokens (default: -)",       out);
-    fputs("  --dump-ast[=file]      dump AST (default: -)",                       out);
-    fputs("  --dump-hir[=file]      dump ELHIR (default: -)",                     out);
-    fputs("  --dump-mir[=file]      dump ELMIR (default: -)",                     out);
-    fputs("  --dump-lir[=file]      dump backend-specific LIR (default: -)",      out);
-    fputs("  --dump-asm[=file]      dump assembly (default: -)",                  out);
-    fputs("\nAdvanced Options (for inspect command):",                            out);
-    fputs("  --until=<artifact>     Stop after generating <artifact>",            out);
-    fputs("  --emit=<artifact>      Emit <artifact> to output",                   out);
-    fputs("\nArtifacts: source, tokens, pp-tokens, ast, hir, mir, lir, asm, obj", out);
+    fprt(out, "\nCommands:"                                                          );
+    fprt(out, "  build       build an executable (default)"                          );
+    fprt(out, "  compile     compile to an object file"                              );
+    fprt(out, "  check       check for errors without emitting code"                 );
+    fprt(out, "  preprocess  output preprocessed source code"                        );
+    fprt(out, "  lower       output ELMIR"                                           );
+    fprt(out, "  inspect     advanced inspection mode"                               );
+    fprt(out, "  version     show version information"                               );
+    fprt(out, "  help        show this help message"                                 );
+    fprt(out, "\nOptions:"                                                           );
+    fprt(out, "  -o, --output <file>    specify output file (default: -)"            );
+    fprt(out, "  --dump-toks[=file]     dump tokens (default: -)"                    );
+    fprt(out, "  --dump-pp-toks[=file]  dump preprocessed tokens (default: -)"       );
+    fprt(out, "  --dump-ast[=file]      dump AST (default: -)"                       );
+    fprt(out, "  --dump-hir[=file]      dump ELHIR (default: -)"                     );
+    fprt(out, "  --dump-mir[=file]      dump ELMIR (default: -)"                     );
+    fprt(out, "  --dump-lir[=file]      dump backend-specific LIR (default: -)"      );
+    fprt(out, "  --dump-asm[=file]      dump assembly (default: -)"                  );
+    fprt(out, "\nAdvanced Options (for inspect command):"                            );
+    fprt(out, "  --until=<artifact>     Stop after generating <artifact>"            );
+    fprt(out, "  --emit=<artifact>      Emit <artifact> to output"                   );
+    fprt(out, "\nArtifacts: source, tokens, pp-tokens, ast, hir, mir, lir, asm, obj" );
 }
 
 // TODO: fancy ansi output
