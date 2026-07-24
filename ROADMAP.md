@@ -47,10 +47,10 @@
 - [x] diagnostics engine
 - [x] lower, check, compile, build and inspect commands
 - [x] --output/-o flag
-- [ ] --opt=\<N\>/-O\<N\> flag
+- [x] --opt=\<N\>/-O\<N\> flag
 - [x] --dump-tokens, --dump-pp-tokens and --dump-ast flags
 - [x] --dump-hir, --dump-mir and --dump-lir flags
-- [ ] --color=never/auto/always flag
+- [x] --color=never/auto/always flag
 - [ ] ~~-I\<scope\>:\<path\> flag~~ *(moved to 0.2.0)*
 
 ## Development Roadmap
