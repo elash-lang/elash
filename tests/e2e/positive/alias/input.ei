@@ -17,8 +17,13 @@ alias r = result;
 
 alias IntArray = int[3];
 int sum(IntArray arr) {
-    return arr[0] + arr[1] + arr[3]; // very advanced
+    return arr[0] + arr[1] + arr[2]; // very advanced
 }
+
+alias MyStructure = struct {
+    alias SecretType = bool;
+    SecretType foo;
+};
 
 int main() {
     if (&add != &thing) return 1;
@@ -32,7 +37,7 @@ int main() {
     }
 
     result = 10;
-    addInPlace(result, 20);
+    addInPlace(&result, 20);
     if (r != 30) {
         return 4;
     }
@@ -40,6 +45,12 @@ int main() {
     int y = sum(IntArray { 15, 8, 1 });
     if (y != 24) {
         return 5;
+    }
+
+    MyStructure strct;
+    strct.foo = true;
+    if (!strct.foo) {
+        return 6;
     }
 
     return 0;

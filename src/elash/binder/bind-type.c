@@ -32,6 +32,8 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
     ElHirStructField* fields = EL_DYNARENA_NEW_ARR(
         binder->hir_arena, ElHirStructField, struct_->count);
 
+    _el_binder_push_scope(binder);
+
     usize i = 0;
     for (ElAstDecl* field = struct_->fields; field != NULL; ++i, field = field->next) {
         switch (field->type) {
@@ -74,10 +76,21 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
                     : field->as.func_def.sig.name->name,
                 .type = binder->builtins->type_void,
             };
+            break;
+
+        case EL_AST_DECL_ALIAS:
+            // very cool trick
+            // the loop increments i every iteration but struct-local aliases
+            // are not declaring any fields so we can just decrement i here
+            i--;
+            el_binder_bind_decl(binder, field);
+            break;
         }
     }
 
-    return el_hir_new_struct_type(binder->type_arena, fields, struct_->count);
+    _el_binder_pop_scope(binder);
+
+    return el_hir_new_struct_type(binder->type_arena, fields, i);
 }
 
 static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {

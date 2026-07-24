@@ -144,7 +144,69 @@ static ElAstToE* parse_toe_suffixes(ElParser* parser, ElAstToE* toe) {
     return toe;
 }
 
+static bool is_binary_op_or_cast(ElParser* parser, usize idx) {
+    ElToken tok = el_parser_peek_at(parser, idx);
+    switch (tok.type) {
+    case EL_TT_KW_AS: case EL_TT_PLUS: case EL_TT_MINUS: case EL_TT_STAR: case EL_TT_SLASH: case EL_TT_PERCENT:
+    case EL_TT_LOGICAL_AND: case EL_TT_LOGICAL_OR: case EL_TT_LOGICAL_IMP: case EL_TT_BITWISE_IMP:
+    case EL_TT_EQL: case EL_TT_NEQ: case EL_TT_LT: case EL_TT_GT: case EL_TT_LTE: case EL_TT_GTE:
+        return true;
+    case EL_TT_BITWISE_AND: {
+        ElToken next = el_parser_peek_at(parser, idx + 1);
+        if (next.type != EL_TT_SEMICOLON &&
+            next.type != EL_TT_COMMA &&
+            next.type != EL_TT_RBRACKET &&
+            next.type != EL_TT_RBRACE &&
+            next.type != EL_TT_RPAREN &&
+            next.type != EL_TT_EOF) {
+            return true;
+        }
+        return false;
+    }
+    default:
+        return false;
+    }
+}
+
+// NOLINTNEXTLINE
+static bool is_complex_expr(ElParser* parser) {
+    // NOLINTNEXTLINE
+    usize idx = 0, paren_depth = 0, bracket_depth = 0, brace_depth = 0;
+    while (true) {
+        ElToken tok = el_parser_peek_at(parser, idx);
+        if (tok.type == EL_TT_EOF || tok.type == EL_TT_SEMICOLON)
+            break;
+
+        if (tok.type == EL_TT_LPAREN)
+            paren_depth++;
+        else if (tok.type == EL_TT_RPAREN)
+            if (paren_depth > 0) paren_depth--;
+            else break;
+        else if (tok.type == EL_TT_LBRACKET)
+            bracket_depth++;
+        else if (tok.type == EL_TT_RBRACKET)
+            if (bracket_depth > 0) bracket_depth--;
+            else break;
+        else if (tok.type == EL_TT_LBRACE)
+            brace_depth++;
+        else if (tok.type == EL_TT_RBRACE)
+            if (brace_depth > 0) brace_depth--;
+            else break;
+        else if (paren_depth == 0 && bracket_depth == 0 && brace_depth == 0)
+            if (is_binary_op_or_cast(parser, idx))
+                return true;
+        idx++;
+    }
+    return false;
+}
+
 ElAstToE* _el_parser_parse_type_or_expr(ElParser* parser) {
+    if (is_complex_expr(parser)) {
+        ElAstExpr* expr = el_parser_parse_expr(parser);
+        if (expr == NULL) return NULL;
+        return el_ast_new_toe_expr(parser->arena, expr);
+    }
+
     // unambiguous cases
 
     // Type { ... }
