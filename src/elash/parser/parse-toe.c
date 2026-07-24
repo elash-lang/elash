@@ -1,0 +1,177 @@
+#include <elash/parser/parser.h>
+
+#include <elash/ast/tree/toe.h>
+#include <elash/ast/tree/expr/bin.h>
+#include <elash/ast/tree/expr/unary.h>
+
+#include <elash/sema/bin-op.h>
+#include <elash/sema/unary-op.h>
+
+static bool is_type_literal(ElParser* parser) {
+    usize idx = 0;
+    if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
+    return el_parser_peek_at(parser, idx).type == EL_TT_LBRACE;
+}
+
+static bool is_slice_brackets(ElParser* parser) {
+    ElToken inner = el_parser_peek_at(parser, 1);
+    if (inner.type == EL_TT_RBRACKET) return true;
+    if (inner.type == EL_TT_BITWISE_AND && el_parser_peek_at(parser, 2).type == EL_TT_RBRACKET) {
+        return true;
+    }
+    return false;
+}
+
+static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
+    while (true) {
+        if (el_parser_check(parser, EL_TT_INC)) {
+            ElToken tok = el_parser_advance(parser);
+            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
+        } else if (el_parser_check(parser, EL_TT_DEC)) {
+            ElToken tok = el_parser_advance(parser);
+            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
+        } else if (el_parser_match(parser, EL_TT_LPAREN)) {
+            expr = _el_parser_parse_call(parser, expr);
+        } else if (el_parser_check(parser, EL_TT_CARET)) {
+            ElToken tok = el_parser_advance(parser);
+            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
+        } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
+            ElAstExpr* index = el_parser_parse_expr(parser);
+            if (el_parser_has_errs(parser)) {
+                el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
+            }
+
+            ElToken rbracket = parser->current;
+            if (el_parser_check(parser, EL_TT_RBRACKET)) {
+                rbracket = el_parser_advance(parser);
+            } else {
+                el_parser_expect(parser, EL_TT_RBRACKET);
+                el_parser_skip_to(parser, EL_TT_RBRACKET);
+                if (el_parser_check(parser, EL_TT_RBRACKET)) {
+                    rbracket = el_parser_advance(parser);
+                }
+            }
+
+            expr = el_ast_new_bin_expr(
+                parser->arena,
+                el_source_span_merge(expr->span, rbracket.span),
+                EL_SEMA_BIN_OP_INDEX, expr, index
+            );
+        } else if (el_parser_match(parser, EL_TT_DOT)) {
+            expr = _el_parser_parse_member(parser, expr);
+        } else {
+            break;
+        }
+
+        if (el_parser_has_errs(parser)) return NULL;
+    }
+    return expr;
+}
+
+static ElAstTypeOrExpr* force_type_with_suffixes(ElParser* parser, ElAstTypeOrExpr* toe) {
+    ElAstType* type = el_ast_toe_as_type(parser->arena, toe);
+    if (type == NULL) return NULL;
+    type = _el_parser_parse_type_suffixes(parser, type);
+    if (type == NULL) return NULL;
+    return el_ast_new_toe_type(parser->arena, type);
+}
+
+// i don't even want to think about how complicated this will get once we add function types
+// ReturnType(ParamType1, ...)
+
+static ElAstTypeOrExpr* parse_toe_bracket_suffix(ElParser* parser, ElAstTypeOrExpr* toe) {
+    el_parser_advance(parser); // [
+
+    ElAstTypeOrExpr* index = _el_parser_parse_type_or_expr(parser);
+    if (index == NULL) return NULL;
+
+    ElToken rbracket = parser->current;
+    el_parser_expect(parser, EL_TT_RBRACKET);
+    if (el_parser_has_errs(parser)) return NULL;
+
+    ElSourceSpan combined_span = el_source_span_merge(toe->span, rbracket.span);
+
+    if (toe->kind == EL_AST_TOE_TYPE) {
+        ElAstExpr* size = el_ast_toe_as_expr(parser->arena, index);
+        if (size == NULL) return NULL;
+
+        ElAstType* type = el_ast_new_type_array(
+            parser->arena, combined_span, toe->as.type, size
+        );
+        return el_ast_new_toe_type(parser->arena, type);
+    }
+
+    return el_ast_new_toe_unr_index(
+        parser->arena, combined_span, toe, index
+    );
+}
+
+static ElAstTypeOrExpr* parse_toe_suffixes(ElParser* parser, ElAstTypeOrExpr* toe) {
+    while (toe != NULL) {
+        // slices and refs
+        if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
+            return force_type_with_suffixes(parser, toe);
+        }
+        if (el_parser_check(parser, EL_TT_LBRACKET) && is_slice_brackets(parser)) {
+            return force_type_with_suffixes(parser, toe);
+        }
+
+        // X[123]
+        // (can be an array type or an index expression)
+        if (el_parser_check(parser, EL_TT_LBRACKET) && toe->kind != EL_AST_TOE_EXPR) {
+            toe = parse_toe_bracket_suffix(parser, toe);
+            if (toe == NULL) return NULL;
+            continue;
+        }
+
+        if (el_parser_check(parser, EL_TT_INC)
+         || el_parser_check(parser, EL_TT_DEC)
+         || el_parser_check(parser, EL_TT_LPAREN)
+         || el_parser_check(parser, EL_TT_CARET)
+         || el_parser_check(parser, EL_TT_DOT)
+         || (el_parser_check(parser, EL_TT_LBRACKET) && toe->kind == EL_AST_TOE_EXPR)
+        ) {
+            ElAstExpr* expr = el_ast_toe_as_expr(parser->arena, toe);
+            if (expr == NULL) return NULL;
+            expr = continue_expr_postfixes(parser, expr);
+            if (expr == NULL) return NULL;
+            return el_ast_new_toe_expr(parser->arena, expr);
+        }
+
+        break;
+    }
+
+    return toe;
+}
+
+ElAstTypeOrExpr* _el_parser_parse_type_or_expr(ElParser* parser) {
+    // unambiguous cases
+
+    // Type { ... }
+    if (is_type_literal(parser)) {
+        ElAstExpr* expr = _el_parser_parse_postfix(parser);
+        if (expr == NULL) return NULL;
+        return el_ast_new_toe_expr(parser->arena, expr);
+    }
+
+    // struct(...) / struct { ... }
+    if (el_parser_check(parser, EL_TT_KW_STRUCT)) {
+        ElAstType* type = _el_parser_parse_type(parser);
+        if (type == NULL) return NULL;
+        return el_ast_new_toe_type(parser->arena, type);
+    }
+
+    // ambiguous
+    // X (just a identifier)
+    if (el_parser_check(parser, EL_TT_IDENT)) {
+        ElAstIdent* ident = _el_parser_parse_ident(parser);
+        if (ident == NULL) return NULL;
+
+        ElAstTypeOrExpr* toe = el_ast_new_toe_unr_ident(parser->arena, ident->span, ident);
+        return parse_toe_suffixes(parser, toe);
+    }
+
+    ElAstExpr* expr = el_parser_parse_expr(parser);
+    if (expr == NULL) return NULL;
+    return el_ast_new_toe_expr(parser->arena, expr);
+}

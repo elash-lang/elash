@@ -44,21 +44,7 @@ static ElAstType* parse_struct_type(ElParser* parser, ElToken struct_tok) {
     return el_ast_new_type_struct(parser->arena, el_source_span_merge(struct_tok.span, rbrace_tok.span), head, count);
 }
 
-ElAstType* _el_parser_parse_type(ElParser* parser) {
-    ElAstType* type;
-    if (el_parser_check(parser, EL_TT_KW_STRUCT)) {
-        ElToken struct_tok = el_parser_advance(parser);
-        if (el_parser_check(parser, EL_TT_LPAREN)) {
-            type = parse_tuple_type(parser, struct_tok);
-        } else if (el_parser_check(parser, EL_TT_LBRACE)) {
-            type= parse_struct_type(parser, struct_tok);
-        }
-    } else {
-        ElAstIdent* name = _el_parser_parse_ident(parser);
-        if (name == NULL) return NULL;
-        type = el_ast_new_type_name(parser->arena, name->span, name);
-    }
-
+ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
     while (true) {
         if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
             ElToken amp_tok = el_parser_advance(parser);
@@ -92,4 +78,25 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
     }
 
     return type;
+}
+
+ElAstType* _el_parser_parse_type(ElParser* parser) {
+    ElAstType* type;
+    if (el_parser_check(parser, EL_TT_KW_STRUCT)) {
+        ElToken struct_tok = el_parser_advance(parser);
+        if (el_parser_check(parser, EL_TT_LPAREN)) {
+            type = parse_tuple_type(parser, struct_tok);
+        } else if (el_parser_check(parser, EL_TT_LBRACE)) {
+            type = parse_struct_type(parser, struct_tok);
+        } else {
+            _el_parser_report_unexpected(parser, parser->current);
+            return NULL;
+        }
+    } else {
+        ElAstIdent* name = _el_parser_parse_ident(parser);
+        if (name == NULL) return NULL;
+        type = el_ast_new_type_name(parser->arena, name->span, name);
+    }
+
+    return _el_parser_parse_type_suffixes(parser, type);
 }

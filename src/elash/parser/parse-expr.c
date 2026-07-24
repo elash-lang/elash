@@ -17,7 +17,6 @@
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/init.h>
 
-static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
 
 static bool _el_parser_is_type_literal(ElParser* parser) {
     usize idx = 0;
@@ -120,7 +119,7 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     return NULL;
 }
 
-static ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
+ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
     if (!expr) return NULL;
     if (el_parser_check(parser, EL_TT_IDENT)) {
         ElToken name_ident = el_parser_expect(parser, EL_TT_IDENT);
@@ -147,7 +146,7 @@ static ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
     }
 }
 
-static ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
+ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee) {
     ElAstInit* args_head = NULL;
     ElAstInit* args_tail = NULL;
     usize arg_count = 0;
