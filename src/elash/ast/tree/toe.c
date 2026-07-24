@@ -18,7 +18,7 @@ ElAstTypeOrExpr* el_ast_new_toe_expr(ElDynArena* arena, ElAstExpr* expr) {
     });
 }
 
-ElAstTypeOrExpr* el_ast_new_toe_unresolved_ident(ElDynArena* arena, ElSourceSpan span, ElAstIdent* ident) {
+ElAstTypeOrExpr* el_ast_new_toe_unr_ident(ElDynArena* arena, ElSourceSpan span, ElAstIdent* ident) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstTypeOrExpr, {
         .kind = EL_AST_TOE_UNR_IDENT,
         .span = span,
@@ -26,7 +26,7 @@ ElAstTypeOrExpr* el_ast_new_toe_unresolved_ident(ElDynArena* arena, ElSourceSpan
     });
 }
 
-ElAstTypeOrExpr* el_ast_new_toe_unresolved_index(ElDynArena* arena, ElSourceSpan span, ElAstTypeOrExpr* base, ElAstTypeOrExpr* index) {
+ElAstTypeOrExpr* el_ast_new_toe_unr_index(ElDynArena* arena, ElSourceSpan span, ElAstTypeOrExpr* base, ElAstTypeOrExpr* index) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstTypeOrExpr, {
         .kind = EL_AST_TOE_UNR_INDEX,
         .span = span,

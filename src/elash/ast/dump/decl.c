@@ -1,5 +1,6 @@
 #include <elash/ast/dump/decl.h>
 #include <elash/ast/dump/stmt.h>
+#include <elash/ast/dump/toe.h>
 #include <elash/ast/tree/stmt.h>
 #include <elash/ast/dump/indent.h>
 #include <elash/ast/dump/type.h>
@@ -66,5 +67,16 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
     case EL_AST_DECL_FUNC_DECL:
         el_ast_dump_func_sig(&node->as.func_decl.sig, indent, out, "FuncDecl");
         break;
+
+    case EL_AST_DECL_ALIAS:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "Alias:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.alias.name));
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "target:\n");
+        el_ast_dump_type_or_expr(&node->as.alias.target, indent + 2, out);
+        break;
     }
 }
+

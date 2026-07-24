@@ -149,7 +149,31 @@ static ElAstDecl* el_parser_parse_extern_decl(ElParser* parser, ElToken extern_t
     }
 }
 
+static ElAstDecl* el_parser_parse_alias_decl(ElParser* parser, ElToken alias_tok) {
+    ElToken name_tok = parser->current;
+    el_parser_expect(parser, EL_TT_IDENT);
+    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+
+    el_parser_expect(parser, EL_TT_ASSIGN);
+    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+
+    ElAstTypeOrExpr* target = _el_parser_parse_type_or_expr(parser);
+    if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+
+    ElToken semi_tok = parser->current;
+    el_parser_expect(parser, EL_TT_SEMICOLON);
+
+    ElSourceSpan span = el_source_span_merge(alias_tok.span, semi_tok.span);
+    return el_ast_new_alias(parser->arena, span, name_tok.lexeme, *target);
+}
+
 static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
+    if (el_parser_check(parser, EL_TT_KW_ALIAS)) {
+        ElToken alias_tok = parser->current;
+        el_parser_advance(parser);
+        return el_parser_parse_alias_decl(parser, alias_tok);
+    }
+
     usize idx = 0;
     if (!_el_parser_lookahead_skip_type(parser, &idx) || el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
         el_parser_expect(parser, EL_TT_IDENT);

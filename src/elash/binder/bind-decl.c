@@ -1,5 +1,6 @@
 #include <elash/binder/binder.h>
 #include <elash/util/assert.h>
+#include <elash/util/todo.h>
 
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
@@ -221,6 +222,8 @@ ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
         return _el_binder_bind_func_def(binder, in, &in->as.func_def);
     case EL_AST_DECL_FUNC_DECL:
         return _el_binder_bind_func_decl(binder, in, &in->as.func_decl);
+    case EL_AST_DECL_ALIAS:
+        EL_TODO("support aliases");
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, in->type);
 }
