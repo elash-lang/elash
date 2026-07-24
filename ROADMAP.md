@@ -7,7 +7,7 @@
 - [x] Function declarations (extern)
 - [x] Variable definitions
 - [x] Variable declarations (extern)
-- [ ] Symbolic aliases
+- [x] Symbolic aliases
 
 ### Control Flow
 - [x] If statement
@@ -16,7 +16,6 @@
 
 ### Type system
 - [ ] Strong aliases (typedef)
-- [ ] Structs syntactic sugar
 - [x] Basic primitive types
 - [x] Floating-point types
 - [x] Pointer types
@@ -136,7 +135,7 @@
 - [x] Lower structured control flow (if, loops) into basic blocks and jumps
 - [x] Flatten nested expressions into linear ELMIR instructions
 - [x] Implement temporary variable generation
-- [ ] Perform early ELMIR optimizations (e.g., dead code elimination)
+- [ ] ~~Perform early ELMIR optimizations (e.g., dead code elimination)~~ *(moved to 0.2.0 or later)*
 - [ ] ~~Attach source spans to MIR structures~~ *(moved to 0.2.0 or later)*
 
 ### 6. ELMIR -> LLVM IR Lowering
@@ -162,8 +161,8 @@
 - [x] Configure LLVM target triple
 - [x] Create target machine
 - [x] Emit object files
-- [ ] Invoke system linker
-- [ ] Produce final executable
+- [ ] ~~Invoke system linker~~ *(moved to 0.2.0 or later)*
+- [ ] ~~Produce final executable~~ *(moved to 0.2.0 or later)*
 
 
 ### 8. Optimizations (LLVM Passes)
@@ -179,7 +178,7 @@
 
 - [x] Implement command parsing
 - [x] Implement useful flags
-- [ ] Implement optimization flags
+- [x] Implement optimization flags
 - [x] Implement colored diagnostics
 - [x] Return proper exit codes
 
