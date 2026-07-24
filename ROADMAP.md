@@ -7,17 +7,18 @@
 - [x] Function declarations (extern)
 - [x] Variable definitions
 - [x] Variable declarations (extern)
+- [ ] Symbolic aliases
 
 ### Control Flow
 - [x] If statement
 - [x] While loops
-- [ ] For loops
+- [ ] ~~For loops~~ *(moved to 0.2.0)*
 
 ### Type system
 - [ ] Strong aliases (typedef)
 - [ ] Structs syntactic sugar
 - [x] Basic primitive types
-- [ ] Floating-point types
+- [x] Floating-point types
 - [x] Pointer types
 - [x] Function types
 - [x] Slice types
@@ -25,7 +26,7 @@
 - [x] Array types
 - [x] Struct types
 - [x] Tuple types
-- [ ] Enum types
+- [ ] ~~Enum types~~ *(moved to 0.2.0)*
 - [x] Type casting
 
 ### Expressions
@@ -40,6 +41,7 @@
 - [x] Variable assignment operator
 - [x] Compound assignment operators (+=, -=, ...)
 - [ ] String literals
+- [ ] Struct initializers
 
 ### Compiler CLI
 - [x] diagnostics engine
@@ -49,7 +51,7 @@
 - [x] --dump-tokens, --dump-pp-tokens and --dump-ast flags
 - [x] --dump-hir, --dump-mir and --dump-lir flags
 - [ ] --color=never/auto/always flag
-- [ ] -I\<scope\>:\<path\> flag
+- [ ] ~~-I\<scope\>:\<path\> flag~~ *(moved to 0.2.0)*
 
 ## Development Roadmap
 
