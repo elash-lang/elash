@@ -207,6 +207,17 @@ static ElHirDecl* bind_func_def(ElBinder* binder, ElAstDecl* in, ElAstFuncDef* d
 
     binder->current_func = prev_func;
 
+    if (!el_hir_type_eql(sym->as.func.type->as.func.ret_type, binder->builtins->type_void)) {
+        if (!_el_binder_block_always_returns(binder, block)) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.return-missing",
+                def->sig.ret_type->span,
+                "non-void function '${fn}' does not return a value in all control paths",
+                EL_DIAG_STRING("fn", def->sig.name->name),
+            );
+        }
+    }
+
     return el_hir_new_func_def(binder->hir_arena, in->span, sym, block);
 }
 

@@ -64,6 +64,9 @@ ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr);
 
 bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr);
 
+bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt);
+bool _el_binder_block_always_returns(ElBinder* binder, ElHirBlockStmt block);
+
 ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElHirSymbol* builtin);
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type);
 
