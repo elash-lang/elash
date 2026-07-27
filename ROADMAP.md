@@ -39,7 +39,7 @@
 - [x] Increment and decrement operators
 - [x] Variable assignment operator
 - [x] Compound assignment operators (+=, -=, ...)
-- [ ] String literals
+- [x] String literals
 - [ ] Struct initializers
 
 ### Compiler CLI
@@ -123,7 +123,7 @@
 - [x] Validate function calls
 - [x] Validate return types
 - [x] Implement constant folding
-- [ ] Check whether function returns in all execution paths
+- [x] Check whether function returns in all execution paths
 - [x] Implement implicit and explicit conversions
 - [x] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
 - [ ] ~~Add semantic & ELHIR test suite~~ *(moved to 0.2.0 or later)*
