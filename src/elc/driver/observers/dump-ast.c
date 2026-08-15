@@ -15,22 +15,17 @@ void elc_dump_ast_observer_exec(
 
     if (artifact == NULL || artifact->kind != ELC_ART_AST) return;
 
-    switch (event) {
-    case ELC_OBS_ARTIFACT_PRODUCED: {
-        FILE* out = stdout;
-        if (path != NULL && strcmp(path, "-") != 0) {
-            out = fopen(path, "w");
-            if (out == NULL) return;
-        }
+    if (event != ELC_OBS_END) return;
 
-        el_ast_dump_module(artifact->as.ast, 0, out);
+    FILE* out = stdout;
+    if (path != NULL && strcmp(path, "-") != 0) {
+        out = fopen(path, "w");
+        if (out == NULL) return;
+    }
 
-        if (out != stdout) fclose(out);
-        break;
-    }
-    default:
-        break;
-    }
+    el_ast_dump_module(artifact->as.ast, 0, out);
+
+    if (out != stdout) fclose(out);
 }
 
 ElcObserver elc_make_dump_ast_observer(const char* output_path) {

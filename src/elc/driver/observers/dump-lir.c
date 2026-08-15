@@ -13,27 +13,20 @@ void elc_dump_lir_observer_exec(
     (void) ctx, (void) stage_name;
     ElcDumpLirData* data = user_data;
 
-    if (artifact == NULL || artifact->kind != data->kind) {
-        return;
-    }
+    if (artifact == NULL || artifact->kind != data->kind) return;
+    if (event != ELC_OBS_END) return;
 
     const ElcLirHandle* lir = &artifact->as.lir;
-    switch (event) {
-    case ELC_OBS_ARTIFACT_PRODUCED: {
-        FILE* out = stdout;
-        if (data->path != NULL && strcmp(data->path, "-") != 0) {
-            out = fopen(data->path, "w");
-            if (out == NULL) return;
-        }
 
-        lir->dump(lir, out);
+    FILE* out = stdout;
+    if (data->path != NULL && strcmp(data->path, "-") != 0) {
+        out = fopen(data->path, "w");
+        if (out == NULL) return;
+    }
 
-        if (out != stdout) fclose(out);
-        break;
-    }
-    default:
-        break;
-    }
+    lir->dump(lir, out);
+
+    if (out != stdout) fclose(out);
 }
 
 ElcObserver elc_make_dump_lir_observer(ElcDumpLirData* data) {

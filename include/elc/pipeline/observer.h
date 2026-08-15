@@ -4,9 +4,9 @@
 #include <elc/pipeline/context.h>
 
 typedef enum ElcObserverEvent {
-    ELC_OBS_STAGE_BEGIN,
-    ELC_OBS_STAGE_END,
-    ELC_OBS_ARTIFACT_PRODUCED,
+    ELC_OBS_START,  ///< Triggered before the stage begins
+    ELC_OBS_FINISH, ///< Triggered right after the stage execution ends; for time-sensitive observers (timers, metrics, etc.)
+    ELC_OBS_END,    ///< Triggered after the FINISH event; for non-time-critical observers (dumps, validators, etc.)
 } ElcObserverEvent;
 
 typedef void ElcObserverFn(

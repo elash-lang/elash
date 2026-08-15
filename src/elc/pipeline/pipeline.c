@@ -83,11 +83,11 @@ bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifa
                 }
             }
 
-            elc_pipeline_notify(pipeline, ELC_OBS_STAGE_BEGIN, stage, NULL);
+            elc_pipeline_notify(pipeline, ELC_OBS_START, stage, NULL);
 
             ElcArtifact output = { .kind = kind };
             if (!stage->execute(stage, &pipeline->context, &input, &output)) {
-                elc_pipeline_notify(pipeline, ELC_OBS_STAGE_END, stage, NULL);
+                elc_pipeline_notify(pipeline, ELC_OBS_FINISH, stage, NULL);
                 return false;
             }
 
@@ -97,8 +97,8 @@ bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifa
             }
 
             pipeline->registry[kind] = output;
-            elc_pipeline_notify(pipeline, ELC_OBS_STAGE_END, stage, NULL);
-            elc_pipeline_notify(pipeline, ELC_OBS_ARTIFACT_PRODUCED, stage, &output);
+            elc_pipeline_notify(pipeline, ELC_OBS_FINISH, stage, &output);
+            elc_pipeline_notify(pipeline, ELC_OBS_END, stage, &output);
 
             if (out != NULL) *out = output;
             return true;
