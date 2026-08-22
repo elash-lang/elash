@@ -17,6 +17,11 @@ typedef enum ElcPreference {
     ELC_PREF_ALWAYS,
 } ElcPreference;
 
+typedef enum ElcDiagFormat {
+    ELC_DIAG_CONSOLE,
+    ELC_DIAG_JSONL,
+} ElcDiagFormat;
+
 typedef struct ElcArgs {
     ElStringView input;  // filename or - for stdin
     ElStringView output; // filename or - for stdout
@@ -36,6 +41,8 @@ typedef struct ElcArgs {
 
     ElcOptLevel opt;
     ElcPreference color;
+
+    ElcDiagFormat dformat;
 
     bool stdlib;
     bool corelib;

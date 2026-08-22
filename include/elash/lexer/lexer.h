@@ -24,8 +24,8 @@ typedef enum ElLexerFlags {
 
 /// @def EL_LEXER_FLAGS_DEFAULT
 /// @brief Default lexer configuration flags.
-/// @details By default, skips whitespace, and allows UTF-8 identifiers.
-#define EL_LEXER_FLAGS_DEFAULT (EL_LF_SKIP_WHITESPACE | EL_LF_ALLOW_UTF8_IDENTS)
+/// @details By default, allows UTF-8 identifiers.
+#define EL_LEXER_FLAGS_DEFAULT (EL_LF_ALLOW_UTF8_IDENTS)
 
 typedef struct ElLexer {
     const ElSourceDocument* doc;

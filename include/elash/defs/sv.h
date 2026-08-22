@@ -3,8 +3,9 @@
 #include <elash/defs/int-types.h>
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct ElStringView {
     const char* data;
@@ -29,6 +30,10 @@ static inline ElStringView el_sv_from_cstr(const char* cstr) {
 
 static inline ElStringView el_sv_from_data_and_len(const char* data, usize len) {
     return (ElStringView) { .data = data, .len = len };
+}
+
+static inline ElStringView el_sv_from_char(const char* c) {
+    return (ElStringView) { .data = c, .len = 1 };
 }
 
 static inline bool el_sv_is_null(ElStringView sv) {
@@ -86,4 +91,13 @@ static inline ElStringView el_sv_window(ElStringView sv, usize start, usize len)
     if (start + len > sv.len) len = sv.len - start;
 
     return (ElStringView) { .data = sv.data + start, .len = len };
+}
+
+static inline char* el_sv_to_cstr_alloc(ElStringView sv) {
+    if (el_sv_is_null(sv)) return NULL;
+    char* cstr = malloc(sv.len + 1);
+    if (cstr == NULL) return NULL;
+    memcpy(cstr, sv.data, sv.len);
+    cstr[sv.len] = '\0';
+    return cstr;
 }

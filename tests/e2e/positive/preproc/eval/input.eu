@@ -1,0 +1,25 @@
+#note 123                // 123
+#warn "Hello"            // Hello
+#note 1 + 3              // 4
+#warn 'X'                // X
+#note (10 + 5) * 2 - 4   // 26
+#note { 1, 2 + 10, 3 }   // { 1, 12, 3 }
+#warn "XY" + "AB"        // XYAB
+#note { 1, 2 } + { 3 }   // { 1, 2, 3 }
+#note #<Q>               // Q
+#note #(k "y" 1)         // { k "y" 1 }
+#warn #(1) + { 1 }       // { 1, 1 }
+#note 1.5 + 2.5          // 4
+#note 3.14 * 2           // 6.28
+#warn 1.1 + 0.1          // 1.2
+#note true && false      // false
+#note true || false      // true
+#note 1 < 2              // true
+#note 1 > 2              // false
+#note 1 == 1             // true
+#note 1 != 2             // true
+#warn null               // null
+
+int main() {
+    return 0;
+}

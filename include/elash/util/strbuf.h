@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/defs/sv.h>
+#include <elash/defs/attr.h>
 
 typedef struct ElStringBuf {
     char* data;
@@ -28,14 +29,16 @@ bool el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap);
 void el_strbuf_clear(ElStringBuf* sb);
 
 bool el_strbuf_append(ElStringBuf* sb, ElStringView sv);
+bool el_strbuf_append_char(ElStringBuf* sb, char c);
+
+bool el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) EL_ATTR_PRINTF_LIKE(2, 3);
+
 static inline bool el_strbuf_append_cstr(ElStringBuf* sb, const char* cstr) {
     return el_strbuf_append(sb, el_sv_from_cstr(cstr));
 }
 static inline bool el_strbuf_append_buf(ElStringBuf* sb, const ElStringBuf* other) {
     return el_strbuf_append(sb, el_strbuf_view(other));
 }
-
-bool el_strbuf_append_char(ElStringBuf* sb, char c);
 
 static inline bool el_strbuf_eql_to(const ElStringBuf* lhs, ElStringView rhs) {
     return el_sv_eql(el_strbuf_view(lhs), rhs);

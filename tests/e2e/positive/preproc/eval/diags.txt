@@ -1,0 +1,21 @@
+ 1:note: 123
+ 2:warn: Hello
+ 3:note: 4
+ 4:warn: X
+ 5:note: 26
+ 6:note: { 1, 12, 3 }
+ 7:warn: XYAB
+ 8:note: { 1, 2, 3 }
+ 9:note: Q
+10:note: { k, "y", 1 }
+11:warn: { 1, 1 }
+12:note: 4
+13:note: 6.28
+14:warn: 1.2
+15:note: false
+16:note: true
+17:note: true
+18:note: false
+19:note: true
+20:note: true
+21:warn: null

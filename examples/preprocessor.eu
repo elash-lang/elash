@@ -47,13 +47,13 @@ const byte[...] binaryfile = #embed assets:texture.png;
 //  "tokenize text between the angle brackets and return it as a token"
 //  (it can be only one token)
 // #(...) in preproc expression means
-//  "tokenize text between the angle brackets and return it as a tokstream"
+//  "tokenize text between the angle brackets and return it as a list of tokens"
 //  (basically quote! from rust)
 // #; means
 
 // normal macro params are implicitly typed as a `tokstream`
 // ...NAME means variadic arguments, typed as a `list`
-#macro CREATE_ENUM(NAME, ...ENUMERATORS)
+#macro CREATE_ENUM!(NAME, ...ENUMERATORS)
     // the macro expansion result is rescanned for macros
     // and other preprocessor instructions, for example,
     // this is valid: `#emit #note "hello!"`
@@ -73,7 +73,7 @@ const byte[...] binaryfile = #embed assets:texture.png;
 
         #emit strview[] #{NAMES_ARRAY} = {
         #for E in ENUMERATORS
-            #emit [#{NAME}::#{E} bitcast usize] = #{STRINGIFY(E)},
+            #emit [#{NAME}:#{E} bitcast usize] = #{STRINGIFY(E)},
         #end
         #emit };
 
@@ -84,7 +84,7 @@ const byte[...] binaryfile = #embed assets:texture.png;
 #end
 
 // you can also use [] or {} as the arguments delimiter
-#macro LIST[...ELEMS]
+#macro LIST![...ELEMS]
     #emit {
     #for E in ELEMS
         #emit #{ELEM},
@@ -93,7 +93,7 @@ const byte[...] binaryfile = #embed assets:texture.png;
 #end
 
 // to call a macro from outside preprocessor context,
-// you use @MACRO_NAME <param list>
+// you use MACRO_NAME! <param list>
 
 // expands to:
 // typedef Color as enum {
@@ -104,23 +104,23 @@ const byte[...] binaryfile = #embed assets:texture.png;
 
 // and (if feat:enum-to-str config is set to true):
 // strview[] Color_names = {
-// [Color::Red bitcast usize] = "Red",
-// [Color::Green bitcast usize] = "Green",
-// [Color::Blue bitcast usize] = "Blue",
+// [Color:Red bitcast usize] = "Red",
+// [Color:Green bitcast usize] = "Green",
+// [Color:Blue bitcast usize] = "Blue",
 // };
 // strview Color_to_string(Color value) {
 // return Color_names[value bitcast usize];
 // }
-@CREATE_ENUM(Color,
+CREATE_ENUM!(Color,
     Red, Green, Blue
 );
 
 // expands to:
 // int[3] array = { 10, 20, 30, };
-int[3] array = @LIST[ 10, 20, 30 ];
+int[3] array = LIST![ 10, 20, 30 ];
 
 int main() {
-    Color color = Color::Red;
-    io::printf("color = %s", Color_to_string(color));
+    Color color = Color:Red;
+    io:printf("color = %s", Color_to_string(color));
     return 0;
 }

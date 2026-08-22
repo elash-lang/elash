@@ -1,6 +1,6 @@
-int f() {}
-uint f() {}
-char f() {}
+int f()  { return 0; }
+uint f() { return 0; }
+char f() { return 0; }
 
 int main() {
     return f();

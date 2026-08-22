@@ -21,6 +21,7 @@ bool el_tkque_copy(const ElTokenQueue* src, ElTokenQueue* dst);
 void el_tkque_move(ElTokenQueue* src, ElTokenQueue* dst);
 
 bool el_tkque_push(ElTokenQueue* tkque, ElToken tok);
+bool el_tkque_push_front(ElTokenQueue* tkque, ElToken tok);
 bool el_tkque_pop(ElTokenQueue* tkque, ElToken* out_tok);
 
 bool el_tkque_peek(const ElTokenQueue* tkque, ElToken* out_tok);

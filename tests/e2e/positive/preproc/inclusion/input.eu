@@ -1,0 +1,7 @@
+#include utils:test
+#include header
+
+int main() {
+    int x = test();
+    return add(x, -6);
+}

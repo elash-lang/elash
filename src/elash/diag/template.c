@@ -1,23 +1,21 @@
 #include <elash/diag/template.h>
 #include <elash/util/assert.h>
 
-#include <stdio.h>
-
 static bool _el_diag_render_meta_value(const ElDiagMetaEntry* entry, ElStringBuf* out) {
     switch (entry->type) {
-    case EL_DIAG_META_INTEGER: {
-        char buf[32]; // NOLINT
-        int n = snprintf(buf, sizeof(buf), "%d", entry->as.integer);
-
-        return el_strbuf_append(out, el_sv_from_data_and_len(buf, (usize)n));
+    case EL_DIAG_META_INT: {
+        return el_strbuf_appendf(out, "%i", entry->as.integer);
     }
-    case EL_DIAG_META_CHARACTER:
+    case EL_DIAG_META_CHAR:
         return el_strbuf_append_char(out, entry->as.character);
-    case EL_DIAG_META_STRING:
+    case EL_DIAG_META_STR:
         return el_strbuf_append(out, entry->as.string);
     case EL_DIAG_META_TYPE:
         el_sema_format_type(entry->as.type, out);
         return true;
+    case EL_DIAG_META_TOK:
+        return el_strbuf_append(out,
+                el_token_type_format(entry->as.token.type));
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElDiagMetaType, entry->type);

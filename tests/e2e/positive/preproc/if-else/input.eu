@@ -1,0 +1,51 @@
+#var x = true
+#if true
+    #if x
+        #set x = false
+        #if x
+            #error "should not be reached"
+        #end
+    #end
+    #if x
+        #error "should not be reached"
+    #end
+#else
+    #error "should not be reached"
+#end
+
+#var y
+#if x
+    #set y = -1
+    int ry = -1;
+#elif false
+    #var y = 1223
+    int ry = 1223;
+#elif true
+    #set y = 99
+    int ry = 99;
+#else
+    #set y = -3
+    int ry = -3;
+#end
+
+#if y != 99
+    #error "expected y = 99, got y =", y
+#else
+    #note "this SHOULD be reached"
+#end
+
+#const test = true
+#if true
+    // if gets its own scope, #var here should shadow
+    // test from outer scope
+    #const test = false
+#end
+
+#if !test
+    #error "should not be reached"
+#end
+
+int main() {
+    if (ry == 99) return 0;
+    else return 1;
+}

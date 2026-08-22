@@ -1,1 +1,2 @@
-error[syntax.unexpected-char]
+2:error[syntax.unexpected-char]
+...

@@ -25,9 +25,7 @@ typedef struct ElcPipeline {
 
 void elc_pipeline_init(
     ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag,
-    ElBinderBuiltins* binder_builtins,
-    ElLowererBuiltins* lowerer_builtins,
-    ElcOptLevel optlvl
+    ElBinderBuiltins* binder_builtins, ElLowererBuiltins* lowerer_builtins
 );
 
 void elc_pipeline_cleanup(ElcPipeline* pipeline);

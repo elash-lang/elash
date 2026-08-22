@@ -34,16 +34,17 @@
 - [ ] Don't report warnings from system headers
 
 ## Preprocessor
-- [ ] Implement file inclusion directive
-- [ ] Resolve scoped include paths
-- [ ] Prevent recursive inclusion
+- [x] Implement file inclusion directive
+- [x] Resolve scoped and local include paths
+- [x] Max include depth limit
 - [ ] Implement embed directive
-- [ ] Support preprocessor variables and constatns
+- [x] Solve source spans issues with #include
+- [x] Support preprocessor variables and constants
 - [ ] Support preprocessor functions
 - [ ] Implement macro expansion engine
 - [ ] Implement macro expansion result rescan
 - [ ] Preserve correct source locations after expansion
-- [ ] Implement conditional compilation directives
+- [x] Implement conditional compilation directives
 - [ ] Implement loops (`#while`, `#for`)
 - [ ] Support predefined preprocessor functions and macros
 - [ ] Builtin constants (`ELC_MODE`, `ELC_VERSION`, `ELC_OPTLVL`)
@@ -87,6 +88,7 @@
 - [ ] Document elash basics
 
 ## Stability & Hardening
+- [ ] Support multiple source files in e2e cases
 - [ ] Preproc test suite
 - [x] Parser test suite
 - [x] Unparser test suite

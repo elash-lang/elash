@@ -6,7 +6,7 @@ bool elc_pp_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const Elc
     (void) stage;
 
     ElPreproc* pp = EL_DYNARENA_NEW(ctx->arena, ElPreproc);
-    if (!el_pp_init(pp, *input->as.tks, ctx->arena)) {
+    if (!el_pp_init(pp, *input->as.tks, ctx->root_src, ctx->arena, ctx->imap)) {
         // TODO: error handling
         return false;
     }
@@ -15,7 +15,7 @@ bool elc_pp_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const Elc
 
     if (ctx->token_dump_bufs[ELC_ART_PPTKS] != NULL) {
         el_tkbuf_capture_stream(&stream, ctx->token_dump_bufs[ELC_ART_PPTKS], ctx->diag);
-        
+
         ElTkBufStream* tkbuf_ctx = EL_DYNARENA_NEW(ctx->arena, ElTkBufStream);
         stream = el_tkbuf_as_stream(tkbuf_ctx, ctx->token_dump_bufs[ELC_ART_PPTKS]);
     }

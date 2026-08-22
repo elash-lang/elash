@@ -1,1 +1,1 @@
-error[sema.return-val-expected]
+2:error[sema.return-val-expected]

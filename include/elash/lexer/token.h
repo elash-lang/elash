@@ -170,4 +170,4 @@ usize el_token_print(const ElToken* tok, FILE* out);
 /// @param tok Token to convert.
 /// @param sb String buffer to append to.
 /// @return True on success, false on memory allocation failure.
-bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb);
+bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace);

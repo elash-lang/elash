@@ -1,9 +1,13 @@
 #include <elc/driver/driver.h>
 #include <elash/util/todo.h>
 
+#include <elash/defs/platform.h>
+
 #include <elash/diag/engine.h>
 #include <elash/diag/handle.h>
+
 #include <elash/diag/printer/console.h>
+#include <elash/diag/printer/jsonl.h>
 
 #include <elc/driver/stages/lexer-stage.h>
 #include <elc/driver/stages/pp-stage.h>
@@ -29,8 +33,7 @@ bool elc_driver_init(ElcDriver* driver) {
 
     elc_pipeline_init(
         &driver->pipeline, &driver->arena, &driver->diag,
-        &driver->binder_builtins, &driver->lowerer_builtins,
-        ELC_OPT_O0
+        &driver->binder_builtins, &driver->lowerer_builtins
     );
 
     return true;
@@ -154,6 +157,7 @@ static ElcArtifactKind determine_target(const ElcArgs* args) {
 
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
     driver->pipeline.context.optlevel = args->opt;
+    driver->pipeline.context.imap     = &args->imap;
 
     ElSourceDocument src;
     if (!init_source_document(driver, args, &src)) {
@@ -179,6 +183,9 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
         } else if (!el_sv_is_null(out_path)) {
             const char* path = el_dynarena_make_cstr(&driver->arena, out_path);
             f = fopen(path, "wb");
+            #if EL_PLATFORM_IS_POSIX
+                if (f == NULL) perror("fopen");
+            #endif
         }
 
         if (f != NULL) {
@@ -189,7 +196,11 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
         }
     }
 
-    ElDiagPrinter printer = el_diag_make_console_printer();
+    ElDiagPrinter printer;
+    switch (args->dformat) {
+    case ELC_DIAG_CONSOLE: printer = el_diag_make_console_printer(); break;
+    case ELC_DIAG_JSONL:   printer = el_diag_make_jsonl_printer();   break;
+    }
     el_diag_engine_print(&driver->diag, &printer, stdout);
 
     el_srcdoc_destroy(&src);

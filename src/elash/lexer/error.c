@@ -42,7 +42,7 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
     if (r.code != EL_LEXERR_SUCCESS) {
         loc_len = snprintf(NULL, 0, " (%u:%u)",
             // line and column are 0-indexed but we want 1-indexed numbers
-            r.span.start.line + 1, r.span.start.column + 1
+            r.span.ranges[0].start.line + 1, r.span.ranges[0].start.column + 1
         );
         if (loc_len < 0) loc_len = 0;
     }
@@ -64,7 +64,7 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
     if (loc_len > 0) {
         p += snprintf(p, (usize)loc_len + 1, " (%u:%u)",
             // line and column are 0-indexed but we want 1-indexed numbers
-            r.span.start.line + 1, r.span.start.column + 1
+            r.span.ranges[0].start.line + 1, r.span.ranges[0].start.column + 1
         );
     }
 
@@ -83,7 +83,7 @@ usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out) {
     if (r.code != EL_LEXERR_SUCCESS) {
         written += fprintf(
             out, "(%u:%u): ",
-            r.span.start.line + 1, r.span.start.column + 1
+            r.span.ranges[0].start.line + 1, r.span.ranges[0].start.column + 1
         );
     }
 

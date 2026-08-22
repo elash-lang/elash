@@ -1,0 +1,2 @@
+2:note: x = 10
+1:warn[pp.never-mutated]

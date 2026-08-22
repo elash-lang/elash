@@ -1,4 +1,4 @@
-name: Build ARM64 CI image
+name: Build CI Images
 
 permissions:
   contents: read
@@ -7,11 +7,20 @@ permissions:
 on:
   push:
     paths:
-      - '.github/docker/arm64/Dockerfile'
+      - '.github/docker/Dockerfile'
 
 jobs:
   docker:
-    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.runner }}
+
     steps:
       - uses: actions/checkout@v6
 
@@ -23,7 +32,6 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: .github/docker/arm64
+          context: .github/docker
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest
-
+          tags: ghcr.io/${{ github.repository_owner }}/elash-ci-${{ matrix.arch }}:latest

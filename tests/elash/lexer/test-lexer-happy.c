@@ -31,7 +31,7 @@ Test(el_lexer_happy, basic_tokens) {
     el_srcdoc_init_from_str(&doc, EL_SV("foo bar 123 3.14 'a' \"hello\""), EL_SV("test.eu"));
 
     ElLexer lexer;
-    el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
 
     assert_token(&lexer, EL_TT_IDENT, "foo");
     assert_token(&lexer, EL_TT_IDENT, "bar");
@@ -49,7 +49,7 @@ Test(el_lexer_happy, keywords) {
     el_srcdoc_init_from_str(&doc, EL_SV("if else while for return break continue"), EL_SV("test.eu"));
 
     ElLexer lexer;
-    el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
 
     assert_token(&lexer, EL_TT_KW_IF, "if");
     assert_token(&lexer, EL_TT_KW_ELSE, "else");
@@ -76,7 +76,7 @@ Test(el_lexer_happy, operators) {
     );
 
     ElLexer lexer;
-    el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
 
     assert_token(&lexer, EL_TT_PLUS, "+");
     assert_token(&lexer, EL_TT_MINUS, "-");
@@ -133,7 +133,7 @@ Test(el_lexer_happy, delimiters) {
     el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . # ..."), EL_SV("test.eu"));
 
     ElLexer lexer;
-    el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
 
     assert_token(&lexer, EL_TT_LPAREN, "(");
     assert_token(&lexer, EL_TT_RPAREN, ")");
@@ -158,7 +158,7 @@ Test(el_lexer_happy, comments_skipped) {
     el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block\ncomment */ baz"), EL_SV("test.eu"));
 
     ElLexer lexer;
-    el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT | EL_LF_SKIP_COMMENTS);
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE | EL_LF_SKIP_COMMENTS);
 
     assert_token(&lexer, EL_TT_IDENT, "foo");
     assert_token(&lexer, EL_TT_IDENT, "bar");
@@ -173,7 +173,7 @@ Test(el_lexer_happy, comments_kept) {
     el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block comment */ baz"), EL_SV("test.eu"));
 
     ElLexer lexer;
-    el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT & ~EL_LF_SKIP_COMMENTS);
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
 
     assert_token(&lexer, EL_TT_IDENT, "foo");
     assert_token(&lexer, EL_TT_LINE_COMMENT, " line comment");

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <elash/source/span.h>
 #include <elash/defs/sv.h>
 
 typedef struct ElPpIncMapping ElPpIncMapping;
@@ -23,6 +24,7 @@ typedef struct ElPpIncMap {
 typedef struct ElPpIncPath {
     ElStringView scope;
     ElStringView ipath;
+    ElSourceSpan  span;
 } ElPpIncPath;
 
 // include file represents a resolved include path

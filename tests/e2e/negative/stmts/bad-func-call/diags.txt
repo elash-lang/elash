@@ -1,1 +1,1 @@
-error[sema.arg-count-mismatch]
+6:error[sema.arg-count-mismatch]

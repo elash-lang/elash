@@ -6,13 +6,15 @@
 void elc_pipeline_init(
     ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag,
     ElBinderBuiltins* binder_builtins,
-    ElLowererBuiltins* lowerer_builtins,
-    ElcOptLevel optlvl
+    ElLowererBuiltins* lowerer_builtins
 ) {
     *pipeline = (ElcPipeline) {
         .context.arena    = arena,
         .context.diag     = diag,
-        .context.optlevel = optlvl,
+
+        .context.optlevel = ELC_OPT_O0,
+        .context.imap     = NULL,
+        .context.root_src = NULL,
 
         .context.binder_builtins = binder_builtins,
         .context.lowerer_builtins = lowerer_builtins,
@@ -43,6 +45,9 @@ void elc_pipeline_add_observer(ElcPipeline* pipeline, ElcObserver observer) {
 }
 
 void elc_pipeline_provide(ElcPipeline* pipeline, ElcArtifact artifact) {
+    if (artifact.kind == ELC_ART_SRC) {
+        pipeline->context.root_src = artifact.as.src;
+    }
     pipeline->registry[artifact.kind] = artifact;
 }
 

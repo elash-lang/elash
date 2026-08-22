@@ -1,0 +1,23 @@
+#var x = 10
+#var y = 20
+
+#note "10 + 20 is", x + y
+
+#set x = y
+#inc y
+
+#note "20 + 21 is", x + y
+
+#const z = 200
+#note x, y, z
+
+#var   shared    = 20
+#const nonshared = 99
+
+#note "shared == 20 is", shared == 20
+#note "nonshared == 99 is", nonshared == 99
+#include scope-test
+#note "shared == 42 is", shared == 42
+#note "nonshared == 99 is", nonshared == 99
+
+int main() { return 0; }

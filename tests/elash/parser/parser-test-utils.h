@@ -29,7 +29,7 @@ ElParser p(const char* code, ElDiagEngine* diag) {
     el_srcdoc_init_from_str(doc, el_sv_from_cstr(code), EL_SV("test.eu"));
 
     ElLexer* lexer = malloc(sizeof *lexer);
-    el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT | EL_LF_SKIP_WHITESPACE);
 
     ElTokenStream toks = el_lexer_as_token_stream(lexer);
     el_diag_engine_init(diag, &arena);

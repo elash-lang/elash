@@ -1,0 +1,5 @@
+#var x = 10
+#note "x =", x
+// x is never mutated
+
+int main() { return 0; }

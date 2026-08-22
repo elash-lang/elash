@@ -1,1 +1,1 @@
-error[sema.invalid-cast]
+3,5,8:error[sema.invalid-cast]

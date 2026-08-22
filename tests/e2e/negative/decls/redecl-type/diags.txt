@@ -1,1 +1,1 @@
-error[sema.conflicting-types]
+3,7:error[sema.conflicting-types]

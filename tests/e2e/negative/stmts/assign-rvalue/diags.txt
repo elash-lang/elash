@@ -1,1 +1,1 @@
-error[sema.assign-rvalue]
+2:error[sema.assign-rvalue]

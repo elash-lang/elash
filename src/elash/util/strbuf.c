@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #define EL_STRBUF_DEFAULT_CAP 16
 
@@ -132,5 +134,26 @@ bool el_strbuf_append_char(ElStringBuf* sb, char c) {
     }
     sb->data[sb->len] = c;
     sb->len += 1;
+    return true;
+}
+
+bool el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int needed = vsnprintf(NULL, 0, fmt, args);
+    va_end(args);
+
+    if (needed < 0) return false;
+    if (needed == 0) return true;
+
+    if (!el_strbuf_reserve(sb, sb->len + needed + 1)) {
+        return false;
+    }
+
+    va_start(args, fmt);
+    vsnprintf(sb->data + sb->len, needed + 1, fmt, args);
+    va_end(args);
+
+    sb->len += needed;
     return true;
 }

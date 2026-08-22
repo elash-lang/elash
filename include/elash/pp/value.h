@@ -4,65 +4,55 @@
 #include <elash/util/strbuf.h>
 #include <elash/lexer/tokbuf.h>
 
-#include <elash/pp/valarr.h>
+typedef enum ElPpType {
+    EL_PP_TYPE_NULL,
+    EL_PP_TYPE_INT,
+    EL_PP_TYPE_BOOL,
+    EL_PP_TYPE_FLOAT,
+    EL_PP_TYPE_CHAR,
+    EL_PP_TYPE_LIST,
+    EL_PP_TYPE_STR,
+    EL_PP_TYPE_TOK,
+} ElPpType;
 
-typedef enum ElPpValueType {
-    EL_PP_VAR_INT,
-    EL_PP_VAR_FLOAT,
-    EL_PP_VAR_BOOL,
-    EL_PP_VAR_CHAR,
-    EL_PP_VAR_STRING,
-    EL_PP_VAR_ARRAY,
-    EL_PP_VAR_TOKEN,
-} ElPpValueType;
+typedef struct ElPpValue ElPpValue;
+typedef struct ElPreproc ElPreproc;
 
-/// @brief Checks if a given ElPpVarType is a trivial type.
-/// @param type The ElPpVarType to check.
-/// @return True if the type is trivial (e.g., int, float, bool, char, string view), false otherwise.
-bool el_pp_value_type_is_trivial(ElPpValueType type);
+typedef struct ElPpList {
+    ElPpValue** values;
+    usize count;
+} ElPpList;
 
 typedef struct ElPpValue {
+    // TODO: use big ints / big floats
     union {
-        int          int_;   // EL_PP_VAR_INT
-        float        float_; // EL_PP_VAR_FLOAT
-        bool         bool_;  // EL_PP_VAR_BOOL
-        char         char_;  // EL_PP_VAR_CHAR
-        ElStringBuf  str_;   // EL_PP_VAR_STRING
-        ElPpValueArr arr_;   // EL_PP_VAR_ARRAY
-        ElToken      tok_;   // EL_PP_VAR_TOKENS
+        int64_t      int_;   // EL_PP_TYPE_INT
+        double       float_; // EL_PP_TYPE_FLOAT
+        bool         bool_;  // EL_PP_TYPE_BOOL
+        char         char_;  // EL_PP_TYPE_CHAR
+        ElPpList     list_;  // EL_PP_TYPE_LIST
+        ElStringView str_;   // EL_PP_TYPE_STR
+        ElToken      tok_;   // EL_PP_TYPE_TOK
     } as;
-    ElPpValueType type;
+    ElPpType type;
 } ElPpValue;
 
-/// @brief Frees any dynamically allocated resources held by an ElPpValue.
-/// @param var A pointer to the ElPpValue whose resources are to be freed.
-void el_pp_value_free(ElPpValue* val);
-/// @brief Moves the content of a source ElPpValue to a destination ElPpValue.
-/// @param src A pointer to the source ElPpValue, which will be invalidated for non-trivial types.
-/// @param dst A pointer to the destination ElPpValue.
-void el_pp_value_move(ElPpValue* src, ElPpValue* dst);
-/// @brief Creates a deep copy of a source ElPpValue into a destination ElPpValue.
-/// @param src A pointer to the source ElPpValue to copy from.
-/// @param dst A pointer to the destination ElPpValue to copy to.
-/// @return True if the copy is successful, false otherwise (e.g., memory allocation failure for array types).
-bool el_pp_value_copy(const ElPpValue* src, ElPpValue* dst);
+ElStringView _el_pp_type_name(ElPpType type);
 
-typedef struct ElPpVar {
-    ElStringView name;
-    ElPpValue    value;
-} ElPpVar;
+bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span);
+bool _el_pp_value_lt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span);
+bool _el_pp_value_gt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span);
 
-/// @brief Frees any dynamically allocated resources held by an ElPpVar.
-/// @param var A pointer to the ElPpVar whose resources are to be freed.
-void el_pp_var_free(ElPpVar* var);
-/// @brief Moves the content of a source ElPpVar to a destination ElPpVar.
-/// @param src A pointer to the source ElPpVar, which will be invalidated for non-trivial types.
-/// @param dst A pointer to the destination ElPpVar.
-void el_pp_var_move(ElPpVar* src, ElPpVar* dst);
-/// @brief Creates a deep copy of a source ElPpVar into a destination ElPpVar.
-/// @param src A pointer to the source ElPpVar to copy from.
-/// @param dst A pointer to the destination ElPpVar to copy to.
-/// @return True if the copy is successful, false otherwise (e.g., memory allocation failure for array types).
-bool el_pp_var_copy(const ElPpVar* src, ElPpVar* dst);
+ElPpValue* _el_pp_strcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
+ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
 
+ElPpValue* _el_pp_value_clone(ElDynArena* arena, ElPpValue* value);
 
+ElPpValue* _el_pp_new_null(ElDynArena* arena);
+ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val);
+ElPpValue* _el_pp_new_float(ElDynArena* arena, double val);
+ElPpValue* _el_pp_new_bool(ElDynArena* arena, bool val);
+ElPpValue* _el_pp_new_char(ElDynArena* arena, char val);
+ElPpValue* _el_pp_new_str(ElDynArena* arena, ElStringView val);
+ElPpValue* _el_pp_new_tok(ElDynArena* arena, ElToken tok);
+ElPpValue* _el_pp_new_list(ElDynArena* arena, ElPpList list);

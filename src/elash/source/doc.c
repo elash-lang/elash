@@ -1,5 +1,7 @@
 #include <elash/source/doc.h>
 
+#include <elash/defs/platform.h>
+
 #include <elash/util/strbuf.h>
 #include <elash/lexer/token.h>
 
@@ -47,6 +49,9 @@ ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char*
 
     FILE* f = fopen(path, "rb");
     if (f == NULL) {
+        #if EL_PLATFORM_IS_POSIX
+            perror("fopen");
+        #endif
         err = EL_SRCDOC_ERR_FOPEN_FAILED;
         goto fail;
     }
@@ -76,6 +81,7 @@ ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char*
         goto fail;
     }
 
+    fclose(f);
     goto end;
 
 fail:
@@ -110,7 +116,7 @@ void el_srcdoc_clear(ElSourceDocument* srcdoc) {
 }
 
 ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok) {
-    if (!el_token_to_raw_string(tok, &srcdoc->content)) {
+    if (!el_token_to_raw_string(tok, &srcdoc->content, true)) {
         return EL_SRCDOC_ERR_ALLOC_FAILED;
     }
     return EL_SRCDOC_ERR_SUCCESS;

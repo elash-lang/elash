@@ -1,1 +1,1 @@
-error[sema.type-used-as-expr]
+2:error[sema.type-used-as-expr]

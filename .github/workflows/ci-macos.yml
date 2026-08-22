@@ -32,6 +32,8 @@ jobs:
         run: |
           echo "EXTRA_CFLAGS=-I$(brew --prefix)/include" >> $GITHUB_ENV
           echo "EXTRA_LDFLAGS=-L$(brew --prefix)/lib" >> $GITHUB_ENV
+          echo "EXTRA_TESTS_CFLAGS=-I$(brew --prefix)/include" >> $GITHUB_ENV
+          echo "EXTRA_TESTS_LDFLAGS=-L$(brew --prefix)/lib" >> $GITHUB_ENV
 
       - name: Ensure ccache directory
         run: mkdir -p ~/.ccache

@@ -5,21 +5,28 @@
 
 typedef struct ElSourceDocument ElSourceDocument;
 
-typedef struct ElSourceSpan {
+typedef struct ElSourceRange {
     const ElSourceDocument* doc;
     ElSourceLocation        start;
     ElSourceLocation        end;
+} ElSourceRange;
+
+#define EL_SRCSPAN_MAX_RANGES 3
+
+typedef struct ElSourceSpan {
+    ElSourceRange ranges[EL_SRCSPAN_MAX_RANGES];
+    uint8_t       count;
 } ElSourceSpan;
 
-#define EL_SRCSPAN_NULL ((ElSourceSpan){ .doc = NULL, .start = EL_SOURCE_LOC_ZERO, .end = EL_SOURCE_LOC_ZERO })
+#define EL_SRCSPAN_NULL ((ElSourceSpan){ .count = 0 })
 
 ElSourceSpan el_srcspan_make(const ElSourceDocument* doc, ElSourceLocation start, ElSourceLocation end);
 
-/// Returns a string view of the content covered by the span.
+/// Returns a string view of the content covered by the primary range.
 ElStringView el_srcspan_to_sv(ElSourceSpan span);
 
 /// Merges two spans into one that covers both.
-/// Spans must be from the same document.
+/// Ranges from the same document are coalesced; others are appended.
 ElSourceSpan el_srcspan_merge(ElSourceSpan a, ElSourceSpan b);
 
 /// Returns true if the span is not null and has a document.

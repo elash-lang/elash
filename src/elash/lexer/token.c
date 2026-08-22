@@ -219,7 +219,7 @@ static bool needs_separator(ElTokenType tt) {
      || tt == EL_TT_BITWISE_NOT   || tt == EL_TT_COLON         || tt == EL_TT_DOT;
 }
 
-bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
+bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace) {
     bool success = true;
 
     switch (tok->type) {
@@ -255,7 +255,7 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
         break;
     }
 
-    if (needs_separator(tok->type)) {
+    if (whitespace && needs_separator(tok->type)) {
         success &= el_strbuf_append_char(sb, ' ');
     }
     return success;

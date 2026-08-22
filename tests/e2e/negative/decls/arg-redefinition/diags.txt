@@ -1,1 +1,1 @@
-error[sema.redeclaration]
+1:error[sema.redeclaration]

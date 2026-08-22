@@ -1,1 +1,1 @@
-error[sema.redefinition]
+5:error[sema.redefinition]

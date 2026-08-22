@@ -1,1 +1,2 @@
-error[syntax.unterminated]
+1:error[syntax.unterminated]
+...

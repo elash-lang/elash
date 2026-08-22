@@ -1,1 +1,1 @@
-error[sema.incomplete-type]
+4:error[sema.incomplete-type]

@@ -6,4 +6,6 @@ int main() {
 
     uint64 big;
     uint32 truncated = big;
+
+    return 0;
 }

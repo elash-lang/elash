@@ -2,4 +2,5 @@ void nothing() {}
 
 int main() {
     void variable = nothing();
+    return 0;
 }

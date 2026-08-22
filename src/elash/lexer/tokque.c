@@ -87,6 +87,19 @@ bool el_tkque_push(ElTokenQueue* tkque, ElToken tok) {
     return true;
 }
 
+bool el_tkque_push_front(ElTokenQueue* tkque, ElToken tok) {
+    if (tkque->len == tkque->cap) {
+        if (!el_tkque_grow(tkque)) {
+            return false;
+        }
+    }
+
+    tkque->head = (tkque->head + tkque->cap - 1) % tkque->cap;
+    tkque->data[tkque->head] = tok;
+    tkque->len++;
+    return true;
+}
+
 bool el_tkque_pop(ElTokenQueue* tkque, ElToken* out_tok) {
     if (tkque->len == 0) {
         return false;

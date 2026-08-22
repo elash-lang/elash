@@ -12,15 +12,12 @@ ELC_TESTS_BINS := $(patsubst $(TESTS_DIR)/%.c,$(TESTS_OUT_DIR)/%$(EXE_EXT),$(ELC
 
 E2E_TEST_RUNNER := $(TESTS_DIR)/e2e/runner.py
 
-TESTS_CFLAGS := $(CFLAGS)
-TESTS_LDFLAGS := $(LDFLAGS) -lcriterion
-
 ifdef TEST_PARALLELISM
 	TEST_PARALLEL_FLAG := -j$(TEST_PARALLELISM)
 endif
 
 .PHONY: test-dirs test-e2e test-elash test-elc
-.PHONY: unit-test test
+.PHONY: unit-test test clean-tests clean-test
 
 test-dirs:
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR))
@@ -57,6 +54,10 @@ unit-test: test-elash test-elc
 
 test: test-elash test-elc test-e2e
 	@echo "All tests passed."
+
+clean-test: clean-tests
+clean-tests:
+	@$(call CMD_RM_RF,$(TESTS_OUT_DIR))
 
 FUZZ_SRC := $(TESTS_DIR)/fuzz/fuzzer.c
 FUZZ_BINARY := $(TESTS_OUT_DIR)/fuzz/fuzzer$(EXE_EXT)

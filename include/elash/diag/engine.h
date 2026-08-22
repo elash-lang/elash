@@ -72,8 +72,14 @@ static inline bool el_diag_engine_has_errors(const ElDiagEngine* engine) {
 #define el_diag_report(engine, sev, cat, span, template, ...) \
     el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
 
+#define el_diag_report_nocat(engine, sev, span, template, ...) \
+    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+
 #define el_diag_report_ex(engine, sev, cat, span, template, ...) \
     el_diag_report_impl(engine, sev, EL_SV(cat), span, template, EL_DIAG_META(__VA_ARGS__))
+
+#define el_diag_report_ex_nocat(engine, sev, span, template, ...) \
+    el_diag_report_impl(engine, sev, EL_SV_NULL, span, template, EL_DIAG_META(__VA_ARGS__))
 
 #define el_diag_help(engine, template, ...) \
     el_diag_help_impl(engine, EL_SV(template), EL_DIAG_META(__VA_ARGS__))

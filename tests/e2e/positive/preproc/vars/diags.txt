@@ -1,0 +1,10 @@
+ 4:note: 10 + 20 is 30
+ 9:note: 20 + 21 is 41
+12:note: 20 21 200
+
+17:note: shared == 20 is true
+18:note: nonshared == 99 is true
+
+20:note: shared == 42 is true
+21:note: nonshared == 99 is true
+

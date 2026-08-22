@@ -1,3 +1,4 @@
-error[sema.missing-init]
-error[sema.duplicate-init]
-error[sema.tuple-index-bounds]
+10:error[sema.missing-init]
+13:error[sema.duplicate-init]
+16:error[sema.tuple-index-bounds]
+19:error[sema.array-index-bounds]

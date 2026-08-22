@@ -1,0 +1,13 @@
+#const ecode  = 0
+#const rtype  = #<int>
+#const vardef = #(int n =)
+
+#emit #{rtype} main() {
+#emit   #{vardef} #{ecode};
+#emit   if (n != #{ecode}) {
+#emit       return 1;
+#emit   }
+#emit   return #{ecode};
+#if true
+    #emit }
+#end

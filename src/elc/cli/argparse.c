@@ -153,6 +153,8 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     if (el_sv_eql(arg, EL_SV("--help")))    { p->out->help = true;    return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--version"))) { p->out->version = true; return ELC_CLI_PARSE_RESULT_OK; }
 
+    if (el_sv_eql(arg, EL_SV("--jsonl")))   { p->out->dformat = ELC_DIAG_JSONL; return ELC_CLI_PARSE_RESULT_OK; }
+
     if (el_sv_starts_with(arg, EL_SV("--output")))
         return handle_output_flag(p, arg);
 

@@ -12,6 +12,7 @@ void init() { el_dynarena_init(&arena); }
 void fini() { el_dynarena_free(&arena); }
 
 TestSuite(ast_equal, .init = init, .fini = fini);
+#define LEX_FLAGS (EL_LF_SKIP_WHITESPACE | EL_LF_SKIP_COMMENTS)
 
 // multi-line strings in C. yes. this is real.
 #define S(...) EL_SV(#__VA_ARGS__)
@@ -48,13 +49,13 @@ Test(ast_equal, integration_test) {
         }
     ), EL_SV("<test:doc2>"));
 
-    el_lexer_init(&lexer, &doc1, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(&lexer, &doc1, LEX_FLAGS);
     el_parser_init(&parser, el_lexer_as_token_stream(&lexer), &diag, &arena);
     ElAstModule* mod1 = el_parser_parse_module(&parser);
     cr_assert(diag.summary.total_errors == 0);
     el_parser_destroy(&parser);
 
-    el_lexer_init(&lexer, &doc2, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init(&lexer, &doc2, LEX_FLAGS);
     el_parser_init(&parser, el_lexer_as_token_stream(&lexer), &diag, &arena);
     ElAstModule* mod2 = el_parser_parse_module(&parser);
     cr_assert(diag.summary.total_errors == 0);

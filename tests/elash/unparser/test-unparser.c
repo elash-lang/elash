@@ -2,6 +2,7 @@
 #include <elash/defs/int-types.h>
 
 #include <elash/ast/equal.h>
+#include <elash/util/ansi.h>
 #include <elash/lexer/lexer.h>
 #include <elash/lexer/tokbuf.h>
 #include <elash/util/dynarena.h>
@@ -16,6 +17,32 @@
 static ElDynArena arena;
 void init() { el_dynarena_init(&arena); }
 void fini() { el_dynarena_free(&arena); }
+
+void print_run_info(const char* path) {
+    el_ansi_pref = EL_ANSI_AUTO;
+
+    ElAnsiStyle style1 = {
+        .fg_color = EL_ANSI_CLR_MAGENTA,
+        .dec = EL_ANSI_DEC_BOLD,
+        .bg_color = EL_ANSI_CLR_DEFAULT,
+    };
+
+    ElAnsiStyle style2 = {
+        .fg_color = EL_ANSI_CLR_DEFAULT,
+        .dec = EL_ANSI_DEC_BOLD,
+        .bg_color = EL_ANSI_CLR_DEFAULT,
+    };
+
+    fputs("[", stdout);
+    el_ansi_apply_style(style1, stdout);
+    fputs("++++", stdout);
+    el_ansi_reset_style(stdout);
+    fputs("] ", stdout);
+    el_ansi_apply_style(style2, stdout);
+    fputs("Unparsing: ", stdout);
+    el_ansi_reset_style(stdout);
+    puts(path);
+}
 
 TestSuite(el_unparser, .init = init, .fini = fini);
 
@@ -36,12 +63,17 @@ Test(el_unparser, integration_test) {
 
     el_tkbuf_init(&toks);
     for (usize i = 0; i < g.gl_pathc; ++i) {
+        // very sloppy approach but works
+        if (strstr(g.gl_pathv[i], "/preproc/") != NULL)
+            continue;
+        print_run_info(g.gl_pathv[i]);
+
         el_tkbuf_clear(&toks);
 
         ElSourceDocument doc;
         cr_assert_eq(el_srcdoc_init_from_file(&doc, g.gl_pathv[i]), EL_SRCDOC_ERR_SUCCESS);
 
-        el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT|EL_LF_SKIP_COMMENTS);
+        el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT|EL_LF_SKIP_WHITESPACE|EL_LF_SKIP_COMMENTS);
 
         el_parser_init(&parser, el_lexer_as_token_stream(&lexer), &diag, &arena);
         ElAstModule* orig = el_parser_parse_module(&parser);

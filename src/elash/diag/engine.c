@@ -28,7 +28,7 @@ static ElDiagMeta _el_diag_clone_meta(ElDynArena* arena, ElDiagMeta meta) {
         entries[i].type = meta.entries[i].type;
         entries[i].as = meta.entries[i].as;
 
-        if (entries[i].type == EL_DIAG_META_STRING) {
+        if (entries[i].type == EL_DIAG_META_STR) {
             entries[i].as.string = el_dynarena_clone_sv(arena, meta.entries[i].as.string);
         }
     }
