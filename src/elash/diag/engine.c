@@ -5,11 +5,9 @@
 #include <elash/util/assert.h>
 
 void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena) {
-    engine->arena = arena;
-    engine->diag_count = 0;
-    engine->diag_head = NULL;
-    engine->diag_tail = NULL;
-    engine->summary = (ElDiagSummary) { 0 };
+    *engine = (ElDiagEngine) {
+        .arena = arena,
+    };
 }
 
 void el_diag_engine_free(ElDiagEngine* engine) {
@@ -57,15 +55,18 @@ static void _el_diag_format_message(
 void* el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElStringView category,
-    ElSourceSpan span,
+    ElSourceSpan span, ElSourceLocInfo source,
     ElStringView template, ElDiagMeta meta
 ) {
     ElDiagnostic* diag = EL_DYNARENA_NEW_STRUCT(engine->arena, ElDiagnostic, {
         .sev = sev,
+        .source = source,
         .category = category,
         .span = span,
-        .help_head = NULL,
-        .help_tail = NULL,
+        .help = {
+            .head = NULL,
+            .tail = NULL,
+        },
     });
 
     _el_diag_format_message(engine, template, &meta, &diag->template, &diag->formatted);
@@ -76,37 +77,41 @@ void* el_diag_report_impl(
     engine->summary.total_diagnostics++;
 
     diag->next = NULL;
-    diag->prev = engine->diag_tail;
+    diag->prev = engine->diag.tail;
 
-    if (engine->diag_tail != NULL) {
-        engine->diag_tail->next = diag;
+    if (engine->diag.tail != NULL) {
+        engine->diag.tail->next = diag;
     } else {
-        engine->diag_head = diag;
+        engine->diag.head = diag;
     }
 
-    engine->diag_tail = diag;
-    engine->diag_count++;
+    engine->diag.tail = diag;
+    engine->diag.count++;
     return NULL;
 }
 
 void el_diag_help_impl(
-    ElDiagEngine* engine,
+    ElDiagEngine* engine, ElSourceLocInfo source,
     ElStringView template, ElDiagMeta meta
 ) {
     // just in case
-    EL_ASSERT(engine->diag_tail != NULL, "no diagnostic to add help to");
+    EL_ASSERT(engine->diag.tail != NULL, "no diagnostic to add help to");
 
-    ElDiagnosticHelp* help = EL_DYNARENA_NEW(engine->arena, ElDiagnosticHelp);
+    ElDiagnosticHelp* help = EL_DYNARENA_NEW_STRUCT(engine->arena, ElDiagnosticHelp, {
+        .source = source,
+        .meta = meta,
+        .next = NULL,
+    });
+
     _el_diag_format_message(engine, template, &meta, &help->template, &help->formatted);
-    help->meta = meta;
-    help->next = NULL;
 
-    if (engine->diag_tail->help_tail != NULL) {
-        engine->diag_tail->help_tail->next = help;
+    ElDiagnostic* dt = engine->diag.tail;
+    if (dt->help.tail != NULL) {
+        dt->help.tail->next = help;
     } else {
-        engine->diag_tail->help_head = help;
+        dt->help.head = help;
     }
-    engine->diag_tail->help_tail = help;
+    dt->help.tail = help;
 }
 
 ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine) {
@@ -115,7 +120,7 @@ ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine) {
 
 void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, FILE* out) {
     printer->begin(printer, out);
-    for (ElDiagnostic* diag = engine->diag_head; diag != NULL; diag = diag->next) {
+    for (ElDiagnostic* diag = engine->diag.head; diag != NULL; diag = diag->next) {
         printer->print(printer, out, diag);
     }
     printer->summary(printer, out, &engine->summary);

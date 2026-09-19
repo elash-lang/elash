@@ -250,7 +250,7 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
         if (toe->as.expr->kind != EL_HIR_EXPR_SYMBOL) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-alias",
-                in->span, "invalid alias target, symbol expected"
+                alias->target.span, "invalid alias target, symbol expected"
             );
             return NULL;
         }

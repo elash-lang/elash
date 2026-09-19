@@ -68,6 +68,14 @@ static void dump_diag_meta(const ElDiagMetaEntry* entry, FILE* out) {
     EL_UNREACHABLE_ENUM_VAL(ElDiagMetaType, entry->type);
 }
 
+static void dump_src_loc(FILE* out, ElSourceLocInfo loc) {
+    fputs("{\"file\":", out);
+    el_json_write_string(out, el_sv_from_cstr(loc.file));
+    fprintf(out, ",\"line\":%u,\"func\":", loc.line);
+    el_json_write_string(out, el_sv_from_cstr(loc.func));
+    fputs("}", out);
+}
+
 void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnostic* diag) {
     (void)self;
     fputc('{', out);
@@ -94,6 +102,9 @@ void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnos
     fputs(",\"template\":", out);
     el_json_write_string(out, diag->template);
 
+    fputs(",\"source\":", out);
+    dump_src_loc(out, diag->source);
+
     // template meta
     fputs(",\"meta\":{", out);
     for (usize i = 0; i < diag->meta.count; ++i) {
@@ -110,19 +121,22 @@ void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnos
 
     // help messages
     fputs(",\"help\":[", out);
-    for (ElDiagnosticHelp* help = diag->help_head; help; help = help->next) {
-        if (help != diag->help_head) fputc(',', out);
+    for (ElDiagnosticHelp* help = diag->help.head; help; help = help->next) {
+        if (help != diag->help.head) fputc(',', out);
         fputc('{', out);
         fputs("\"template\":", out);
         el_json_write_string(out, help->template);
         fputs(",\"formatted\":", out);
         el_json_write_string(out, help->formatted);
+        fputs(",\"source\":", out);
+        dump_src_loc(out, help->source);
         fputc('}', out);
     }
-    fputc(']', out);
+    fputs("]", out);
 
     fputs("}\n", out);
 }
+
 
 void el_diag_jsonl_printer_summary(ElDiagPrinter* self, FILE* out, const ElDiagSummary* sum) {
     (void)self;

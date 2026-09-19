@@ -255,14 +255,14 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
         if (!el_hir_type_eql(operand->type, binder->builtins->type_bool))
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-                in->span, "operand of logical NOT must be boolean"
+                unary->operand->span, "operand of logical NOT must be boolean"
             );
         type = binder->builtins->type_bool;
     } else if (unary->op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
         if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-                in->span, "operand of optional unwrap operator must be an optional"
+                unary->operand->span, "operand of optional unwrap operator must be an optional"
             );
         }
         type = type->as.opt.base;

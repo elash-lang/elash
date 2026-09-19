@@ -16,6 +16,7 @@ typedef enum ElAstDesignatorKind {
 typedef struct ElAstDesignator ElAstDesignator;
 struct ElAstDesignator {
     ElAstDesignatorKind kind;
+    ElSourceSpan span;
     union {
         ElStringView member;
         usize        tmember;
@@ -26,6 +27,7 @@ struct ElAstDesignator {
 
 typedef struct ElAstDesigInitElem ElAstDesigInitElem;
 struct ElAstDesigInitElem {
+    ElSourceSpan span;
     ElAstDesignator* head;
     usize desig_count;
     ElAstInit* init;
@@ -39,11 +41,13 @@ typedef struct ElAstDesignatedInit {
 
 void el_ast_desig_list_append(ElAstDesignator** head, ElAstDesignator** tail, ElAstDesignator* desig);
 
-ElAstDesignator* el_ast_new_desig_member(ElDynArena* arena, ElStringView member);
-ElAstDesignator* el_ast_new_desig_tmember(ElDynArena* arena, usize tmember);
-ElAstDesignator* el_ast_new_desig_index(ElDynArena* arena, ElAstExpr* index);
+ElAstDesignator* el_ast_new_desig_member(ElDynArena* arena, ElSourceSpan span, ElStringView member);
+ElAstDesignator* el_ast_new_desig_tmember(ElDynArena* arena, ElSourceSpan span, usize tmember);
+ElAstDesignator* el_ast_new_desig_index(ElDynArena* arena, ElSourceSpan span, ElAstExpr* index);
 
-ElAstDesigInitElem* el_ast_new_desig_init_elem(ElDynArena* arena, ElAstDesignator* head, usize desig_count, ElAstInit* init);
+ElAstDesigInitElem* el_ast_new_desig_init_elem(
+    ElDynArena* arena, ElSourceSpan span, ElAstDesignator* head, usize desig_count, ElAstInit* init
+);
 
 ElAstInit* el_ast_new_desig_init(ElDynArena* arena, ElSourceSpan span, ElAstDesigInitElem* head, usize count);
 void el_ast_desig_init_append(ElAstDesigInitElem** head, ElAstDesigInitElem** tail, ElAstDesigInitElem* elem);

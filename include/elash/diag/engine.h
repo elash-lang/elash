@@ -3,17 +3,21 @@
 #include <elash/util/dynarena.h>
 
 #include <elash/source/span.h>
+#include <elash/defs/locinfo.h>
 
 #include <elash/diag/severity.h>
 #include <elash/diag/printer.h>
 #include <elash/diag/meta.h>
 
-typedef struct ElDiagnosticHelp {
+typedef struct ElDiagnosticHelp ElDiagnosticHelp;
+struct ElDiagnosticHelp {
     ElStringView template;
     ElStringView formatted;
     ElDiagMeta meta;
-    struct ElDiagnosticHelp* next;
-} ElDiagnosticHelp;
+
+    ElSourceLocInfo source;
+    ElDiagnosticHelp* next;
+};
 
 typedef struct ElDiagnostic {
     ElDiagSeverity sev;
@@ -23,11 +27,15 @@ typedef struct ElDiagnostic {
     ElStringView template;
     ElDiagMeta meta;
 
-    ElDiagnosticHelp* help_head;
-    ElDiagnosticHelp* help_tail;
+    struct {
+        ElDiagnosticHelp* head;
+        ElDiagnosticHelp* tail;
+    } help;
 
-    struct ElDiagnostic* prev;
-    struct ElDiagnostic* next;
+    ElSourceLocInfo source;
+
+    ElDiagnostic* prev;
+    ElDiagnostic* next;
 } ElDiagnostic;
 
 typedef struct ElDiagSummary {
@@ -38,9 +46,12 @@ typedef struct ElDiagSummary {
 
 typedef struct ElDiagEngine {
     ElDynArena* arena;
-    ElDiagnostic* diag_head;
-    ElDiagnostic* diag_tail;
-    usize diag_count;
+    struct {
+        ElDiagnostic* head;
+        ElDiagnostic* tail;
+        usize count;
+    } diag;
+
     ElDiagSummary summary;
 } ElDiagEngine;
 
@@ -53,12 +64,12 @@ void el_diag_engine_free(ElDiagEngine* engine);
 void* el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElStringView category,
-    ElSourceSpan span,
+    ElSourceSpan span, ElSourceLocInfo source,
     ElStringView template, ElDiagMeta meta
 );
 
 void el_diag_help_impl(
-    ElDiagEngine* engine,
+    ElDiagEngine* engine, ElSourceLocInfo source,
     ElStringView template, ElDiagMeta meta
 );
 
@@ -70,16 +81,16 @@ static inline bool el_diag_engine_has_errors(const ElDiagEngine* engine) {
 }
 
 #define el_diag_report(engine, sev, cat, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
 
 #define el_diag_report_nocat(engine, sev, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
 
 #define el_diag_report_ex(engine, sev, cat, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV(cat), span, template, EL_DIAG_META(__VA_ARGS__))
+    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SRCLOC_INFO, template, EL_DIAG_META(__VA_ARGS__))
 
 #define el_diag_report_ex_nocat(engine, sev, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV_NULL, span, template, EL_DIAG_META(__VA_ARGS__))
+    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SRCLOC_INFO, template, EL_DIAG_META(__VA_ARGS__))
 
 #define el_diag_help(engine, template, ...) \
-    el_diag_help_impl(engine, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+    el_diag_help_impl(engine, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
