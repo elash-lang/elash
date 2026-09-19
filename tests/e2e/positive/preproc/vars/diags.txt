@@ -7,4 +7,6 @@
 
 20:note: shared == 42 is true
 21:note: nonshared == 99 is true
+22:note: from_include == 7 is true
+23:note: from_include_const == 8 is true
 

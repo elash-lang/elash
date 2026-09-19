@@ -36,13 +36,19 @@
 
 #const test = true
 #if true
-    // if gets its own scope, #var here should shadow
-    // test from outer scope
-    #const test = false
+    // if gets its own scope; internal keeps this from promoting
+    #const internal test = false
 #end
 
 #if !test
     #error "should not be reached"
+#end
+
+#if true
+    #const promoted = 55
+#end
+#if promoted != 55
+    #error "expected promoted = 55"
 #end
 
 int main() {

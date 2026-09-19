@@ -52,15 +52,38 @@ static ElPpSymbol* get_var_symbol(
 }
 
 static bool handle_var_slash_const(ElPreproc* pp, ElSourceSpan dspan, bool mut) {
-    ElToken name_tok;
-    if (!_el_pp_read(pp, &name_tok) || name_tok.type != EL_TT_IDENT) {
+    ElStringView dir = mut ? EL_SV("var") : EL_SV("const");
+    bool is_public = true;
+
+    ElToken tok;
+    if (!_el_pp_read(pp, &tok)) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
             dspan, "expected identifier after #${dir} directive",
-            EL_DIAG_STRING("dir", mut ? EL_SV("var") : EL_SV("const")),
+            EL_DIAG_STRING("dir", dir),
         );
     }
 
+    if (tok.type == EL_TT_KW_INTERNAL) {
+        is_public = false;
+        if (!_el_pp_read(pp, &tok)) {
+            return el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
+                dspan, "expected identifier after #${dir} internal",
+                EL_DIAG_STRING("dir", dir),
+            );
+        }
+    }
+
+    if (tok.type != EL_TT_IDENT) {
+        return el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
+            tok.span, "expected identifier after #${dir} directive",
+            EL_DIAG_STRING("dir", dir),
+        );
+    }
+
+    ElToken name_tok = tok;
     ElPpSymbol* sym = el_pp_scope_lookup_local(pp->current_scope, name_tok.lexeme);
     if (sym != NULL) {
         if (sym->kind != EL_PP_SYM_VAR) {
@@ -91,13 +114,17 @@ static bool handle_var_slash_const(ElPreproc* pp, ElSourceSpan dspan, bool mut) 
     }
 
     ElSourceSpan defspan = el_srcspan_merge(dspan, name_tok.span);
-    sym = _el_pp_new_sym_var(pp->iarena, name_tok.lexeme, defspan, value, mut);
+    sym = _el_pp_new_sym_var(pp->iarena, name_tok.lexeme, defspan, value, mut, is_public);
     return el_pp_scope_assign(pp->current_scope, sym->name, sym);
 }
 
 static bool skip_var_slash_const(ElPreproc* pp) {
-    ElToken name_tok;
-    if (!_el_pp_read(pp, &name_tok) || name_tok.type != EL_TT_IDENT) return false;
+    ElToken tok;
+    if (!_el_pp_read(pp, &tok)) return false;
+    if (tok.type == EL_TT_KW_INTERNAL) {
+        if (!_el_pp_read(pp, &tok)) return false;
+    }
+    if (tok.type != EL_TT_IDENT) return false;
     ElToken next;
     if (_el_pp_peek(pp, &next) && next.type == EL_TT_ASSIGN) {
         _el_pp_advance(pp);

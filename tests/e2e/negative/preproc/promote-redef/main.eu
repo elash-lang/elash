@@ -1,0 +1,6 @@
+#const x = 1
+#if true
+    #const x = 2
+#end
+
+int main() { return 0; }

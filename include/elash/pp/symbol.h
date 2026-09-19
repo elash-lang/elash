@@ -17,6 +17,7 @@ typedef struct ElPpSymbol {
     ElStringView   name;
     ElPpSymbolKind kind;
     ElSourceSpan defspan;
+    bool is_public;
     union {
         ElPpVarSym var;
     } as;
@@ -24,5 +25,5 @@ typedef struct ElPpSymbol {
 
 ElPpSymbol* _el_pp_new_sym_var(
     ElDynArena* arena, ElStringView name, ElSourceSpan defspan,
-    ElPpValue* value, bool mut
+    ElPpValue* value, bool mut, bool is_public
 );

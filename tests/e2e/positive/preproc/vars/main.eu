@@ -19,5 +19,7 @@
 #include scope-test
 #note "shared == 42 is", shared == 42
 #note "nonshared == 99 is", nonshared == 99
+#note "from_include == 7 is", from_include == 7
+#note "from_include_const == 8 is", from_include_const == 8
 
 int main() { return 0; }

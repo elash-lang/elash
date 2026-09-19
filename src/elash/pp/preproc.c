@@ -48,22 +48,59 @@ void el_pp_free(ElPreproc* pp) {
 }
 
 ////////// scopes ////////////
-static void el_pp_warn_never_mutated(ElPreproc* pp, ElPpScope* scope) {
+static void warn_never_mutated_entry(ElPreproc* pp, ElPpSymbol* sym) {
+    if (sym->kind != EL_PP_SYM_VAR) return;
+
+    ElPpVarSym* var = &sym->as.var;
+    if (!var->is_mutable || var->was_mutated) return;
+
+    el_diag_report(
+        pp->diag, EL_DIAG_WARN, "pp.never-mutated",
+        sym->defspan,
+        "variable defined as mutable but never mutated",
+    );
+    el_diag_help(
+        pp->diag, "use #const if you don't need mutability"
+    );
+}
+
+static void warn_never_mutated(ElPreproc* pp, ElPpScope* scope) {
     for (usize i = 0; i < scope->capacity; ++i) {
         if (scope->entries[i].state != _EL_PP_OCCUPIED) continue;
-        if (scope->entries[i].value->kind != EL_PP_SYM_VAR) continue;
+        warn_never_mutated_entry(pp, scope->entries[i].value);
+    }
+}
 
-        ElPpVarSym* var = &scope->entries[i].value->as.var;
-        if (!var->is_mutable || var->was_mutated) continue;
+static void promote_public(ElPreproc* pp, ElPpScope* scope) {
+    ElPpScope* parent = scope->parent;
+    if (parent == NULL) return;
 
-        el_diag_report(
-            pp->diag, EL_DIAG_WARN, "pp.never-mutated",
-            scope->entries[i].value->defspan,
-            "variable defined as mutable but never mutated",
-        );
-        el_diag_help(
-            pp->diag, "use #const if you don't need mutability"
-        );
+    for (usize i = 0; i < scope->capacity; ++i) {
+        if (scope->entries[i].state != _EL_PP_OCCUPIED) continue;
+
+        ElPpSymbol* sym = scope->entries[i].value;
+        if (!sym->is_public) {
+            warn_never_mutated_entry(pp, sym);
+            continue;
+        }
+
+        ElPpSymbol* existing = el_pp_scope_lookup_local(parent, sym->name);
+        if (existing != NULL) {
+            el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.redefinition",
+                sym->defspan, "redefinition of ${kind} ${name}",
+                EL_DIAG_STRING(
+                    "kind",
+                    sym->kind == EL_PP_SYM_VAR && sym->as.var.is_mutable
+                        ? EL_SV("variable") : EL_SV("constant")
+                ),
+                EL_DIAG_STRING("name", sym->name),
+            );
+            warn_never_mutated_entry(pp, sym);
+            continue;
+        }
+
+        el_pp_scope_assign(parent, sym->name, sym);
     }
 }
 
@@ -75,7 +112,7 @@ ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
 
 ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
     ElPpScope* scope = pp->current_scope;
-    el_pp_warn_never_mutated(pp, scope);
+    promote_public(pp, scope);
 
     ElPpScope* parent = scope->parent;
     el_pp_scope_free(scope);
@@ -276,7 +313,7 @@ ElToken _el_pp_advance(ElPreproc* pp) {
 
 bool _el_pp_match(ElPreproc* pp, ElTokenType type) {
     ElToken tok = {0}; // this zero initialization is not needed however the compiler
-                       // is yelling at me and i guess it's the simples way to fix it
+                       // is yelling at me and i guess it's the simplest way to fix it
 
     if (!_el_pp_peek(pp, &tok) || tok.type != type)
         return false;
