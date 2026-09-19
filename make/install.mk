@@ -52,6 +52,6 @@ else
 	$(ECHO) "RM $(DESTDIR)$(LIBDIR)/$(notdir $(LIBELC_SHARED))"
 	@$(call CMD_RM_F,$(DESTDIR)$(LIBDIR)/$(notdir $(LIBELC_SHARED)))
 
-	$(ECHO) "RM $(DESTDIR)$(INCLUDEDIR)"
-	@$(call CMD_RM_RF,$(DESTDIR)$(INCLUDEDIR))
+	$(ECHO) "RM $(DESTDIR)$(INCLUDEDIR)/elash"
+	@$(call CMD_RM_RF,$(DESTDIR)$(INCLUDEDIR)/elash)
 endif
