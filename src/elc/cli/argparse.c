@@ -182,6 +182,7 @@ static ElcCliParseResult parse_preference_flag(
 static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView arg) {
     if (el_sv_eql(arg, EL_SV("--help")))    { p->out->help = true;    return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--version"))) { p->out->version = true; return ELC_CLI_PARSE_RESULT_OK; }
+    if (el_sv_eql(arg, EL_SV("--debug")))   { p->out->debug = true;   return ELC_CLI_PARSE_RESULT_OK; }
 
     if (el_sv_eql(arg, EL_SV("--jsonl"))) {
         p->out->dformat = ELC_DIAG_JSONL;
@@ -238,6 +239,7 @@ static ElcCliParseResult handle_short_flag(ElcArgParseContext* p, ElStringView a
         switch (c) {
         case 'h': p->out->help    = true; break;
         case 'v': p->out->version = true; break;
+        case 'd': p->out->debug   = true; break;
         case 'I': return handle_include_flag(p, arg);
         case 'o': {
             ElStringView val = get_short_value(p, arg, j);

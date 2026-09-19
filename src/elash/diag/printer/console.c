@@ -21,7 +21,7 @@ static ElAnsiStyle get_style(ElDiagSeverity sev) {
     return (ElAnsiStyle) {
         .bg_color = EL_ANSI_CLR_DEFAULT,
         .fg_color = color,
-        .dec = EL_ANSI_DEC_BOLD,
+        .dec      = EL_ANSI_DEC_BOLD,
     };
 }
 
@@ -109,25 +109,43 @@ static void print_snippet(const ElSourceRange* range, ElDiagSeverity sev, FILE* 
     print_carets(out, line, range, sev);
 }
 
+static void print_debug_info(FILE* out, ElSourceLocInfo loc) {
+    bool ansi = el_ansi_is_supported(out);
+    if (ansi) {
+        ElAnsiStyle style = {
+            .bg_color = EL_ANSI_CLR_DEFAULT,
+            .fg_color = EL_ANSI_CLR_MAGENTA,
+            .dec      = EL_ANSI_DEC_ITALIC,
+        };
+        el_ansi_apply_style(style, out);
+    }
+
+    fprintf(out, " :: from %s:%u in %s", loc.file, loc.line, loc.func);
+    if (ansi) el_ansi_reset_style(out);
+}
+
 void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnostic* diag) {
-    (void) self;
+    bool debug = (bool)(intptr_t)self->ctx;
     print_sev(diag->sev, diag->category, out);
     el_sv_print(diag->formatted, out);
+
+    if (debug) print_debug_info(out, diag->source);
     fputc('\n', out);
+
     for (uint i = 0; i < diag->span.count; i++) {
         const ElSourceRange* range = &diag->span.ranges[i];
         print_loc(range, out);
         print_snippet(range, diag->sev, out);
     }
 
-    for (ElDiagnosticHelp* help = diag->help_head; help != NULL; help = help->next) {
+    for (ElDiagnosticHelp* help = diag->help.head; help != NULL; help = help->next) {
         bool ansi = el_ansi_is_supported(out);
 
         if (ansi) {
             ElAnsiStyle style = {
                 .bg_color = EL_ANSI_CLR_DEFAULT,
                 .fg_color = EL_ANSI_CLR_BRIGHT_CYAN,
-                .dec = EL_ANSI_DEC_BOLD,
+                .dec      = EL_ANSI_DEC_BOLD,
             };
             el_ansi_apply_style(style, out);
         }
@@ -135,6 +153,7 @@ void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagn
         if (ansi) el_ansi_reset_style(out);
 
         el_sv_print(help->formatted, out);
+        if (debug) print_debug_info(out, help->source);
         fputc('\n', out);
     }
 }

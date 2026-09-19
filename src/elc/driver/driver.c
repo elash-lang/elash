@@ -237,8 +237,8 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
 
     ElDiagPrinter printer;
     switch (args->dformat) {
-    case ELC_DIAG_CONSOLE: printer = el_diag_make_console_printer(); break;
-    case ELC_DIAG_JSONL:   printer = el_diag_make_jsonl_printer();   break;
+    case ELC_DIAG_CONSOLE: printer = el_diag_make_console_printer(args->debug); break;
+    case ELC_DIAG_JSONL:   printer = el_diag_make_jsonl_printer();              break;
     }
     el_diag_engine_print(&driver->diag, &printer, stdout);
 

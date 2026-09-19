@@ -48,6 +48,7 @@ typedef struct ElcArgs {
     ElcPreference color;
 
     ElcDiagFormat dformat;
+    bool debug;
 
     ElcCliDumpSwitch time_reports;
     ElcTimeReportFormat treport_format;
