@@ -49,8 +49,7 @@ static ElHirStmt* bind_return(ElBinder* binder, ElAstStmt* in) {
         if (!is_void_func) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.return-val-expected",
-                in->span,
-                "expected return value in non-void function"
+                in->span, "expected return value in non-void function",
             );
         }
     } else {
@@ -59,16 +58,14 @@ static ElHirStmt* bind_return(ElBinder* binder, ElAstStmt* in) {
             if (!is_val_void) {
                 el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.return-val-in-void-func",
-                    in->span,
-                    "void function should not return a value"
+                    in->span, "void function should not return a value",
                 );
             }
         } else {
             if (is_val_void) {
                 el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.returning-void",
-                    in->span,
-                    "cannot return void value from non-void ction"
+                    in->span, "cannot return void value from non-void function",
                 );
             } else {
                 val = _el_binder_implicit_cast(binder, in->span, val, binder->current_func->as.func.type->as.func.ret_type);
@@ -237,14 +234,14 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
         if (binder->loop_depth <= 0)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.break-outside-loop",
-                in->span, "'break' can only be used inside loops.",
+                in->span, "'break' can only be used inside loops",
             );
         return el_hir_new_break_stmt(binder->arena, in->span);
     case EL_AST_STMT_CONTINUE:
         if (binder->loop_depth <= 0)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.continue-outside-loop",
-                in->span, "'continue' can only be used inside loops.",
+                in->span, "'continue' can only be used inside loops",
             );
         return el_hir_new_continue_stmt(binder->arena, in->span);
 

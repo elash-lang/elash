@@ -288,7 +288,11 @@ static ElLexerStatus lex_operator(ElLexer* lexer, char c, ElToken* out) {
     case '~': return lex_op3(lexer, '>', '=', EL_TT_BITWISE_NOT, EL_TT_BITWISE_IMP, EL_TT_BITWISE_IMP_ASSIGN, out);
 
     default:
-        return EL_LEXERR_UNEXPECTED_CHAR;
+        EL_LEXER_RETURN_ERROR(
+            lexer, EL_LEXERR_UNEXPECTED_CHAR,
+            el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc),
+            { .ch = c }
+        );
     }
 }
 

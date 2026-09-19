@@ -20,7 +20,8 @@ static ElBSType* process(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, E
     if (el_hir_type_is_incomplete(ttype)) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
-            arg->span, "an incomplete type passed to builtin '${bname}' function",
+            arg->span, "cannot pass incomplete type '${type}' to builtin '${bname}' function",
+            EL_DIAG_TYPE("type", ttype),
             EL_DIAG_STRING("bname", bname),
         );
     }

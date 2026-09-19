@@ -156,7 +156,7 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
             EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
         );
         el_diag_help(
-            binder->diag, "did you meant to use a raw slice ('${type}')?",
+            binder->diag, "did you mean to use a raw slice ('${type}')?",
             EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->arena, to->as.ref.base)),
         );
 

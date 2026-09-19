@@ -28,11 +28,13 @@ static ElAstInit* parse_init_list(ElParser* parser, ElToken lbrace_tok) {
 }
 
 static ElAstDesignator* parse_designator(ElParser* parser) {
-    if (el_parser_match(parser, EL_TT_DOT)) {
+    if (el_parser_check(parser, EL_TT_DOT)) {
+        ElToken dot_tok = el_parser_advance(parser);
         ElToken tok = parser->current;
         if (tok.type == EL_TT_IDENT) {
             el_parser_advance(parser);
-            return el_ast_new_desig_member(parser->aarena, tok.lexeme);
+            ElSourceSpan span = el_srcspan_merge(dot_tok.span, tok.span);
+            return el_ast_new_desig_member(parser->aarena, span, tok.lexeme);
         }
 
         if (tok.type == EL_TT_INT_LITERAL) {
@@ -42,7 +44,8 @@ static ElAstDesignator* parse_designator(ElParser* parser) {
             if (!_el_parser_parse_const_idx(parser, tok, &index)) {
                 return NULL;
             }
-            return el_ast_new_desig_tmember(parser->aarena, index);
+            ElSourceSpan span = el_srcspan_merge(dot_tok.span, tok.span);
+            return el_ast_new_desig_tmember(parser->aarena, span, index);
         }
 
         _el_parser_report_unexpected(parser, tok);
@@ -53,11 +56,12 @@ static ElAstDesignator* parse_designator(ElParser* parser) {
     // it's already guaranteed by is_designator_start
     // but maybe expect here would be better anyway
     // who cares
-    el_parser_advance(parser); // '['
+    ElToken lbracket_tok = el_parser_advance(parser); // '['
     ElAstExpr* index = el_parser_parse_expr(parser);
-    el_parser_expect(parser, EL_TT_RBRACKET); // ']'
+    ElToken rbracket_tok = el_parser_expect(parser, EL_TT_RBRACKET); // ']'
 
-    return el_ast_new_desig_index(parser->aarena, index);
+    ElSourceSpan span = el_srcspan_merge(lbracket_tok.span, rbracket_tok.span);
+    return el_ast_new_desig_index(parser->aarena, span, index);
 }
 
 static ElAstDesigInitElem* parse_desig_init_elem(ElParser* parser) {
@@ -76,7 +80,11 @@ static ElAstDesigInitElem* parse_desig_init_elem(ElParser* parser) {
     el_parser_expect(parser, EL_TT_ASSIGN);
     ElAstInit* init = el_parser_parse_init(parser);
 
-    return el_ast_new_desig_init_elem(parser->aarena, head, desig_count, init);
+    ElSourceSpan start_span = head != NULL ? head->span : (init ? init->span : EL_SRCSPAN_NULL);
+    ElSourceSpan end_span   = init != NULL ? init->span : (head ? head->span : EL_SRCSPAN_NULL);
+    ElSourceSpan elem_span  = el_srcspan_merge(start_span, end_span);
+
+    return el_ast_new_desig_init_elem(parser->aarena, elem_span, head, desig_count, init);
 }
 
 static ElAstInit* parse_designated_init(ElParser* parser, ElToken lbrace_tok) {

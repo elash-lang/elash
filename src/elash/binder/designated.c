@@ -22,6 +22,7 @@ static ElHirExpr* bind_designated_elems(ElBinder* binder, ElAstInit* in, ElHirTy
 
 static ElAstDesigInitElem* make_sub_elem(ElBinder* binder, ElAstDesigInitElem* elem) {
     return EL_DYNARENA_NEW_STRUCT(binder->arena, ElAstDesigInitElem, {
+        .span = elem->span,
         .head = elem->head->next,
         .desig_count = elem->desig_count - 1,
         .init = elem->init,
@@ -149,14 +150,14 @@ static ElHirExpr* bind_designated_elems(
     InitBucket* buckets = EL_DYNARENA_NEW_ARR_ZEROED(binder->arena, InitBucket, count);
     for (ElAstDesigInitElem* elem = elems; elem != NULL; elem = elem->next) {
         if (elem->head == NULL) {
-            return report_invalid_designator(binder, in->span, actual_type);
+            return report_invalid_designator(binder, elem->span, actual_type);
         }
 
         usize idx = 0;
 
         if (actual_type->kind == EL_HIR_TYPE_STRUCT) {
             if (elem->head->kind != EL_AST_DESIGNATOR_MEMBER) {
-                return report_invalid_designator(binder, in->span, actual_type);
+                return report_invalid_designator(binder, elem->head->span, actual_type);
             }
 
 #ifdef STRICT_INITIALIZATION_SAFETY_REQUIREMENT
@@ -168,32 +169,32 @@ static ElHirExpr* bind_designated_elems(
             if (!found) {
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.unknown-field",
-                    in->span, "struct has no field named '${name}'",
+                    elem->head->span, "struct has no field named '${name}'",
                     EL_DIAG_STRING("name", elem->head->as.member)
                 );
             }
         } else if (actual_type->kind == EL_HIR_TYPE_TUPLE) {
             if (elem->head->kind != EL_AST_DESIGNATOR_TMEMBER) {
-                return report_invalid_designator(binder, in->span, actual_type);
+                return report_invalid_designator(binder, elem->head->span, actual_type);
             }
             idx = elem->head->as.tmember;
             if (idx >= count) {
-                REPORT_TUPLE_OUT_OF_BOUNDS(binder, in->span, count);
+                REPORT_TUPLE_OUT_OF_BOUNDS(binder, elem->head->span, count);
                 return NULL;
             }
         } else if (actual_type->kind == EL_HIR_TYPE_ARRAY) {
             if (elem->head->kind != EL_AST_DESIGNATOR_INDEX)
-                return report_invalid_designator(binder, in->span, actual_type);
+                return report_invalid_designator(binder, elem->head->span, actual_type);
 
             if (!_el_binder_eval_const_index(binder, elem->head->as.index, &idx)) {
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.non-const-index",
-                    in->span, "array designator index must be a constant integer"
+                    elem->head->span, "array designator index must be a constant integer"
                 );
             }else if (idx >= count) {
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.array-index-bounds",
-                    in->span, "array designator index ${index} out of bounds for array of size ${size}",
+                    elem->head->span, "array designator index ${index} out of bounds for array of size ${size}",
                     EL_DIAG_INT("index", idx), EL_DIAG_INT("size", count)
                 );
             }
@@ -202,12 +203,12 @@ static ElHirExpr* bind_designated_elems(
         InitBucket* b = &buckets[idx];
         if (elem->head->next == NULL) {
             if (b->direct != NULL || b->sub_head != NULL) {
-                return report_duplicate_init(binder, in->span, actual_type, idx);
+                return report_duplicate_init(binder, elem->span, actual_type, idx);
             }
             b->direct = elem->init;
         } else {
             if (b->direct != NULL) {
-                return report_duplicate_init(binder, in->span, actual_type, idx);
+                return report_duplicate_init(binder, elem->span, actual_type, idx);
             }
             el_ast_desig_init_append(&b->sub_head, &b->sub_tail, make_sub_elem(binder, elem));
         }
