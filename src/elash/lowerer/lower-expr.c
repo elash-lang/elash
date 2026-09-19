@@ -14,23 +14,6 @@ static inline bool is_int_or_char(ElMirType* type) {
     return type->kind == EL_MIR_TYPE_INT;
 }
 
-static bool el_hir_expr_is_lvalue(const ElHirExpr* hir) {
-    switch (hir->kind) {
-    case EL_HIR_EXPR_SYMBOL:
-        return hir->as.symbol->kind == EL_SYM_VAR || hir->as.symbol->kind == EL_SYM_FUNC;
-    case EL_HIR_EXPR_BINARY:
-        return hir->as.binary.op == EL_SEMA_BIN_OP_INDEX;
-    case EL_HIR_EXPR_UNARY:
-        return hir->as.unary.op == EL_SEMA_UNARY_OP_DEREF;
-    case EL_HIR_EXPR_MEMBER:
-        return el_hir_expr_is_lvalue(hir->as.member.expr);
-    case EL_HIR_EXPR_TMEMBER:
-        return el_hir_expr_is_lvalue(hir->as.tmember.expr);
-    default:
-        return false;
-    }
-}
-
 ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirValue* operand = el_lowerer_lower_expr(lw, hir->as.cast.expr);
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);

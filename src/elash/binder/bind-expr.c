@@ -4,6 +4,7 @@
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
 
+#include <elash/hir/tree/expr.h>
 #include <elash/hir/type/prim.h>
 #include <elash/hir/type/opt.h>
 #include <elash/hir/tree/expr/intr.h>
@@ -265,21 +266,36 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
             );
         }
         type = type->as.opt.base;
-    } else if (type == NULL) {
-        if (unary->op == EL_SEMA_UNARY_OP_ADDROF || unary->op == EL_SEMA_UNARY_OP_DEREF)
+    } else if (type == NULL){
+        if (unary->op == EL_SEMA_UNARY_OP_DEREF)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
-                in->span, "cannot perform address-of or dereference on an untyped literal"
+                in->span, "cannot dereference an untyped literal"
             );
-        if (unary->op == EL_SEMA_UNARY_OP_PRE_INC || unary->op == EL_SEMA_UNARY_OP_PRE_DEC
-            || unary->op == EL_SEMA_UNARY_OP_POST_INC || unary->op == EL_SEMA_UNARY_OP_POST_DEC)
+        if (unary->op == EL_SEMA_UNARY_OP_ADDROF)
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
+                in->span, "cannot perform address-of on an untyped literal"
+            );
+        if (el_sema_unary_op_is_incdec(unary->op))
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                 in->span, "cannot increment or decrement an untyped literal"
             );
     } else {
         if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
+            if (!el_hir_expr_is_lvalue(operand))
+                return el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
+                    in->span, "address-of operator requires an lvalue"
+                );
             type = el_hir_new_ref_type(binder->arena, operand->type);
+        } else if (el_sema_unary_op_is_incdec(unary->op)) {
+            if (!el_hir_expr_is_lvalue(operand))
+                return el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
+                    in->span, "increment/decrement requires an lvalue"
+                );
         } else if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
             if (operand->type->kind != EL_HIR_TYPE_REF)
                 return el_diag_report(

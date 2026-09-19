@@ -53,3 +53,4 @@ typedef struct ElHirExpr {
 } ElHirExpr;
 
 ElHirExpr* el_hir_new_symbol_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElHirSymbol* symbol);
+bool el_hir_expr_is_lvalue(const ElHirExpr* hir);

@@ -26,5 +26,10 @@ static inline bool el_sema_unary_op_is_post(ElSemaUnaryOp op) {
         || op == EL_SEMA_UNARY_OP_OPT_UNWRAP;
 }
 
+static inline bool el_sema_unary_op_is_incdec(ElSemaUnaryOp op) {
+    return op >= EL_SEMA_UNARY_OP_PRE_INC
+        && op <= EL_SEMA_UNARY_OP_POST_DEC;
+}
+
 ElStringView el_sema_unary_op_format(ElSemaUnaryOp type);
 ElStringView el_sema_unary_op_to_string(ElSemaUnaryOp type);
