@@ -49,9 +49,9 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
         usize new_offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
 
         if (new_offset <= arena->current->size) {
-            void* ref = (void*)aligned_addr; // NOLINT(performance-no-int-to-ref)
+            void* ptr = (void*)aligned_addr; // NOLINT(performance-no-int-to-ptr)
             arena->offset = new_offset;
-            return ref;
+            return ptr;
         }
 
         if (arena->current->next != NULL) {
@@ -81,23 +81,23 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
     uintptr_t addr = (uintptr_t) (arena->current->data + arena->offset);
     uintptr_t aligned_addr = (addr + align - 1) & ~((uintptr_t) (align - 1));
     arena->offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
-    return (void*)aligned_addr; // NOLINT(performance-no-int-to-ref)
+    return (void*)aligned_addr; // NOLINT(performance-no-int-to-ptr)
 }
 
 void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {
-    void* ref = el_dynarena_alloc(arena, size, align);
-    if (ref != NULL) {
-        memset(ref, 0, size);
+    void* ptr = el_dynarena_alloc(arena, size, align);
+    if (ptr != NULL) {
+        memset(ptr, 0, size);
     }
-    return ref;
+    return ptr;
 }
 
 void* el_dynarena_alloc_init(ElDynArena* arena, usize size, usize align, void* init) {
-    void *ref = el_dynarena_alloc(arena, size, align);
-    if (ref != NULL) {
-        memcpy(ref, init, size);
+    void *ptr = el_dynarena_alloc(arena, size, align);
+    if (ptr != NULL) {
+        memcpy(ptr, init, size);
     }
-    return ref;
+    return ptr;
 }
 
 ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv) {
