@@ -152,7 +152,7 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
         // let's give the user some nice error message in this case
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
-            "invalid cast from array type ${from} to ${to} pointer",
+            "invalid cast from array type '${from}' to '${to}' pointer",
             EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
         );
         el_diag_help(
@@ -255,7 +255,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     if (is_distinct_conv(from, to)) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
-            "cannot implicitly convert from ${from} to ${to}",
+            "cannot implicitly convert from '${from}' to '${to}'",
             EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
         );
         el_diag_help(
@@ -312,7 +312,7 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
     default:
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
-            span, "untyped expression cannot be converted to type ${to}",
+            span, "untyped expression cannot be converted to type '${to}'",
             EL_DIAG_TYPE("to", to),
         );
     }
