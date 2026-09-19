@@ -10,18 +10,25 @@
 //////// include frames ////////
 #define INCLUDE_DEPTH_LIMIT 220
 
+typedef enum FrameType {
+    FRAME_FUNC,
+    FRAME_INCLUDE,
+} FrameType;
+
 typedef struct ElPpFrame {
     ElTokenStream           stream;
     const ElSourceDocument* doc;
     struct ElPpFrame*       parent;
     ElToken                 pushback;
     bool                    has_pushback;
+    FrameType               type;
 } ElPpFrame;
 
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
+void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream);
+void _el_pp_pop_frame(ElPreproc* pp);
 
 ////////// if frames //////////
-typedef struct ElPpIfFrame ElPpIfFrame;
 struct ElPpIfFrame {
     ElSourceSpan ifspan;
     bool branch_taken;
@@ -34,6 +41,25 @@ void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
 void _el_pp_enter_if_branch(ElPreproc* pp);
 void _el_pp_leave_if_branch(ElPreproc* pp);
 void _el_pp_pop_if_frame(ElPreproc* pp);
+
+////////// call frames /////////
+#define CALL_DEPTH_LIMIT 500
+
+struct ElPpCallFrame {
+    ElPpValue* return_value;
+    bool       has_returned;
+
+    ElSourceSpan call_span;
+    ElPpSymbol*  func;
+
+    ElPpIfFrame* saved_if_stack;
+    uint         saved_skip_depth;
+
+    ElPpFrame* body_frame;
+    ElPpFrame* caller_frame;
+
+    ElPpCallFrame* parent;
+};
 
 ////////// scopes //////////
 ElPpScope* _el_pp_push_scope(ElPreproc* pp);
@@ -75,6 +101,29 @@ bool _el_pp_skip_if(ElPreproc* pp);
 bool _el_pp_skip_else(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_skip_elif(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_skip_end(ElPreproc* pp);
+
+bool _el_pp_handle_func(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_return(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_func(ElPreproc* pp);
+bool _el_pp_skip_return(ElPreproc* pp);
+
+/////////// functions ////////////
+typedef struct ElPpArg {
+    ElPpValue* value;
+    struct ElPpArg* next;
+} ElPpArg;
+
+typedef struct ElPpArgList {
+    ElPpArg* head;
+    ElPpArg* tail;
+    usize count;
+} ElPpArgList;
+
+void _el_pp_append_param(ElPpParamList* list, ElDynArena* arena, ElStringView name);
+void _el_pp_append_arg(ElPpArgList* list, ElDynArena* arena, ElPpValue* val);
+
+bool _el_pp_finish_pending_func(ElPreproc* pp);
+ElPpValue* _el_pp_call_func(ElPreproc* pp, ElPpSymbol* sym, ElSourceSpan cspan);
 
 ////////// expressions ///////////
 typedef enum ElPpNumKind {

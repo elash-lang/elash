@@ -1,0 +1,5 @@
+#func thing()
+    // no #return
+#end
+
+#const x = thing()

@@ -53,7 +53,7 @@
 - [ ] Implement embed directive
 - [x] Solve source spans issues with #include
 - [x] Support preprocessor variables and constants
-- [ ] Support preprocessor functions
+- [x] Support preprocessor functions
 - [ ] Implement macro expansion engine
 - [ ] Implement macro expansion result rescan
 - [ ] Preserve correct source locations after expansion

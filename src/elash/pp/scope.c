@@ -90,7 +90,7 @@ ElPpScope* el_pp_scope_new(ElPpScope* parent) {
     if (!scope) return NULL;
 
     scope->entries = calloc(INITIAL_CAPACITY, sizeof(Entry));
-    if (!scope->entries) {
+    if (scope->entries == NULL) {
         free(scope);
         return NULL;
     }
@@ -99,6 +99,7 @@ ElPpScope* el_pp_scope_new(ElPpScope* parent) {
     scope->num_entries = 0;
     scope->num_tombstones = 0;
     scope->parent = parent;
+    scope->promote_on_pop = true;
 
     return scope;
 }

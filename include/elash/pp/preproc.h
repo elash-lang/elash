@@ -9,6 +9,7 @@
 
 #include <elash/pp/include.h>
 #include <elash/pp/scope.h>
+#include <elash/pp/symbol.h>
 #include <elash/prof/prof.h>
 
 #include <elash/source/doc.h>
@@ -17,6 +18,16 @@
 
 typedef struct ElPpFrame ElPpFrame;
 typedef struct ElPpIfFrame ElPpIfFrame;
+typedef struct ElPpCallFrame ElPpCallFrame;
+
+typedef struct ElPpPendingFunc {
+    bool active;
+    bool is_public;
+    ElStringView name;
+    ElSourceSpan defspan;
+
+    ElPpParamList params;
+} ElPpPendingFunc;
 
 typedef struct ElPreproc {
     uint include_depth;
@@ -24,6 +35,13 @@ typedef struct ElPreproc {
 
     uint skip_depth;
     ElPpIfFrame* if_stack;
+
+    bool skip_capture;
+    ElTokenBuf capture_buf;
+
+    ElPpPendingFunc pending_func;
+    ElPpCallFrame* call_stack;
+    uint call_depth;
 
     ElTokenQueue pending;
 

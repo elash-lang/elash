@@ -109,6 +109,52 @@ static ElPpValue* parse_token_list(ElPreproc* pp, ElSourceSpan hash_span) {
     return el_pp_valbuf_vflush(&buf, pp->iarena);
 }
 
+static ElPpValue* handle_ident(ElPreproc* pp, ElToken tok) {
+    ElToken next;
+    bool is_call = _el_pp_peek(pp, &next) && next.type == EL_TT_LPAREN;
+
+    ElPpSymbol* sym = el_pp_scope_lookup(pp->current_scope, tok.lexeme);
+    if (sym == NULL) {
+        return el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.undeclared", tok.span,
+            "undeclared identifier '${name}' in preprocessor expression",
+            EL_DIAG_STRING("name", tok.lexeme)
+        );
+    }
+
+    if (is_call) {
+        if (sym->kind != EL_PP_SYM_FUNC) {
+            return el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.not-callable",
+                tok.span, "'${name}' is not a function",
+                EL_DIAG_STRING("name", tok.lexeme)
+            );
+        }
+        return _el_pp_call_func(pp, sym, tok.span);
+    }
+
+    if (sym->kind == EL_PP_SYM_FUNC) {
+        el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.func-as-expr",
+            tok.span, "function '${name}' must be called",
+            EL_DIAG_STRING("name", tok.lexeme)
+        );
+        el_diag_help(
+            pp->diag, "functions-as-values are currently not supported in the elash preprocessor",
+        );
+        return NULL;
+    }
+
+    if (sym->kind != EL_PP_SYM_VAR) {
+        return el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.sym-kind",
+            tok.span, "expected a variable name"
+        );
+    }
+
+    return _el_pp_value_clone(pp->iarena, sym->as.var.v);
+}
+
 static ElPpValue* parse_primary(ElPreproc* pp) {
     ElToken tok;
     if (!peek(pp, &tok)) {
@@ -191,24 +237,8 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
         return expr;
     }
 
-    case EL_TT_IDENT: {
-        ElPpSymbol* sym = el_pp_scope_lookup(pp->current_scope, tok.lexeme);
-        if (sym == NULL) {
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.undeclared", tok.span,
-                "undeclared identifier '${name}' in preprocessor expression",
-                EL_DIAG_STRING("name", tok.lexeme)
-            );
-        }
-        if (sym->kind != EL_PP_SYM_VAR) {
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.sym-kind",
-                tok.span, "expected a variable name"
-            );
-        }
-
-        return _el_pp_value_clone(pp->iarena, sym->as.var.v);
-    }
+    case EL_TT_IDENT:
+        return handle_ident(pp, tok);
 
     default:
         return el_diag_report(
