@@ -10,17 +10,17 @@
 #include <elash/hir/tree/expr/intr.h>
 #include <elash/ast/tree/toi.h>
 
-#define IMPLICIT_CAST_IF_NEEDED(THING, SPAN, TO) \
-    if (THING->type == NULL) { \
-        THING = _el_binder_implicit_cast(binder, SPAN, THING, TO); \
-        if (THING == NULL) return NULL; \
+#define IMPLICIT_CAST_IF_NEEDED(THING, SPAN, TO)                           \
+    if ((THING)->type == NULL) {                                           \
+        (THING) = _el_binder_implicit_cast(binder, (SPAN), (THING), (TO)); \
+        if ((THING) == NULL) return NULL;                                  \
     }
 
-#define REPORT_NON_INDEXABLE do { \
-    return el_diag_report( \
-        binder->diag, EL_DIAG_ERROR, "sema.non-indexable", \
+#define REPORT_NON_INDEXABLE do {                                                        \
+    return el_diag_report(                                                               \
+        binder->diag, EL_DIAG_ERROR, "sema.non-indexable",                               \
         bin->left->span, "cannot index into non-array, non-slice, or non-raw-slice type" \
-    ); \
+    );                                                                                   \
 } while (0)
 
 static bool is_distinct_related(ElHirType* a, ElHirType* b) {

@@ -309,6 +309,7 @@ ElMirValue* _el_lowerer_lower_strconst_expr(ElLowerer* lw, ElHirExpr* hir) {
     return res;
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it's readable.
 static ElMirValue* _lower_expr_internal(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_BINARY:    return _el_lowerer_lower_bin_expr(lw, hir, &hir->as.binary);

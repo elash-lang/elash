@@ -214,28 +214,29 @@ bool _el_parser_is_complex_expr(ElParser* parser) {
         if (tok.type == EL_TT_EOF)
             break;
 
-        if (tok.type == EL_TT_LPAREN)
+        if (tok.type == EL_TT_LPAREN) {
             paren_depth++;
-        else if (tok.type == EL_TT_RPAREN)
+        } else if (tok.type == EL_TT_RPAREN) {
             if (paren_depth > 0) paren_depth--;
             else break;
-        else if (tok.type == EL_TT_LBRACKET)
+        } else if (tok.type == EL_TT_LBRACKET) {
             bracket_depth++;
-        else if (tok.type == EL_TT_RBRACKET)
+        } else if (tok.type == EL_TT_RBRACKET) {
             if (bracket_depth > 0) bracket_depth--;
             else break;
-        else if (tok.type == EL_TT_LBRACE)
+        } else if (tok.type == EL_TT_LBRACE) {
             brace_depth++;
-        else if (tok.type == EL_TT_RBRACE)
+        } else if (tok.type == EL_TT_RBRACE) {
             if (brace_depth > 0) brace_depth--;
             else break;
-        else if (tok.type == EL_TT_SEMICOLON) {
+        } else if (tok.type == EL_TT_SEMICOLON) {
             if (paren_depth == 0 && bracket_depth == 0 && brace_depth == 0)
                 break;
-        }
-        else if (paren_depth == 0 && bracket_depth == 0 && brace_depth == 0)
+        } else if (paren_depth == 0 && bracket_depth == 0 && brace_depth == 0) {
             if (is_binary_op_or_cast(parser, idx))
                 return true;
+        }
+
         idx++;
     }
     return false;

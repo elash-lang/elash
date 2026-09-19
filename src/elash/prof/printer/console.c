@@ -17,7 +17,7 @@
 #define SHOW_OTHER_TRESHOLD 1e-9
 
 // WINAPI-grade coding
-#define MIN(p, q) ((p < q) ? (p) : (q))
+#define MIN(p, q) (((p) < (q)) ? (p) : (q))
 
 static ElAnsiStyle bold_style = {
     .fg_color = EL_ANSI_CLR_DEFAULT,

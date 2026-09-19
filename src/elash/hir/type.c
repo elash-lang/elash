@@ -24,6 +24,7 @@ static inline void writeint(usize tuff, void (*write)(const char*, void*), void*
     write(tuff_buff, ctx);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
 void el_format_type_internal(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
     switch (type->kind) {
     case EL_HIR_TYPE_PRIM:
@@ -120,6 +121,7 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
     EL_UNREACHABLE_ENUM_VAL(ElHirTypeKind, type->kind);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
 bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
     if (lhs == NULL || rhs == NULL) return lhs == rhs;
     if (lhs == rhs)                 return true;

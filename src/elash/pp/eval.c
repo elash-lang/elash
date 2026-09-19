@@ -35,6 +35,7 @@ bool _el_pp_to_num(ElPpValue* val, ElPpNum* out) {
     }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is mostly flat
 ElPpValue* _el_pp_apply_numeric_bin(
     ElPreproc* pp, ElSourceSpan span, ElBinOp op, ElPpNum lhs, ElPpNum rhs
 ) {

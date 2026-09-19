@@ -132,7 +132,9 @@ static bool parse_int_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView
 
             prev_digit = false;
             (*i)++;
-        } else break;
+        } else {
+            break;
+        }
     }
     return true;
 }
@@ -162,7 +164,9 @@ static bool parse_frac_part(ElDiagEngine* engine, ElSourceSpan span, ElStringVie
 
             prev_digit = false;
             (*i)++;
-        } else break;
+        } else {
+            break;
+        }
     }
     *res += frac / div;
     return true;
@@ -201,7 +205,9 @@ static bool parse_exp_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView
             }
             prev_digit = false;
             (*i)++;
-        } else break;
+        } else {
+            break;
+        }
     }
 
     double mult = 1.0;  // NOLINT(readability-magic-numbers)
@@ -222,8 +228,12 @@ double el_string_to_double(ElDiagEngine* engine, ElStringView str, ElSourceSpan 
 
     usize i = 0;
     bool neg = false;
-    if (str.data[i] == '-') { neg = true; i++; }
-    else if (str.data[i] == '+') i++;
+    if (str.data[i] == '-') {
+        neg = true;
+        i++;
+    } else if (str.data[i] == '+') {
+        i++;
+    }
 
     if (i >= str.len) {
         el_diag_report(

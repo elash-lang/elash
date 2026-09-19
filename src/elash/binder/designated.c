@@ -117,6 +117,7 @@ static ElHirExpr* validate(
     return el_hir_new_agg_init(binder->arena, in->span, init_type, values, count, scls);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it's fine
 static ElHirExpr* bind_designated_elems(
     ElBinder* binder, ElAstInit* in,
     ElHirType* expected_type,

@@ -30,3 +30,7 @@ Checks: >
   -portability-avoid-pragma-once,
 
   -llvmlibc-restrict-system-libc-headers,
+
+CheckOptions:
+  - key:   readability-function-cognitive-complexity.Threshold
+    value: '35'

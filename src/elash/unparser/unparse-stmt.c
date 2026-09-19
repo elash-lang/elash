@@ -24,6 +24,7 @@ static ElTokenType cassign_token(ElBinOp op) {
     }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
 bool el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
     switch (stmt->type) {
     case EL_AST_STMT_EXPR:

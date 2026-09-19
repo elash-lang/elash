@@ -323,6 +323,7 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
         if (!_el_binder_ensure_complete(binder, span, to))
             return NULL;
+
         ElHirExpr* casted = _cast_untyped(binder, span, expr, to->as.distinct.orig);
         if (casted == NULL) return NULL;
         return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);

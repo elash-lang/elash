@@ -28,6 +28,8 @@ static bool unparse_desig_elem(ElUnparser* unpar, ElAstDesigInitElem* elem) {
     return el_unparser_unparse_init(unpar, elem->init);
 }
 
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy is broken
 bool el_unparser_unparse_init(ElUnparser* unpar, ElAstInit* init) {
     switch (init->kind) {
     case EL_AST_INIT_EXPR:
@@ -37,7 +39,7 @@ bool el_unparser_unparse_init(ElUnparser* unpar, ElAstInit* init) {
         if (!el_unparser_push_punct(unpar, EL_TT_LBRACE)) return false;
         return el_unparser_push_punct(unpar, EL_TT_RBRACE);
 
-    case EL_AST_INIT_LIST: {
+    case EL_AST_INIT_LIST:
         if (!el_unparser_push_punct(unpar, EL_TT_LBRACE)) return false;
         for (ElAstInit* elem = init->list.head; elem != NULL; elem = elem->next) {
             if (!el_unparser_unparse_init(unpar, elem)) return false;
@@ -46,9 +48,8 @@ bool el_unparser_unparse_init(ElUnparser* unpar, ElAstInit* init) {
             }
         }
         return el_unparser_push_punct(unpar, EL_TT_RBRACE);
-    }
 
-    case EL_AST_INIT_DESIG: {
+    case EL_AST_INIT_DESIG:
         if (!el_unparser_push_punct(unpar, EL_TT_LBRACE)) return false;
         for (ElAstDesigInitElem* elem = init->desig.head; elem != NULL; elem = elem->next) {
             if (!unparse_desig_elem(unpar, elem)) return false;
@@ -57,7 +58,6 @@ bool el_unparser_unparse_init(ElUnparser* unpar, ElAstInit* init) {
             }
         }
         return el_unparser_push_punct(unpar, EL_TT_RBRACE);
-    }
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstInitKind, init->kind);
 }

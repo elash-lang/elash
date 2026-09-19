@@ -232,6 +232,21 @@ bool el_ast_equal_designator(const ElAstDesignator* a, const ElAstDesignator* b)
     EL_UNREACHABLE_ENUM_VAL(ElAstDesignatorKind, a->kind);
 }
 
+static bool equal_desig_element(ElAstDesigInitElem* ea, ElAstDesigInitElem* eb) {
+    if (ea->desig_count != eb->desig_count) return false;
+
+    ElAstDesignator* da = ea->head;
+    ElAstDesignator* db = eb->head;
+    while (da != NULL && db != NULL) {
+        if (!el_ast_equal_designator(da, db)) return false;
+        da = da->next;
+        db = db->next;
+    }
+
+    if (da != db) return false;
+    return el_ast_equal_init(ea->init, eb->init);
+}
+
 bool el_ast_equal_init(const ElAstInit* a, const ElAstInit* b) {
     if (a == b) return true;
     if (!a || !b) return false;
@@ -255,16 +270,7 @@ bool el_ast_equal_init(const ElAstInit* a, const ElAstInit* b) {
         ElAstDesigInitElem* ea = a->desig.head;
         ElAstDesigInitElem* eb = b->desig.head;
         while (ea != NULL && eb != NULL) {
-            if (ea->desig_count != eb->desig_count) return false;
-            ElAstDesignator* da = ea->head;
-            ElAstDesignator* db = eb->head;
-            while (da != NULL && db != NULL) {
-                if (!el_ast_equal_designator(da, db)) return false;
-                da = da->next;
-                db = db->next;
-            }
-            if (da != db) return false;
-            if (!el_ast_equal_init(ea->init, eb->init)) return false;
+            if (!equal_desig_element(ea, eb)) return false;
             ea = ea->next;
             eb = eb->next;
         }

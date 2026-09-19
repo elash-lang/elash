@@ -169,6 +169,9 @@ _EL_I128_API bool el_i128_lt(ElInt128 lhs, ElInt128 rhs);
 // stolen from https://github.com/aeldidi/ElInt128/blob/main/int128.h
 // credits to the original author - @aeldidi
 
+// NOLINTBEGIN(readability-magic-numbers)
+// NOLINTBEGIN(readability-math-missing-parentheses)
+
 _EL_I128_API bool el_u128_lt(ElUint128 lhs, ElUint128 rhs)
 {
 	if (lhs.hi == rhs.hi) {
@@ -859,12 +862,19 @@ _EL_I128_API double el_i128_to_double(ElInt128 v) {
     }
 }
 
+// NOLINTEND(readability-math-missing-parentheses)
+// NOLINTEND(readability-magic-numbers)
+
 #endif
 
 static inline ElUint128 el_i128_bitcast_u128(ElInt128 v)  { return EL_UINT128_H(el_i128_lo(v), el_i128_hi(v)); }
 static inline ElInt128  el_u128_bitcast_i128(ElUint128 v) { return EL_INT128_H(el_u128_lo(v),  el_u128_hi(v)); }
 
-ElUint128 el_i128_abs_u128(ElInt128 v);
+#if EL_INT128_NATIVE
+    // it is already declared in the emulated branch which causes linter warnings
+    // warning: redundant 'el_i128_abs_u128' declaration [readability-redundant-declaration]
+    ElUint128 el_i128_abs_u128(ElInt128 v);
+#endif
 
 // NOLINTBEGIN(readability-magic-numbers): clueless
 _Static_assert(sizeof(ElInt128)  == 16, "ElInt128 should be exactly 16 bytes");

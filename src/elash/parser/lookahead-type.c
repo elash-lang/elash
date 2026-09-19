@@ -11,11 +11,11 @@ static bool lookahead_skip_balanced(ElParser* parser, usize* idx) {
         ElToken tok = el_parser_peek_at(parser, (*idx)++);
         if (tok.type == EL_TT_EOF) return false;
 
-        if (tok.type == EL_TT_LPAREN)        depth_paren++;
-        else if (tok.type == EL_TT_RPAREN)   { if (depth_paren > 0) depth_paren--; }
-        else if (tok.type == EL_TT_LBRACE)   depth_brace++;
-        else if (tok.type == EL_TT_RBRACE)   { if (depth_brace > 0) depth_brace--; }
-        else if (tok.type == EL_TT_LBRACKET) depth_bracket++;
+        if (tok.type == EL_TT_LPAREN)        { depth_paren++;                          }
+        else if (tok.type == EL_TT_RPAREN)   { if (depth_paren > 0) depth_paren--;     }
+        else if (tok.type == EL_TT_LBRACE)   { depth_brace++;                          }
+        else if (tok.type == EL_TT_RBRACE)   { if (depth_brace > 0) depth_brace--;     }
+        else if (tok.type == EL_TT_LBRACKET) { depth_bracket++;                        }
         else if (tok.type == EL_TT_RBRACKET) { if (depth_bracket > 0) depth_bracket--; }
 
         if (depth_paren == 0 && depth_brace == 0 && depth_bracket == 0) break;
@@ -48,9 +48,7 @@ static bool lookahead_skip_type_suffixes(ElParser* parser, usize* idx) {
     while (true) {
         ElToken tok = el_parser_peek_at(parser, *idx);
 
-        if (tok.type == EL_TT_BITWISE_AND) {
-            (*idx)++;
-        } else if (tok.type == EL_TT_OPT) {
+        if (tok.type == EL_TT_BITWISE_AND || tok.type == EL_TT_OPT) {
             (*idx)++;
         } else if (tok.type == EL_TT_LBRACKET) {
             if (!lookahead_skip_balanced(parser, idx))

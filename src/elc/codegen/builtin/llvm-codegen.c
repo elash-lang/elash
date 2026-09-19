@@ -380,11 +380,13 @@ void elc_llvm_compile_gfp_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     ASSIGN_REG(func, instr->result, res, "gfp");
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it's readable
 void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
-    ElMirValue* mir_operand = NULL;
-    if (instr->kind == EL_MIR_INSTR_INTCAST) mir_operand = instr->as.intcast.operand;
-    else if (instr->kind == EL_MIR_INSTR_FPCAST) mir_operand = instr->as.fpcast.operand;
-    else mir_operand = instr->as.bitcast.operand;
+    ElMirValue* mir_operand;
+    if      (instr->kind == EL_MIR_INSTR_INTCAST) mir_operand = instr->as.intcast.operand;
+    else if (instr->kind == EL_MIR_INSTR_FPCAST)  mir_operand = instr->as.fpcast.operand;
+    else if (instr->kind == EL_MIR_INSTR_BITCAST) mir_operand = instr->as.bitcast.operand;
+    else EL_UNREACHABLE("invalid instruction kind passed to elc_llvm_compile_cast_instr");
 
     LLVMValueRef operand = elc_llvm_map_value(ctx, func, mir_operand);
     LLVMTypeRef  to_type = map_type(ctx, instr->result->type);
