@@ -139,7 +139,9 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
         return expr;
     }
 
-    _el_parser_report_unexpected(parser, parser->current);
+    if (parser->current.type != EL_TT_UNKNOWN || parser->diag->summary.total_errors == 0)
+        _el_parser_report_unexpected(parser, parser->current);
+
     el_parser_advance(parser);
     return NULL;
 }

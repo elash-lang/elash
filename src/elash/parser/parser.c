@@ -8,8 +8,7 @@
 void _el_parser_report_expected(ElParser* parser, ElTokenType expected) {
     el_diag_report(
         parser->diag, EL_DIAG_ERROR, "syntax.expected-token",
-        parser->current.span,
-        "expected ${expected}, found ${found}",
+        parser->current.span, "expected ${expected}, found ${found}",
         EL_DIAG_STRING("expected", el_token_type_format(expected)),
         EL_DIAG_STRING("found", el_token_type_format(parser->current.type))
     );
@@ -28,8 +27,7 @@ void _el_parser_report_expected_at(ElParser* parser, ElTokenType expected, usize
 void _el_parser_report_unexpected(ElParser* parser, ElToken tok) {
     el_diag_report(
         parser->diag, EL_DIAG_ERROR, "syntax.unexpected-token",
-        tok.span,
-        "unexpected token: ${token}",
+        tok.span, "unexpected token: ${token}",
         EL_DIAG_STRING("token", el_token_type_format(tok.type))
     );
 }
@@ -53,10 +51,6 @@ ElToken el_parser_advance(ElParser* parser) {
         el_tkque_pop(&parser->lookahead, &parser->current);
     } else {
         parser->current = parser->tokens.next(&parser->tokens, parser->diag);
-    }
-
-    if (parser->current.type == EL_TT_UNKNOWN) {
-        _el_parser_report_unexpected(parser, parser->current);
     }
 
     return prev;

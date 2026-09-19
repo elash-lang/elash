@@ -500,7 +500,7 @@ ElLexerStatus el_lexer_next_token(ElLexer* lexer, ElToken* out) {
         if (r != EL_LEXERR_UNEXPECTED_CHAR) return r;
 
         if (!(lexer->flags & EL_LF_SKIP_UNKNOWN)) {
-            EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+            EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), { .ch = op });
         }
     }
 }
