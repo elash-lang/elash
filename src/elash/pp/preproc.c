@@ -1,6 +1,7 @@
 #include "preproc-internals.h"
 
 #include <elash/util/dynarena.h>
+#include <elash/lexer/tokbuf.h>
 
 bool el_pp_init(
     ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
@@ -11,6 +12,11 @@ bool el_pp_init(
     pp->skip_depth = 0;
     pp->if_stack = NULL;
     pp->has_lookahead = false;
+    pp->skip_capture = false;
+
+    pp->pending_func = (ElPpPendingFunc) {0};
+    pp->call_stack = NULL;
+    pp->call_depth = 0;
 
     pp->imap   = imap;
     pp->farena = arena;
@@ -23,6 +29,8 @@ bool el_pp_init(
     }
 
     if (!el_tkque_init(&pp->pending))
+        return false;
+    if (!el_tkbuf_init(&pp->capture_buf))
         return false;
 
     pp->iarena = EL_DYNARENA_NEW(pp->farena, ElDynArena);
@@ -45,6 +53,7 @@ void el_pp_free(ElPreproc* pp) {
 
     el_dynarena_free(pp->iarena);
     el_tkque_destroy(&pp->pending);
+    el_tkbuf_destroy(&pp->capture_buf);
 }
 
 ////////// scopes ////////////
@@ -86,14 +95,11 @@ static void promote_public(ElPreproc* pp, ElPpScope* scope) {
 
         ElPpSymbol* existing = el_pp_scope_lookup_local(parent, sym->name);
         if (existing != NULL) {
+            ElStringView kind = _el_pp_sym_kind_to_string(sym);
             el_diag_report(
                 pp->diag, EL_DIAG_ERROR, "pp.redefinition",
                 sym->defspan, "redefinition of ${kind} ${name}",
-                EL_DIAG_STRING(
-                    "kind",
-                    sym->kind == EL_PP_SYM_VAR && sym->as.var.is_mutable
-                        ? EL_SV("variable") : EL_SV("constant")
-                ),
+                EL_DIAG_STRING("kind", kind),
                 EL_DIAG_STRING("name", sym->name),
             );
             warn_never_mutated_entry(pp, sym);
@@ -112,7 +118,11 @@ ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
 
 ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
     ElPpScope* scope = pp->current_scope;
-    promote_public(pp, scope);
+    if (scope->promote_on_pop) {
+        promote_public(pp, scope);
+    } else {
+        warn_never_mutated(pp, scope);
+    }
 
     ElPpScope* parent = scope->parent;
     el_pp_scope_free(scope);
@@ -128,6 +138,7 @@ void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocume
         .stream = stream,
         .doc    = doc,
         .parent = parent,
+        .type   = FRAME_FUNC,
     });
 
     if (parent != NULL) {
@@ -135,14 +146,33 @@ void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocume
     }
 }
 
-static void el_pp_pop_frame(ElPreproc* pp) {
+void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream) {
+    ElPpFrame* parent = pp->frame;
+
+    pp->frame = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpFrame, {
+        .stream = stream,
+        .doc    = parent != NULL ? parent->doc : NULL,
+        .parent = parent,
+        .type   = FRAME_FUNC,
+    });
+
+    ElPpScope* scope = _el_pp_push_scope(pp);
+    scope->promote_on_pop = false;
+}
+
+void _el_pp_pop_frame(ElPreproc* pp) {
     bool nested = pp->frame->parent != NULL;
+    FrameType type = pp->frame->type;
+
     pp->frame = pp->frame->parent;
-    pp->include_depth--;
+    if (type == FRAME_INCLUDE) {
+        pp->include_depth--;
+    }
+
     if (nested) {
         _el_pp_pop_scope(pp);
     } else {
-        el_pp_warn_never_mutated(pp, pp->global_scope);
+        warn_never_mutated(pp, pp->global_scope);
     }
 }
 
@@ -181,16 +211,18 @@ void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) 
 }
 
 void _el_pp_enter_if_branch(ElPreproc* pp) {
-    EL_ASSERT(pp->if_stack != NULL, "enter_if_branch with empty if stack");
-    EL_ASSERT(!pp->if_stack->has_scope, "enter_if_branch while a branch scope is already open");
+    EL_ASSERT(pp->if_stack != NULL,     "if stack should not be empty");
+    EL_ASSERT(!pp->if_stack->has_scope, "branch scope is already open");
+
     pp->if_stack->branch_taken = true;
     pp->if_stack->has_scope = true;
     _el_pp_push_scope(pp);
 }
 
 void _el_pp_leave_if_branch(ElPreproc* pp) {
-    EL_ASSERT(pp->if_stack != NULL, "leave_if_branch with empty if stack");
-    EL_ASSERT(pp->if_stack->has_scope, "leave_if_branch without an open branch scope");
+    EL_ASSERT(pp->if_stack != NULL,    "if stack should not be empty");
+    EL_ASSERT(pp->if_stack->has_scope, "no open branch scope");
+
     pp->if_stack->has_scope = false;
     _el_pp_pop_scope(pp);
 }
@@ -217,6 +249,9 @@ bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
             return false;
 
         default:
+            if (pp->skip_capture)
+                return el_tkbuf_push(&pp->capture_buf, *out_tok);
+
             return true;
         }
     }
@@ -225,9 +260,13 @@ bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
 }
 
 bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok) {
-    if (!_el_pp_read(pp, out_tok)) {
-        return false;
-    }
+    bool cap = pp->skip_capture;
+    pp->skip_capture = false;
+
+    bool ok = _el_pp_read(pp, out_tok);
+    pp->skip_capture = cap;
+
+    if (!ok) return false;
     frame_unread(pp, *out_tok);
     return true;
 }
@@ -252,7 +291,7 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
             }
             return false;
         } else if (!read_from_active_frame(pp, &input_tok)) {
-            el_pp_pop_frame(pp);
+            _el_pp_pop_frame(pp);
             continue;
         }
 
@@ -283,7 +322,14 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
 
         default:
             if (pp->skip_depth > 0) {
-                continue;
+                if (pp->skip_capture) {
+                    if (!el_tkbuf_push(&pp->capture_buf, input_tok)) {
+                        return false;
+                    }
+                    continue;
+                } else {
+                    continue;
+                }
             }
             *out_tok = input_tok;
             return true;

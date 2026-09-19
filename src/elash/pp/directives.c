@@ -15,6 +15,15 @@ static void report_unexpected_eof(ElPreproc* pp, ElToken hash) {
     );
 }
 
+static bool report_func_token_dir(ElPreproc* pp, ElSourceSpan dspan, ElStringView name) {
+    return el_diag_report(
+        pp->diag, EL_DIAG_ERROR, "pp.func-emit",
+        dspan, "cannot use #${name} inside a function",
+        EL_DIAG_STRING("name", name),
+    );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
 static bool _preprocess_directive_internal(ElPreproc* pp, ElToken hash, ElToken* out_tok) {
     ElToken dir;
     if (!_el_pp_read(pp, &dir)) {
@@ -52,6 +61,14 @@ static bool _preprocess_directive_internal(ElPreproc* pp, ElToken hash, ElToken*
     if (el_sv_eql(dir.lexeme, EL_SV("end")))
         return _el_pp_handle_end(pp, dspan) && _el_pp_next_d(pp, out_tok);
 
+    if (el_sv_eql(dir.lexeme, EL_SV("func")))
+        return _el_pp_handle_func(pp, dspan) && _el_pp_next_d(pp, out_tok);
+    if (el_sv_eql(dir.lexeme, EL_SV("return"))) {
+        if (!_el_pp_handle_return(pp, dspan)) return false;
+        *out_tok = (ElToken) { .type = EL_TT_EOF };
+        return true;
+    }
+
     if (el_sv_eql(dir.lexeme, EL_SV("error")))
         return _el_pp_handle_diag(pp, EL_DIAG_ERROR, dspan) && _el_pp_next_d(pp, out_tok);
     if (el_sv_eql(dir.lexeme, EL_SV("note")))
@@ -71,14 +88,39 @@ bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok) 
 }
 
 bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
+    bool capturing = pp->skip_capture;
+
+    // it may be an #end directive which we definitely
+    // don't want to capture to the buffer
+    pp->skip_capture = false;
+
     ElToken dir;
     if (!_el_pp_read(pp, &dir)) {
+        pp->skip_capture = capturing;
         report_unexpected_eof(pp, hash);
         return false;
     }
 
     ElSourceSpan dspan =
         el_srcspan_merge(hash.span, dir.span);
+
+    if (capturing && el_sv_eql(dir.lexeme, EL_SV("end")) && pp->skip_depth == 1) {
+        pp->skip_capture = true;
+        return _el_pp_finish_pending_func(pp);
+    }
+
+    if (capturing) {
+        if (!el_tkbuf_push(&pp->capture_buf, hash)) return false;
+        if (!el_tkbuf_push(&pp->capture_buf, dir))  return false;
+        pp->skip_capture = true;
+    }
+
+    if (capturing || pp->call_stack != NULL) {
+        if (el_sv_eql(dir.lexeme, EL_SV("emit")) || el_sv_eql(dir.lexeme, EL_SV("include"))) {
+            report_func_token_dir(pp, dspan, dir.lexeme);
+            //return false;
+        }
+    }
 
     if (el_sv_eql(dir.lexeme, EL_SV("include"))) return _el_pp_skip_include(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("emit")))    return _el_pp_skip_emit(pp);
@@ -98,6 +140,9 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
     if (el_sv_eql(dir.lexeme, EL_SV("else")))  return _el_pp_skip_else(pp, dspan);
     if (el_sv_eql(dir.lexeme, EL_SV("elif")))  return _el_pp_skip_elif(pp, dspan);
     if (el_sv_eql(dir.lexeme, EL_SV("end")))   return _el_pp_skip_end(pp);
+
+    if (el_sv_eql(dir.lexeme, EL_SV("func")))   return _el_pp_skip_func(pp);
+    if (el_sv_eql(dir.lexeme, EL_SV("return"))) return _el_pp_skip_return(pp);
 
     // theoretically we could just skip unknown directives,
     // but maybe it's better to validate them for catching

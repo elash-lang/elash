@@ -1,0 +1,8 @@
+// directives that produce tokens not allowed inside functions
+#func invalid()
+    #emit Foo bar = baz
+    #include utils:test
+#end
+
+// even if it's never called
+//#var foo = invalid()

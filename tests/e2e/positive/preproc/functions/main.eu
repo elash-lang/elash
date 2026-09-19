@@ -1,0 +1,70 @@
+// simple no arguments call
+#func getMagicNumber()
+    #return 42
+#end
+
+#var foo = getMagicNumber()
+#if foo != 42
+    #error "zero-argument function call failed"
+#end
+
+// early return test
+#func testReturn()
+    #return 49
+    #var foo = bar
+    #return invalid
+#end
+
+#if testReturn() != 49
+    #error "early return test failed"
+#end
+
+// basic argument passing
+#func calculate(x)
+    #return x * (x + 2)
+#end
+
+#set foo = calculate(8)
+#if foo != 80
+    #error "call with arguments failed"
+#end
+
+// recursive calls
+#func factorial(n)
+    #if n <= 1
+        #return 1
+    #else
+        #return n * factorial(n - 1)
+    #end
+#end
+
+#if factorial(5) != 120
+    #error "recursive function call failed"
+#end
+
+// local variables
+#func localVars(x)
+    #var y = x
+    // should produce a warning
+    #var internal z = y
+
+    #set y = y + 2
+    #set z = z * y
+
+    #return y + z * x
+#end
+
+#if localVars(3) != 50
+    #error "local variables test failed"
+#end
+
+// final test
+#var global = 99
+#func compute()
+    #set global = 42
+    #return 21
+#end
+
+int main() {
+    return #emit #{compute()} * 2 - #{global};
+}

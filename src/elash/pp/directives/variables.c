@@ -65,6 +65,19 @@ static bool handle_var_slash_const(ElPreproc* pp, ElSourceSpan dspan, bool mut) 
     }
 
     if (tok.type == EL_TT_KW_INTERNAL) {
+        if (!pp->current_scope->promote_on_pop) {
+            el_diag_report(
+                pp->diag, EL_DIAG_WARN, "pp.redundant-internal",
+                tok.span, "'internal' keyword has no effect within a function scope",
+            );
+            el_diag_help(
+                pp->diag, "variables defined inside a function never leak to global scope",
+            );
+            el_diag_help(
+                pp->diag, "remove the redundant 'internal' keyword",
+            );
+        }
+
         is_public = false;
         if (!_el_pp_read(pp, &tok)) {
             return el_diag_report(

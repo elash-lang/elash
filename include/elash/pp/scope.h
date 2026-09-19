@@ -21,6 +21,11 @@ struct ElPpScope {
     usize num_entries;
     usize num_tombstones;
     ElPpScope* parent;
+
+    // if true, public symbols are promoted to the parent scope
+    // it's set to false in functions scopes because we don't want
+    // function local variables to promote right into the global scope
+    bool promote_on_pop;
 };
 
 /// @brief Allocates and initializes a new ElPpScope hash map.
