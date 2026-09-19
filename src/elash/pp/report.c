@@ -25,27 +25,27 @@ void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span) {
     return NULL;
 }
 
-void* _el_pp_report_float_bw(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op) {
+void* _el_pp_report_float_bw(ElPreproc* pp, ElSourceSpan span, ElBinOp op) {
     return el_diag_report(
         pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
         "operator '${op}' is not defined for floats",
-        EL_DIAG_STRING("op", el_sema_bin_op_to_string(op))
+        EL_DIAG_STRING("op", el_bin_op_to_string(op))
     );
 }
 
-void* _el_pp_report_non_bool_logical(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op) {
+void* _el_pp_report_non_bool_logical(ElPreproc* pp, ElSourceSpan span, ElBinOp op) {
     return el_diag_report(
           pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
           "logical operator '${op}' requires boolean operands",
-          EL_DIAG_STRING("op", el_sema_bin_op_to_string(op)),
+          EL_DIAG_STRING("op", el_bin_op_to_string(op)),
     );
 }
 
-void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op) {
+void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElUnaryOp op) {
     return el_diag_report(
           pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
           "logical operator '${op}' requires a boolean operand",
-          EL_DIAG_STRING("op", el_sema_unary_op_to_string(op)),
+          EL_DIAG_STRING("op", el_unary_op_to_string(op)),
     );
 }
 

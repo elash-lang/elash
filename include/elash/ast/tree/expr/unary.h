@@ -8,7 +8,7 @@
 
 typedef struct ElAstExpr ElAstExpr;
 
-typedef ElSemaUnaryOp ElAstUnaryOp;
+typedef ElUnaryOp ElAstUnaryOp;
 
 typedef struct ElAstUnaryExpr {
     ElAstUnaryOp op;

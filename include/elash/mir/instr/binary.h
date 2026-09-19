@@ -8,9 +8,9 @@
 typedef struct ElMirInstr ElMirInstr;
 
 typedef struct ElMirBinInstr {
-    ElSemaBinOp op;
+    ElBinOp op;
     ElMirValue* lhs;
     ElMirValue* rhs;
 } ElMirBinInstr;
 
-ElMirInstr* el_mir_new_bin_instr(ElDynArena* arena, ElMirValue* result, ElSemaBinOp op, ElMirValue* lhs, ElMirValue* rhs);
+ElMirInstr* el_mir_new_bin_instr(ElDynArena* arena, ElMirValue* result, ElBinOp op, ElMirValue* lhs, ElMirValue* rhs);

@@ -8,7 +8,7 @@
 
 typedef struct ElAstExpr ElAstExpr;
 
-typedef ElSemaBinOp ElAstBinOp;
+typedef ElBinOp ElAstBinOp;
 
 typedef struct ElAstBinExpr {
     ElAstExpr* left;

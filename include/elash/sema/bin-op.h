@@ -2,7 +2,7 @@
 
 #include <elash/defs/sv.h>
 
-typedef enum ElSemaBinOp {
+typedef enum ElBinOp {
     EL_SEMA_BIN_OP_ADD, // +
     EL_SEMA_BIN_OP_SUB, // -
     EL_SEMA_BIN_OP_MUL, // *
@@ -31,26 +31,26 @@ typedef enum ElSemaBinOp {
     EL_SEMA_BIN_OP_SHR,    // >>
 
     EL_SEMA_BIN_OP_INDEX,  // []
-} ElSemaBinOp;
+} ElBinOp;
 
-ElStringView el_sema_bin_op_to_string(ElSemaBinOp type);
+ElStringView el_bin_op_to_string(ElBinOp type);
 
-static inline bool el_sema_bin_op_is_optional(ElSemaBinOp op) {
+static inline bool el_bin_op_is_optional(ElBinOp op) {
     return op == EL_SEMA_BIN_OP_OPT_FB || op == EL_SEMA_BIN_OP_OPT_MAP;
 }
-static inline bool el_sema_bin_op_is_arithmetic(ElSemaBinOp op) {
+static inline bool el_bin_op_is_arithmetic(ElBinOp op) {
     return op >= EL_SEMA_BIN_OP_ADD && op <= EL_SEMA_BIN_OP_MOD;
 }
-static inline bool el_sema_bin_op_is_comparison(ElSemaBinOp op) {
+static inline bool el_bin_op_is_comparison(ElBinOp op) {
     return op >= EL_SEMA_BIN_OP_EQ && op <= EL_SEMA_BIN_OP_GTE;
 }
-static inline bool el_sema_bin_op_is_equality(ElSemaBinOp op) {
+static inline bool el_bin_op_is_equality(ElBinOp op) {
     return op == EL_SEMA_BIN_OP_EQ || op == EL_SEMA_BIN_OP_NEQ;
 }
-static inline bool el_sema_bin_op_is_logical(ElSemaBinOp op) {
+static inline bool el_bin_op_is_logical(ElBinOp op) {
     return op == EL_SEMA_BIN_OP_AND || op == EL_SEMA_BIN_OP_OR || op == EL_SEMA_BIN_OP_IMP;
 }
-static inline bool el_sema_bin_op_is_bitwise(ElSemaBinOp op) {
+static inline bool el_bin_op_is_bitwise(ElBinOp op) {
     return op >= EL_SEMA_BIN_OP_BW_AND && op <= EL_SEMA_BIN_OP_SHR;
 }
 

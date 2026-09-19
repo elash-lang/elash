@@ -46,7 +46,7 @@ static void dump_diag_meta(const ElDiagMetaEntry* entry, FILE* out) {
     case EL_DIAG_META_TYPE: {
         ElStringBuf sb;
         el_strbuf_init(&sb);
-        el_sema_format_type(entry->as.type, &sb);
+        el_format_type(entry->as.type, &sb);
         el_json_write_string(out, el_strbuf_view(&sb));
         el_strbuf_destroy(&sb);
         return;

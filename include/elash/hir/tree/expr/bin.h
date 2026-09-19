@@ -9,8 +9,8 @@ typedef struct ElHirType ElHirType;
 
 typedef struct ElHirBinExpr {
     ElHirExpr* left;
-    ElSemaBinOp op;
+    ElBinOp op;
     ElHirExpr* right;
 } ElHirBinExpr;
 
-ElHirExpr* el_hir_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElSemaBinOp op, ElHirExpr* left, ElHirExpr* right);
+ElHirExpr* el_hir_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElBinOp op, ElHirExpr* left, ElHirExpr* right);

@@ -3,7 +3,7 @@
 #include <elash/util/assert.h>
 #include <elash/sema/bin-op.h>
 
-static ElTokenType cassign_token(ElSemaBinOp op) {
+static ElTokenType cassign_token(ElBinOp op) {
     switch (op) {
     case EL_SEMA_BIN_OP_ADD:    return EL_TT_ADD_ASSIGN;
     case EL_SEMA_BIN_OP_SUB:    return EL_TT_SUB_ASSIGN;

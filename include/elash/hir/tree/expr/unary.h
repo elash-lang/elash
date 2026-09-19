@@ -8,8 +8,8 @@ typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirType ElHirType;
 
 typedef struct ElHirUnaryExpr {
-    ElSemaUnaryOp op;
+    ElUnaryOp op;
     ElHirExpr* operand;
 } ElHirUnaryExpr;
 
-ElHirExpr* el_hir_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElSemaUnaryOp op, ElHirExpr* operand);
+ElHirExpr* el_hir_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElUnaryOp op, ElHirExpr* operand);

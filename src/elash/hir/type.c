@@ -11,11 +11,11 @@ static void strbuf_wrapper(const char* pointer_to_const_char, void* pointer_to_v
     el_strbuf_append_cstr((ElStringBuf*) pointer_to_void, pointer_to_const_char);
 }
 
-void el_sema_dump_type(const ElHirType* type, FILE* out) {
-    el_sema_format_type_internal(type, stdio_wrapper, out);
+void el_hir_dump_type(const ElHirType* type, FILE* out) {
+    el_format_type_internal(type, stdio_wrapper, out);
 }
-void el_sema_format_type(const ElHirType* type, ElStringBuf* sb) {
-    el_sema_format_type_internal(type, strbuf_wrapper, sb);
+void el_format_type(const ElHirType* type, ElStringBuf* sb) {
+    el_format_type_internal(type, strbuf_wrapper, sb);
 }
 
 static inline void writeint(usize tuff, void (*write)(const char*, void*), void* ctx) {
@@ -24,7 +24,7 @@ static inline void writeint(usize tuff, void (*write)(const char*, void*), void*
     write(tuff_buff, ctx);
 }
 
-void el_sema_format_type_internal(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
+void el_format_type_internal(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
     switch (type->kind) {
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
@@ -53,11 +53,11 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
     case EL_HIR_TYPE_REF:
-        el_sema_format_type_internal(type->as.ref.base, write, ctx);
+        el_format_type_internal(type->as.ref.base, write, ctx);
         write("&", ctx);
         return;
     case EL_HIR_TYPE_OPT:
-        el_sema_format_type_internal(type->as.opt.base, write, ctx);
+        el_format_type_internal(type->as.opt.base, write, ctx);
         write("?", ctx);
         return;
     case EL_HIR_TYPE_DISTINCT: {
@@ -70,24 +70,24 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         return;
     }
     case EL_HIR_TYPE_ARRAY:
-        el_sema_format_type_internal(type->as.array.base, write, ctx);
+        el_format_type_internal(type->as.array.base, write, ctx);
         write("[", ctx);
         writeint(type->as.array.size, write, ctx);
         write("]", ctx);
         return;
     case EL_HIR_TYPE_SLICE:
-        el_sema_format_type_internal(type->as.slice.base, write, ctx);
+        el_format_type_internal(type->as.slice.base, write, ctx);
         write("[]", ctx);
         return;
     case EL_HIR_TYPE_RWSLICE:
-        el_sema_format_type_internal(type->as.rwslice.base, write, ctx);
+        el_format_type_internal(type->as.rwslice.base, write, ctx);
         write("[&]", ctx);
         return;
     case EL_HIR_TYPE_FUNC:
-        el_sema_format_type_internal(type->as.func.ret_type, write, ctx);
+        el_format_type_internal(type->as.func.ret_type, write, ctx);
         write("(", ctx);
         for (usize i = 0; i < type->as.func.param_count; i++) {
-            el_sema_format_type_internal(type->as.func.params[i], write, ctx);
+            el_format_type_internal(type->as.func.params[i], write, ctx);
             if (i + 1 < type->as.func.param_count) write(", ", ctx);
         }
         write(")", ctx);
@@ -103,7 +103,7 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
                 write(buf, ctx);
             }
             write(": ", ctx);
-            el_sema_format_type_internal(type->as.struct_.fields[i].type, write, ctx);
+            el_format_type_internal(type->as.struct_.fields[i].type, write, ctx);
             if (i + 1 < type->as.struct_.count) write(", ", ctx);
         }
         write("}", ctx);
@@ -111,7 +111,7 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
     case EL_HIR_TYPE_TUPLE:
         write("(", ctx);
         for (usize i = 0; i < type->as.tuple.count; i++) {
-            el_sema_format_type_internal(type->as.tuple.elements[i], write, ctx);
+            el_format_type_internal(type->as.tuple.elements[i], write, ctx);
             if (i + 1 < type->as.tuple.count) write(", ", ctx);
         }
         write(")", ctx);

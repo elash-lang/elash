@@ -10,12 +10,12 @@ typedef struct ElAstInit ElAstInit;
 typedef struct ElAstStmt ElAstStmt;
 
 typedef struct ElAstCompoundAssignStmt {
-    ElSemaBinOp op;
+    ElBinOp op;
     ElAstExpr* target;
     ElAstInit* value;
 } ElAstCompoundAssignStmt;
 
 ElAstStmt* el_ast_new_compound_assign_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElSemaBinOp op, ElAstExpr* target, ElAstInit* value
+    ElBinOp op, ElAstExpr* target, ElAstInit* value
 );

@@ -36,7 +36,7 @@ bool _el_pp_to_num(ElPpValue* val, ElPpNum* out) {
 }
 
 ElPpValue* _el_pp_apply_numeric_bin(
-    ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op, ElPpNum lhs, ElPpNum rhs
+    ElPreproc* pp, ElSourceSpan span, ElBinOp op, ElPpNum lhs, ElPpNum rhs
 ) {
     bool fp = lhs.kind == EL_PP_NUM_FLOAT || rhs.kind == EL_PP_NUM_FLOAT;
     double lf = lhs.kind == EL_PP_NUM_FLOAT ? lhs.as.float_ : el_i128_to_double(lhs.as.int_);
@@ -93,14 +93,14 @@ ElPpValue* _el_pp_apply_numeric_bin(
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.unsupported-op", span,
             "operator '${op}' is not supported in preprocessor expressions",
-            EL_DIAG_STRING("op", el_sema_bin_op_to_string(op))
+            EL_DIAG_STRING("op", el_bin_op_to_string(op))
         );
     }
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): it's fine.
 ElPpValue* _el_pp_apply_bin_op(
-    ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op, ElPpValue* lhs, ElPpValue* rhs
+    ElPreproc* pp, ElSourceSpan span, ElBinOp op, ElPpValue* lhs, ElPpValue* rhs
 ) {
     if (op == EL_SEMA_BIN_OP_ADD) {
         if (lhs->type == EL_PP_TYPE_STR || rhs->type == EL_PP_TYPE_STR) {
@@ -202,7 +202,7 @@ ElPpValue* _el_pp_apply_bin_op(
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
             "invalid operands to '${op}': ${left} and ${right}",
-            EL_DIAG_STRING("op", el_sema_bin_op_to_string(op)),
+            EL_DIAG_STRING("op", el_bin_op_to_string(op)),
             EL_DIAG_STRING("left", _el_pp_type_name(lhs->type)),
             EL_DIAG_STRING("right", _el_pp_type_name(rhs->type))
         );
@@ -211,7 +211,7 @@ ElPpValue* _el_pp_apply_bin_op(
     return _el_pp_apply_numeric_bin(pp, span, op, lnum, rnum);
 }
 
-ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op, ElPpValue* operand) {
+ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElUnaryOp op, ElPpValue* operand) {
     if (op == EL_SEMA_UNARY_OP_NOT) {
         if (operand->type != EL_PP_TYPE_BOOL)
             return _el_pp_report_non_bool_logical_unary(pp, span, op);
@@ -223,7 +223,7 @@ ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
             "invalid operand to '${op}': ${type}",
-            EL_DIAG_STRING("op", el_sema_unary_op_to_string(op)),
+            EL_DIAG_STRING("op", el_unary_op_to_string(op)),
             EL_DIAG_STRING("type", _el_pp_type_name(operand->type))
         );
     }
@@ -238,7 +238,7 @@ ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp
             return el_diag_report(
                 pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
                 "operator '${op}' is not defined for floating-point operands",
-                EL_DIAG_STRING("op", el_sema_unary_op_to_string(op))
+                EL_DIAG_STRING("op", el_unary_op_to_string(op))
             );
         }
     }
@@ -260,7 +260,7 @@ ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.invalid-op", span,
             "unsupported unary operator '${op}' in preprocessor expressions",
-            EL_DIAG_STRING("op", el_sema_unary_op_to_string(op))
+            EL_DIAG_STRING("op", el_unary_op_to_string(op))
         );
     }
 }

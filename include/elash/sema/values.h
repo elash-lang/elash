@@ -3,7 +3,7 @@
 
 #include <elash/hir/tree/expr.h>
 
-static inline bool el_sema_is_lvalue(ElHirExpr* operand) {
+static inline bool el_is_lvalue(ElHirExpr* operand) {
     return 0
         || operand->kind == EL_HIR_EXPR_SYMBOL
         || operand->kind == EL_HIR_EXPR_MEMBER

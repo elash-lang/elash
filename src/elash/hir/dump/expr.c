@@ -46,7 +46,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
 
     switch (node->kind) {
     case EL_HIR_EXPR_BINARY: {
-        ElStringView op = el_sema_bin_op_to_string(node->as.binary.op);
+        ElStringView op = el_bin_op_to_string(node->as.binary.op);
         el_hir_dump_expr(node->as.binary.left, 0, out);
         fprintf(out, " "EL_SV_FMT" ", EL_SV_FARG(op));
         el_hir_dump_expr(node->as.binary.right, 0, out);
@@ -54,10 +54,10 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
     }
 
     case EL_HIR_EXPR_UNARY: {
-        ElStringView op = el_sema_unary_op_to_string(node->as.unary.op);
-        if (!el_sema_unary_op_is_post(node->as.unary.op)) el_sv_print(op, out);
+        ElStringView op = el_unary_op_to_string(node->as.unary.op);
+        if (!el_unary_op_is_post(node->as.unary.op)) el_sv_print(op, out);
         el_hir_dump_expr(node->as.unary.operand, 0, out);
-        if (el_sema_unary_op_is_post(node->as.unary.op))  el_sv_print(op, out);
+        if (el_unary_op_is_post(node->as.unary.op))  el_sv_print(op, out);
         break;
     }
 
@@ -70,7 +70,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         break;
 
     case EL_HIR_EXPR_SYMBOL:
-        el_sema_dump_symbol(node->as.symbol, out);
+        el_dump_symbol(node->as.symbol, out);
         break;
 
     case EL_HIR_EXPR_CALL: {
@@ -150,7 +150,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
 
     fputs(" : ", out);
     if (node->type != NULL) {
-        el_sema_dump_type(node->type, out);
+        el_hir_dump_type(node->type, out);
     } else {
         fputs("untyped", out);
     }

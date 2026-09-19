@@ -2,7 +2,7 @@
 
 ElHirStmt* el_hir_new_compound_assign_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElSemaBinOp op, ElHirExpr* target, ElHirExpr* value
+    ElBinOp op, ElHirExpr* target, ElHirExpr* value
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmt, {
         .kind = EL_HIR_STMT_COMPOUND_ASSIGN,

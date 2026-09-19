@@ -8,8 +8,8 @@
 typedef struct ElMirInstr ElMirInstr;
 
 typedef struct ElMirUnaryInstr {
-    ElSemaUnaryOp op;
+    ElUnaryOp op;
     ElMirValue* operand;
 } ElMirUnaryInstr;
 
-ElMirInstr* el_mir_new_unary_instr(ElDynArena* arena, ElMirValue* result, ElSemaUnaryOp op, ElMirValue* operand);
+ElMirInstr* el_mir_new_unary_instr(ElDynArena* arena, ElMirValue* result, ElUnaryOp op, ElMirValue* operand);

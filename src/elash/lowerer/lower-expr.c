@@ -91,7 +91,7 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHir
     EL_UNREACHABLE_ENUM_VAL(ElHirSymbolKind, sym->kind);
 }
 
-static bool _el_lowerer_is_incdec(ElSemaUnaryOp op) {
+static bool _el_lowerer_is_incdec(ElUnaryOp op) {
     return op >= EL_SEMA_UNARY_OP_PRE_INC && op <= EL_SEMA_UNARY_OP_POST_DEC;
 }
 
@@ -112,7 +112,7 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
     }
     ElMirValue* one = el_mir_new_const(lw->arena, val_type, one_lit);
 
-    ElSemaBinOp bin_op = (expr->op == EL_SEMA_UNARY_OP_PRE_INC || expr->op == EL_SEMA_UNARY_OP_POST_INC)
+    ElBinOp bin_op = (expr->op == EL_SEMA_UNARY_OP_PRE_INC || expr->op == EL_SEMA_UNARY_OP_POST_INC)
         ? EL_SEMA_BIN_OP_ADD
         : EL_SEMA_BIN_OP_SUB;
 
@@ -120,7 +120,7 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, updated, bin_op, current, one));
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, updated));
 
-    return el_sema_unary_op_is_post(expr->op) ? current : updated;
+    return el_unary_op_is_post(expr->op) ? current : updated;
 }
 
 ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
@@ -132,12 +132,12 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
          return reg;
     }
 
-    if (el_sema_bin_op_is_optional(bin->op))
+    if (el_bin_op_is_optional(bin->op))
         return bin->op == EL_SEMA_BIN_OP_OPT_FB
             ? _el_lowerer_lower_opt_fb(lw, hir, bin)
             : _el_lowerer_lower_opt_map(lw, hir, bin);
 
-    if (el_sema_bin_op_is_comparison(bin->op)) {
+    if (el_bin_op_is_comparison(bin->op)) {
         ElHirType* left_ty = bin->left->type;
         ElHirType* right_ty = bin->right->type;
         if (left_ty != NULL && right_ty != NULL && el_hir_type_eql(left_ty, right_ty)

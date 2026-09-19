@@ -229,7 +229,7 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
     X(FLOAT, double, float_, TYPED_FLOAT_RET, UNTYPED_FLOAT_RET)
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy is so stupid that it don't understand macros ig
-static ElHirExpr* apply_binary_operator(ElBinder* binder, ElHirExpr* lhs, ElSemaBinOp op, ElHirExpr* rhs) {
+static ElHirExpr* apply_binary_operator(ElBinder* binder, ElHirExpr* lhs, ElBinOp op, ElHirExpr* rhs) {
     switch (lhs->type->as.prim.kind) {
         EL_FOR_EACH_INTEGRAL_TYPE(FOLD_BINARY);
         EL_FOR_EACH_FLOAT_TYPE(FOLD_BINARY_FLOAT);
@@ -246,7 +246,7 @@ static ElHirExpr* apply_binary_operator(ElBinder* binder, ElHirExpr* lhs, ElSema
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): same reason as before
-static ElHirExpr* apply_unary_operator(ElBinder* binder, ElSemaUnaryOp op, ElHirExpr* operand) {
+static ElHirExpr* apply_unary_operator(ElBinder* binder, ElUnaryOp op, ElHirExpr* operand) {
     switch (operand->type->as.prim.kind) {
     EL_FOR_EACH_INTEGRAL_TYPE(FOLD_UNARY);
     EL_FOR_EACH_FLOAT_TYPE(FOLD_UNARY_FLOAT);
@@ -260,7 +260,7 @@ static ElHirExpr* apply_unary_operator(ElBinder* binder, ElSemaUnaryOp op, ElHir
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): also same reason as before
-static ElHirExpr* apply_binary_operator_untyped(ElBinder* binder, ElHirExpr* lhs, ElSemaBinOp op, ElHirExpr* rhs) {
+static ElHirExpr* apply_binary_operator_untyped(ElBinder* binder, ElHirExpr* lhs, ElBinOp op, ElHirExpr* rhs) {
     ElHirLiteralKind lkind = lhs->as.literal.kind;
     ElHirLiteralKind rkind = rhs->as.literal.kind;
 
@@ -279,7 +279,7 @@ static ElHirExpr* apply_binary_operator_untyped(ElBinder* binder, ElHirExpr* lhs
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): also also same reason as before
-static ElHirExpr* apply_unary_operator_untyped(ElBinder* binder, ElSemaUnaryOp op, ElHirExpr* operand) {
+static ElHirExpr* apply_unary_operator_untyped(ElBinder* binder, ElUnaryOp op, ElHirExpr* operand) {
     ElHirLiteralKind kind = operand->as.literal.kind;
     EL_FOR_EACH_INTEGRAL_TYPE(FOLD_UNARY_UNTYPED);
     EL_FOR_EACH_FLOAT_TYPE(FOLD_UNARY_UNTYPED_FLOAT);

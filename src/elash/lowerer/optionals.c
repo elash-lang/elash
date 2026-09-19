@@ -108,7 +108,7 @@ ElMirValue* _el_lowerer_get_opt_lvalue(ElLowerer* lw, ElHirExpr* operand) {
         return el_lowerer_lower_expr(lw, operand);
     }
 
-    if (el_sema_is_lvalue(operand)) {
+    if (el_is_lvalue(operand)) {
         ElMirValue* opt_ptr = el_lowerer_get_lvalue(lw, operand);
         return _el_lowerer_get_tuple_field_ptr(lw, opt_ptr, OPT_FIELD_VALUE);
     }

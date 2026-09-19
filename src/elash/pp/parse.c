@@ -267,7 +267,7 @@ static ElPpValue* parse_unary(ElPreproc* pp) {
         return parse_postfix(pp);
     }
 
-    ElSemaUnaryOp op;
+    ElUnaryOp op;
     switch (tok.type) {
     case EL_TT_PLUS:        op = EL_SEMA_UNARY_OP_POS;    break;
     case EL_TT_MINUS:       op = EL_SEMA_UNARY_OP_NEG;    break;
@@ -287,7 +287,7 @@ static ElPpValue* parse_multiplicative(ElPreproc* pp) {
     if (expr == NULL) return NULL;
 
     while (true) {
-        ElSemaBinOp op;
+        ElBinOp op;
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
@@ -311,7 +311,7 @@ static ElPpValue* parse_additive(ElPreproc* pp) {
     if (expr == NULL) return NULL;
 
     while (true) {
-        ElSemaBinOp op;
+        ElBinOp op;
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
@@ -334,7 +334,7 @@ static ElPpValue* parse_shift(ElPreproc* pp) {
     if (expr == NULL) return NULL;
 
     while (true) {
-        ElSemaBinOp op;
+        ElBinOp op;
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
@@ -357,7 +357,7 @@ static ElPpValue* parse_relational(ElPreproc* pp) {
     if (expr == NULL) return NULL;
 
     while (true) {
-        ElSemaBinOp op;
+        ElBinOp op;
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
@@ -382,7 +382,7 @@ static ElPpValue* parse_equality(ElPreproc* pp) {
     if (expr == NULL) return NULL;
 
     while (true) {
-        ElSemaBinOp op;
+        ElBinOp op;
         ElToken tok;
         if (!peek(pp, &tok)) break;
 

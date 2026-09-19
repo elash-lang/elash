@@ -197,7 +197,7 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
     return NULL;
 }
 
-LLVMIntPredicate elc_llvm_get_predicate_of(ElSemaBinOp op, bool is_signed) {
+LLVMIntPredicate elc_llvm_get_predicate_of(ElBinOp op, bool is_signed) {
     switch (op) {
     case EL_SEMA_BIN_OP_EQ:  return LLVMIntEQ;
     case EL_SEMA_BIN_OP_NEQ: return LLVMIntNE;
@@ -216,7 +216,7 @@ bool elc_llvm_is_type_signed(const ElMirType* type) {
     return false;
 }
 
-LLVMRealPredicate elc_llvm_get_fp_predicate_of(ElSemaBinOp op) {
+LLVMRealPredicate elc_llvm_get_fp_predicate_of(ElBinOp op) {
     switch (op) {
     case EL_SEMA_BIN_OP_EQ:  return LLVMRealOEQ;
     case EL_SEMA_BIN_OP_NEQ: return LLVMRealONE;
@@ -259,7 +259,7 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
         res = (is_signed ? LLVMBuildAShr : LLVMBuildLShr)(ctx->builder, lhs, rhs, ""); break;
 
     default:
-        if (el_sema_bin_op_is_comparison(bin->op)) {
+        if (el_bin_op_is_comparison(bin->op)) {
             if (is_float) {
                 LLVMRealPredicate pred = elc_llvm_get_fp_predicate_of(bin->op);
                 res = LLVMBuildFCmp(ctx->builder, pred, lhs, rhs, "");
@@ -269,7 +269,7 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
             }
             break;
         }
-        EL_UNREACHABLE_ENUM_VAL(ElSemaBinOp, bin->op);
+        EL_UNREACHABLE_ENUM_VAL(ElBinOp, bin->op);
     }
 
     ASSIGN_REG(func, instr->result, res, "binary");
@@ -307,7 +307,7 @@ void elc_llvm_compile_unary_instr(Context* ctx, FunctionContext* func, ElMirInst
         break;
 
     default:
-        EL_UNREACHABLE_ENUM_VAL(ElSemaUnaryOp, unary->op);
+        EL_UNREACHABLE_ENUM_VAL(ElUnaryOp, unary->op);
     }
 
     ASSIGN_REG(func, instr->result, res, "unary");

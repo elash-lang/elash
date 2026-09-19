@@ -92,7 +92,7 @@ static int expr_prec(ElAstExpr* expr) {
     case EL_AST_EXPR_BINARY:
         return bin_op_prec(expr->as.binary.op);
     case EL_AST_EXPR_UNARY:
-        if (el_sema_unary_op_is_post(expr->as.unary.op)
+        if (el_unary_op_is_post(expr->as.unary.op)
             || expr->as.unary.op == EL_SEMA_UNARY_OP_DEREF) {
             return PREC_POSTFIX;
         }
@@ -192,7 +192,7 @@ static bool unparse_unary(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstExpr* operand = expr->as.unary.operand;
     int prec = expr_prec(expr);
 
-    if (el_sema_unary_op_is_post(op) || op == EL_SEMA_UNARY_OP_DEREF) {
+    if (el_unary_op_is_post(op) || op == EL_SEMA_UNARY_OP_DEREF) {
         if (!unparse_child(unpar, operand, prec, false)) return false;
 
         switch (op) {

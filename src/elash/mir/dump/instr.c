@@ -16,7 +16,7 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
 
     switch (instr->kind) {
     case EL_MIR_INSTR_BIN: {
-        ElStringView op = el_sema_bin_op_to_string(instr->as.bin.op);
+        ElStringView op = el_bin_op_to_string(instr->as.bin.op);
         fprintf(out, ""EL_SV_FMT" ", EL_SV_FARG(op));
         el_mir_dump_value(instr->as.bin.lhs, out);
         fputs(", ", out);
@@ -24,7 +24,7 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
         break;
     }
     case EL_MIR_INSTR_UNARY: {
-        ElStringView op = el_sema_unary_op_to_string(instr->as.unary.op);
+        ElStringView op = el_unary_op_to_string(instr->as.unary.op);
         fprintf(out, ""EL_SV_FMT" ", EL_SV_FARG(op));
         el_mir_dump_value(instr->as.unary.operand, out);
         break;

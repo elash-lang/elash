@@ -13,18 +13,18 @@ static void el_hir_dump_func_sig(ElHirSymbol* symbol, usize indent, FILE* out, c
 
     el_hir_dump_print_indent(indent, out);
     fprintf(out, "%s ", prefix);
-    el_sema_dump_type(sym->type->as.func.ret_type, out);
+    el_hir_dump_type(sym->type->as.func.ret_type, out);
     fputc(' ', out);
-    el_sema_dump_symbol(symbol, out);
+    el_dump_symbol(symbol, out);
     fputc('(', out);
 
     for (usize i = 0; i < sym->param_count; ++i) {
         ElHirSymbol* param = sym->params[i];
         if (i > 0) fputs(", ", out);
 
-        el_sema_dump_type(param->as.var.type, out);
+        el_hir_dump_type(param->as.var.type, out);
         fputc(' ', out);
-        el_sema_dump_symbol(param, out);
+        el_dump_symbol(param, out);
     }
     fputs(")", out);
 }
@@ -38,7 +38,7 @@ void el_hir_dump_decl(ElHirDecl* node, usize indent, FILE* out) {
         ElHirVarDef* var_def = &node->as.var_def;
         el_hir_dump_print_indent(indent, out);
         fputs("define ", out);
-        el_sema_dump_type(var_def->var->as.var.type, out);
+        el_hir_dump_type(var_def->var->as.var.type, out);
         fputc(' ', out);
         el_sv_print(var_def->var->name, out);
         if (var_def->init != NULL) {
@@ -52,7 +52,7 @@ void el_hir_dump_decl(ElHirDecl* node, usize indent, FILE* out) {
         ElHirVarDecl* var_decl = &node->as.var_decl;
         el_hir_dump_print_indent(indent, out);
         fputs("declare ", out);
-        el_sema_dump_type(var_decl->var->as.var.type, out);
+        el_hir_dump_type(var_decl->var->as.var.type, out);
         fputc(' ', out);
         el_sv_print(var_decl->var->name, out);
         fputs(";\n", out);

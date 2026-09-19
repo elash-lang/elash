@@ -94,13 +94,13 @@ bool _el_pp_to_num(ElPpValue* val, ElPpNum* out);
 bool _el_pp_to_int(ElPpValue* val, int64_t* out);
 
 ElPpValue* _el_pp_apply_numeric_bin(
-    ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op, ElPpNum lhs, ElPpNum rhs
+    ElPreproc* pp, ElSourceSpan span, ElBinOp op, ElPpNum lhs, ElPpNum rhs
 );
 ElPpValue* _el_pp_apply_bin_op(
-    ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op, ElPpValue* lhs, ElPpValue* rhs
+    ElPreproc* pp, ElSourceSpan span, ElBinOp op, ElPpValue* lhs, ElPpValue* rhs
 );
 ElPpValue* _el_pp_apply_unary_op(
-    ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op, ElPpValue* operand
+    ElPreproc* pp, ElSourceSpan span, ElUnaryOp op, ElPpValue* operand
 );
 
 ElPpValue* _el_pp_eval(ElPreproc* pp);
@@ -123,6 +123,6 @@ bool _el_pp_expect(ElPreproc* pp, ElTokenType type);
 void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_incdec(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_unterm_quote(ElPreproc* pp, ElSourceSpan span);
-void* _el_pp_report_float_bw(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op);
-void* _el_pp_report_non_bool_logical(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op);
-void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op);
+void* _el_pp_report_float_bw(ElPreproc* pp, ElSourceSpan span, ElBinOp op);
+void* _el_pp_report_non_bool_logical(ElPreproc* pp, ElSourceSpan span, ElBinOp op);
+void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElUnaryOp op);

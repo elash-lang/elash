@@ -280,7 +280,7 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
         ElHirExpr* right = _el_binder_implicit_cast(binder, bin->right->span, bin->right, to);
         if (left == NULL || right == NULL) return NULL;
 
-        ElHirType* result_ty = el_sema_bin_op_is_comparison(bin->op)
+        ElHirType* result_ty = el_bin_op_is_comparison(bin->op)
             ? binder->builtins->type_bool
             : to;
         ElHirExpr* out = el_hir_new_bin_expr(binder->arena, expr->span, result_ty, bin->op, left, right);
@@ -290,7 +290,7 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
         return out;
     }
     case EL_HIR_EXPR_UNARY: {
-        ElSemaUnaryOp op = expr->as.unary.op;
+        ElUnaryOp op = expr->as.unary.op;
         if (op == EL_SEMA_UNARY_OP_PRE_INC || op == EL_SEMA_UNARY_OP_PRE_DEC
             || op == EL_SEMA_UNARY_OP_POST_INC || op == EL_SEMA_UNARY_OP_POST_DEC
             || op == EL_SEMA_UNARY_OP_ADDROF || op == EL_SEMA_UNARY_OP_DEREF

@@ -86,7 +86,7 @@ void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "CompoundAssignStmt:\n");
         el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "op: " EL_SV_FMT, EL_SV_FARG(el_sema_bin_op_to_string(node->as.cassign.op)));
+        fprintf(out, "op: " EL_SV_FMT, EL_SV_FARG(el_bin_op_to_string(node->as.cassign.op)));
         el_ast_dump_print_indent(indent + 1, out);
         fputs("target:\n", out);
         el_ast_dump_expr(node->as.cassign.target, indent + 2, out);

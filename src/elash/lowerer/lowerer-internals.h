@@ -36,13 +36,13 @@ ElMirValue* _el_lowerer_lower_opt_base_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirB
 ElMirValue* _el_lowerer_lower_opt_opt_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin);
 
 ///////////////// helpers /////////////////////
-static inline ElMirValue* emit_bin(ElLowerer* lw, ElSemaBinOp op, ElMirValue* lhs, ElMirValue* rhs) {
+static inline ElMirValue* emit_bin(ElLowerer* lw, ElBinOp op, ElMirValue* lhs, ElMirValue* rhs) {
     ElMirValue* res =el_mir_new_reg(lw->arena, lw->tcache->bool_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, res, op, lhs, rhs));
     return res;
 }
 
-static inline ElMirValue* emit_unary(ElLowerer* lw, ElSemaUnaryOp op, ElMirValue* val) {
+static inline ElMirValue* emit_unary(ElLowerer* lw, ElUnaryOp op, ElMirValue* val) {
     ElMirValue* res = el_mir_new_reg(lw->arena, lw->tcache->bool_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_unary_instr(lw->arena, res, op, val));
     return res;

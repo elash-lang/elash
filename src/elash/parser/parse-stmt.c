@@ -131,7 +131,7 @@ static ElAstStmt* _el_parser_parse_while(ElParser* parser, ElToken while_tok) {
     );
 }
 
-static bool match_compound_op(ElParser* parser, ElSemaBinOp* op) {
+static bool match_compound_op(ElParser* parser, ElBinOp* op) {
     if      (el_parser_match(parser, EL_TT_ADD_ASSIGN))         { return *op = EL_SEMA_BIN_OP_ADD,    true; }
     else if (el_parser_match(parser, EL_TT_SUB_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SUB,    true; }
     else if (el_parser_match(parser, EL_TT_MUL_ASSIGN))         { return *op = EL_SEMA_BIN_OP_MUL,    true; }
@@ -164,7 +164,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
         return el_ast_new_assign_stmt(parser->aarena, el_srcspan_merge(expr->span, semi_tok.span), expr, value);
     }
 
-    ElSemaBinOp op;
+    ElBinOp op;
     bool is_compound = match_compound_op(parser, &op);
 
     if (is_compound) {

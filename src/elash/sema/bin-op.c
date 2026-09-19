@@ -3,7 +3,7 @@
 #include <elash/util/assert.h>
 #include <elash/defs/sv.h>
 
-ElStringView el_sema_bin_op_to_string(ElSemaBinOp type) {
+ElStringView el_bin_op_to_string(ElBinOp type) {
     switch (type) {
     case EL_SEMA_BIN_OP_ADD: return EL_SV("+");
     case EL_SEMA_BIN_OP_SUB: return EL_SV("-");
@@ -34,5 +34,5 @@ ElStringView el_sema_bin_op_to_string(ElSemaBinOp type) {
 
     case EL_SEMA_BIN_OP_INDEX:  return EL_SV("[]");
     }
-    EL_UNREACHABLE_ENUM_VAL(ElSemaBinOp, type);
+    EL_UNREACHABLE_ENUM_VAL(ElBinOp, type);
 }

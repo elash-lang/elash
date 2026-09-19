@@ -180,7 +180,7 @@ static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* b
             in->span, "left and right hand side types are incompatible"
         );
 
-    if (el_sema_bin_op_is_comparison(bin->op)) {
+    if (el_bin_op_is_comparison(bin->op)) {
         if ((*left)->type == NULL) type = NULL;
         else type = binder->builtins->type_bool;
     }
@@ -194,17 +194,17 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
     ElHirExpr* right = el_binder_bind_expr(binder, bin->right);
     if (left == NULL || right == NULL) return NULL;
 
-    if (el_sema_bin_op_is_optional(bin->op))
+    if (el_bin_op_is_optional(bin->op))
         return bind_optional_bin_op(binder, in, bin, left, right);
 
-    if (el_sema_bin_op_is_equality(bin->op)) {
+    if (el_bin_op_is_equality(bin->op)) {
         ElHirExpr* result = bind_optional_eql(binder, in, bin, left, right);
         if (result != NULL) return result;
     }
 
     ElHirType* type = left->type;
     if (bin->op != EL_SEMA_BIN_OP_INDEX) {
-        if (el_sema_bin_op_is_logical(bin->op)) {
+        if (el_bin_op_is_logical(bin->op)) {
             IMPLICIT_CAST_IF_NEEDED(left, bin->left->span, binder->builtins->type_bool);
             IMPLICIT_CAST_IF_NEEDED(right, bin->right->span, binder->builtins->type_bool);
             if (left == NULL || right == NULL)
@@ -277,7 +277,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                 in->span, "cannot perform address-of on an untyped literal"
             );
-        if (el_sema_unary_op_is_incdec(unary->op))
+        if (el_unary_op_is_incdec(unary->op))
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                 in->span, "cannot increment or decrement an untyped literal"
@@ -290,7 +290,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                     in->span, "address-of operator requires an lvalue"
                 );
             type = el_hir_new_ref_type(binder->arena, operand->type);
-        } else if (el_sema_unary_op_is_incdec(unary->op)) {
+        } else if (el_unary_op_is_incdec(unary->op)) {
             if (!el_hir_expr_is_lvalue(operand))
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
