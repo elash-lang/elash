@@ -6,13 +6,8 @@ static bool eval_cond(ElPreproc* pp, ElSourceSpan dspan, bool* out) {
     ElPpValue* val = _el_pp_eval(pp);
     if (val == NULL) return false;
 
-    if (val->type != EL_PP_TYPE_BOOL) {
-        return el_diag_report(
-            pp->diag, EL_DIAG_ERROR, "pp.if-type", dspan,
-            "#if condition must be a boolean, got ${type}",
-            EL_DIAG_STRING("type", _el_pp_type_name(val->type))
-        );
-    }
+    if (!_el_pp_ensure_bool(pp, val, dspan, EL_SV("if")))
+        return false;
 
     *out = val->as.bool_;
     return true;

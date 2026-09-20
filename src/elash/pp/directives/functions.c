@@ -104,11 +104,12 @@ bool _el_pp_finish_pending_func(ElPreproc* pp) {
     EL_ASSERT(pp->block_stack != NULL,                   "no active block");
     EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_FUNC, "top block is not #func");
 
-    ElToken* body = NULL;
-    usize body_len = pp->capture_buf.len;
-    if (body_len > 0) {
-        body = EL_DYNARENA_NEW_ARR(pp->iarena, ElToken, body_len);
-        memcpy(body, pp->capture_buf.data, body_len * sizeof(ElToken));
+    ElTokenArray body = {
+        .count = pp->capture_buf.len,
+    };
+    if (body.count > 0) {
+        body.data = EL_DYNARENA_NEW_ARR(pp->iarena, ElToken, body.count);
+        memcpy(body.data, pp->capture_buf.data, body.count * sizeof(ElToken));
     }
 
     ElPpFuncState* f = &pp->block_stack->as.func;
@@ -121,7 +122,6 @@ bool _el_pp_finish_pending_func(ElPreproc* pp) {
 
         .params   = f->params,
         .body     = body,
-        .body_len = body_len,
     );
 
     bool ok = el_pp_scope_assign(pp->current_scope, sym->name, sym);

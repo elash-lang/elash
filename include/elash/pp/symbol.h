@@ -1,6 +1,7 @@
 #pragma once
 #include <elash/pp/value.h>
 #include <elash/lexer/tokbuf.h>
+#include <elash/lexer/tokarr.h>
 
 typedef enum ElPpSymbolKind {
     EL_PP_SYM_VAR,
@@ -27,8 +28,7 @@ typedef struct ElPpParamList {
 
 typedef struct ElPpFuncSym {
     ElPpParamList params;
-    ElToken* body;
-    usize body_len;
+    ElTokenArray body;
 } ElPpFuncSym;
 
 typedef struct ElPpSymbol {

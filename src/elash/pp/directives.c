@@ -69,6 +69,9 @@ static bool _preprocess_directive_internal(ElPreproc* pp, ElToken hash, ElToken*
         return true;
     }
 
+    if (el_sv_eql(dir.lexeme, EL_SV("while")))
+        return _el_pp_handle_while(pp, dspan) && _el_pp_next_d(pp, out_tok);
+
     if (el_sv_eql(dir.lexeme, EL_SV("error")))
         return _el_pp_handle_diag(pp, EL_DIAG_ERROR, dspan) && _el_pp_next_d(pp, out_tok);
     if (el_sv_eql(dir.lexeme, EL_SV("note")))
@@ -115,7 +118,13 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
         pp->skip_capture = true;
     }
 
-    if (capturing || pp->call_stack != NULL) {
+    bool in_func_body =
+        pp->call_stack != NULL
+        || (capturing
+            && pp->block_stack != NULL
+            && pp->block_stack->kind == EL_PP_BLOCK_FUNC);
+
+    if (in_func_body) {
         if (el_sv_eql(dir.lexeme, EL_SV("emit")) || el_sv_eql(dir.lexeme, EL_SV("include"))) {
             report_func_token_dir(pp, dspan, dir.lexeme);
             //return false;
@@ -142,6 +151,7 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
 
     if (el_sv_eql(dir.lexeme, EL_SV("func")))   return _el_pp_skip_func(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("return"))) return _el_pp_skip_return(pp);
+    if (el_sv_eql(dir.lexeme, EL_SV("while")))  return _el_pp_skip_while(pp);
 
     if (is_end) return _el_pp_skip_end(pp);
 

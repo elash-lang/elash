@@ -145,7 +145,7 @@ void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocume
     }
 }
 
-void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream) {
+void _el_pp_push_eval_frame(ElPreproc* pp, ElTokenStream stream) {
     ElPpFrame* parent = pp->frame;
 
     pp->frame = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpFrame, {
@@ -154,6 +154,21 @@ void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream) {
         .parent = parent,
         .type   = FRAME_CALL,
     });
+
+    ElPpScope* scope = _el_pp_push_scope(pp);
+    scope->promote_on_pop = false;
+}
+
+void _el_pp_push_while_body_frame(ElPreproc* pp, ElPpFrame* frame, ElTokenStream stream) {
+    ElPpFrame* parent = pp->frame;
+
+    *frame = (ElPpFrame) {
+        .stream = stream,
+        .doc    = parent != NULL ? parent->doc : NULL,
+        .parent = parent,
+        .type   = FRAME_WHILE_BODY,
+    };
+    pp->frame = frame;
 
     ElPpScope* scope = _el_pp_push_scope(pp);
     scope->promote_on_pop = false;
@@ -231,6 +246,16 @@ void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) 
     }
 }
 
+void _el_pp_push_while_block(ElPreproc* pp, ElSourceSpan whilespan, ElTokenArray cond, bool cond_val) {
+    ElPpBlock* block = _el_pp_push_block(pp, EL_PP_BLOCK_WHILE, whilespan);
+    block->as.while_ = (ElPpWhileState) {
+        .cond = cond,
+        .body = EL_TOKARR_NULL,
+        .capturing_body = cond_val,
+        .iter_count = 0,
+    };
+}
+
 void _el_pp_push_func_block(ElPreproc* pp, ElSourceSpan defspan, bool is_public, ElStringView name, ElPpParamList params) {
     ElPpBlock* block = _el_pp_push_block(pp, EL_PP_BLOCK_FUNC, defspan);
     block->as.func = (ElPpFuncState) {
@@ -304,22 +329,15 @@ bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok) {
     return true;
 }
 
-// NOLINTNEXTLINE
-bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directives) {
-    // ugly but prevents null pointer dereference
-    ElToken dummy_tok;
-    if (out_tok == NULL) {
-        out_tok = &dummy_tok;
-    }
-
+static bool fetch_next_token(ElPreproc* pp, ElToken* input_tok) {
     while (true) {
-        ElToken input_tok;
-
         if (pp->pending.len != 0) {
-            el_tkque_pop(&pp->pending, &input_tok);
+            el_tkque_pop(&pp->pending, input_tok);
+            return true;
         } else if (pp->has_lookahead) {
-            input_tok = pp->lookahead;
+            *input_tok = pp->lookahead;
             pp->has_lookahead = false;
+            return true;
         } else if (pp->frame == NULL) {
             if (pp->block_stack == NULL)
                 return false;
@@ -335,13 +353,42 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
             pp->skip_depth = 0;
             pp->skip_capture = false;
             return false;
-        } else if (!read_from_active_frame(pp, &input_tok)) {
+        } else if (!read_from_active_frame(pp, input_tok)) {
+            FrameType type = pp->frame->type;
             _el_pp_pop_frame(pp);
+            if (type == FRAME_WHILE_BODY) {
+                if (!_el_pp_while_body_exhausted(pp)) {
+                    return false;
+                }
+            }
             continue;
+        }
+        return true;
+    }
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): i split this function into smaller helpers and it still complains
+bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directives) {
+    // ugly but prevents null pointer dereference
+    ElToken dummy_tok;
+    if (out_tok == NULL) {
+        out_tok = &dummy_tok;
+    }
+
+    while (true) {
+        ElToken input_tok;
+        if (!fetch_next_token(pp, &input_tok)) {
+            return false;
         }
 
         switch (input_tok.type) {
         case EL_TT_NEWLINE:
+            // some directives depend on new lines so we need
+            // to preserve them in the #while body
+            if (pp->skip_capture && pp->block_stack != NULL && pp->block_stack->kind == EL_PP_BLOCK_WHILE) {
+                if (!el_tkbuf_push(&pp->capture_buf, input_tok)) return false;
+            }
+            continue;
         case EL_TT_WHITESPACE:
         case EL_TT_LINE_COMMENT:
         case EL_TT_BLOCK_COMMENT:
@@ -425,6 +472,19 @@ bool _el_pp_expect(ElPreproc* pp, ElTokenType type) {
         EL_DIAG_STRING("expected", el_token_type_format(type)),
         EL_DIAG_TOKEN("found", tok),
     );
+}
+
+bool _el_pp_ensure_bool(ElPreproc* pp, ElPpValue* val, ElSourceSpan dspan, ElStringView dname) {
+    if (val->type != EL_PP_TYPE_BOOL) {
+        return el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.cond-type", dspan,
+            "#${dname} condition must be a boolean, got ${type}",
+            EL_DIAG_STRING("dname", dname),
+            EL_DIAG_STRING("type", _el_pp_type_name(val->type))
+        );
+    }
+
+    return true;
 }
 
 static ElToken _el_pp_token_stream_next(ElTokenStream* self, ElDiagEngine* diag) {

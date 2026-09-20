@@ -6,6 +6,7 @@
 #include <elash/sema/unary-op.h>
 #include <elash/sema/bin-op.h>
 
+#include <elash/lexer/tokarr.h>
 #include <elash/util/int128.h>
 
 //////// include frames ////////
@@ -14,6 +15,7 @@
 typedef enum FrameType {
     FRAME_CALL,
     FRAME_INCLUDE,
+    FRAME_WHILE_BODY,
 } FrameType;
 
 typedef struct ElPpFrame {
@@ -26,8 +28,10 @@ typedef struct ElPpFrame {
 } ElPpFrame;
 
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
-void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream);
 void _el_pp_pop_frame(ElPreproc* pp);
+
+void _el_pp_push_while_body_frame(ElPreproc* pp, ElPpFrame* frame, ElTokenStream stream);
+void _el_pp_push_eval_frame(ElPreproc* pp, ElTokenStream stream);
 
 ////////// blocks (#if / #func / #while) //////////
 typedef enum ElPpBlockKind {
@@ -49,10 +53,12 @@ typedef struct ElPpFuncState {
 } ElPpFuncState;
 
 typedef struct ElPpWhileState {
-    ElToken* cond;
-    usize    cond_len;
-    ElToken* body;
-    usize    body_len;
+    ElTokenArray cond;
+    ElTokenArray body;
+    ElTokenArrayStream body_stream;
+    ElPpFrame body_frame;
+    bool capturing_body;
+    uint iter_count;
 } ElPpWhileState;
 
 struct ElPpBlock {
@@ -71,6 +77,7 @@ ElPpBlock* _el_pp_push_block(ElPreproc* pp, ElPpBlockKind kind, ElSourceSpan spa
 void _el_pp_pop_block(ElPreproc* pp);
 
 void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
+void _el_pp_push_while_block(ElPreproc* pp, ElSourceSpan whilespan, ElTokenArray cond, bool cond_val);
 void _el_pp_push_func_block(ElPreproc* pp, ElSourceSpan defspan, bool is_public, ElStringView name, ElPpParamList params);
 
 void _el_pp_enter_if_branch(ElPreproc* pp);
@@ -144,6 +151,11 @@ bool _el_pp_handle_return(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_skip_func(ElPreproc* pp);
 bool _el_pp_skip_return(ElPreproc* pp);
 
+bool _el_pp_handle_while(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_while(ElPreproc* pp);
+bool _el_pp_finish_while(ElPreproc* pp);
+bool _el_pp_while_body_exhausted(ElPreproc* pp);
+
 /////////// functions ////////////
 typedef struct ElPpArgList {
     ElPpValue* head;
@@ -200,7 +212,10 @@ ElToken _el_pp_advance(ElPreproc* pp);
 bool _el_pp_match(ElPreproc* pp, ElTokenType type);
 bool _el_pp_expect(ElPreproc* pp, ElTokenType type);
 
-/////// diagnostics ///////
+////////// utilities /////////////
+bool _el_pp_ensure_bool(ElPreproc* pp, ElPpValue* val, ElSourceSpan dspan, ElStringView dname);
+
+/////// diagnostics ////////////
 void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_incdec(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_unterm_quote(ElPreproc* pp, ElSourceSpan span);

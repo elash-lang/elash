@@ -39,7 +39,7 @@ bool _el_pp_skip_end(ElPreproc* pp) {
         return _el_pp_finish_pending_func(pp);
 
     case EL_PP_BLOCK_WHILE:
-        EL_TODO("implement #while loops");
+        return _el_pp_finish_while(pp);
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElPpBlockKind, pp->block_stack->kind);

@@ -75,3 +75,13 @@ Test(el_pp_unhappy, elif_after_else) {
     );
     assert_has_err(pp, "pp.elif-after-else");
 }
+
+Test(el_pp_unhappy, cond_type) {
+    ElPreproc* pp = p(
+        "#var i = 3.14"
+        "#while i - 1"
+        "   #error \"should not be reached\""
+        "#end"
+    );
+    assert_has_err(pp, "pp.cond-type");
+}

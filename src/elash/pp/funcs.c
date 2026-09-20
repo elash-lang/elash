@@ -37,12 +37,11 @@ static void cleanup_call(ElPreproc* pp, ElPpCallFrame* call) {
             _el_pp_pop_if_block(pp);
             break;
         case EL_PP_BLOCK_FUNC:
+        case EL_PP_BLOCK_WHILE:
             pp->skip_capture = false;
             el_tkbuf_clear(&pp->capture_buf);
             _el_pp_pop_block(pp);
             break;
-        case EL_PP_BLOCK_WHILE:
-            EL_TODO("implement while loops");
         }
     }
 
@@ -77,7 +76,7 @@ static ElPpValue* execute_function(
     ElPpFuncSym* func = &sym->as.func;
 
     ElTokenArrayStream* stream_ctx = EL_DYNARENA_NEW(pp->iarena, ElTokenArrayStream);
-    ElTokenStream body_stream = el_token_array_as_stream(stream_ctx, func->body, func->body_len);
+    ElTokenStream body_stream = el_tokarr_as_stream(stream_ctx, func->body);
 
     ElPpCallFrame* call =
         make_call_frame(pp, sym, cspan);
@@ -87,7 +86,7 @@ static ElPpValue* execute_function(
     pp->block_stack = NULL;
     pp->skip_depth = 0;
 
-    _el_pp_push_call_body_frame(pp, body_stream);
+    _el_pp_push_eval_frame(pp, body_stream);
     call->body_frame = pp->frame;
 
     ElPpValue* arg = args.head;
