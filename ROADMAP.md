@@ -102,7 +102,7 @@
 ## Stability & Hardening
 - [x] Support multiple source files in e2e cases
 - [ ] Source doc test suite
-- [ ] Preproc test suite
+- [x] Preproc test suite
 - [x] Parser test suite
 - [x] Unparser test suite
 - [ ] ~~Binder test suite~~ *(moved to 0.3.0 or later)*

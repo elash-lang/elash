@@ -271,7 +271,14 @@ bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok) {
     return true;
 }
 
+// NOLINTNEXTLINE
 bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directives) {
+    // ugly but prevents null pointer dereference
+    ElToken dummy_tok;
+    if (out_tok == NULL) {
+        out_tok = &dummy_tok;
+    }
+
     while (true) {
         ElToken input_tok;
 
