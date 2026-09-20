@@ -265,7 +265,7 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
 static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* typedef_) {
     ElHirSymbol* existing = el_hir_scope_lookup(binder->current_scope, typedef_->name);
 
-    if (existing) {
+    if (existing != NULL) {
         ElHirType* etype = existing->as.type.type;
         if (0
          || existing->kind != EL_SYM_TYPE

@@ -71,7 +71,7 @@ static bool resize(ElGHM* ghm) {
 
     ghm->capacity *= 2;
     ghm->entries = calloc(ghm->capacity, sizeof(Entry));
-    if (!ghm->entries) {
+    if (ghm->entries == NULL) {
         ghm->entries = old_entries;
         ghm->capacity = old_capacity;
         return false;

@@ -173,7 +173,7 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) 
     ctx->builder = LLVMCreateBuilderInContext(ctx->context);
 
     ctx->target.machine = create_target_machine(&ctx->target.triple);
-    if (!ctx->target.machine) {
+    if (ctx->target.machine == NULL) {
         EL_TODO("error handling");
     }
 
