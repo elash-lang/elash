@@ -97,7 +97,7 @@ end:
 
 ElSrcDocStatus el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst) {
     dst->is_system = src->is_system;
-    return _el_strdoc_ret_err(el_srcdoc_init_from_strbuf(dst, &src->content, src->filename));
+    return el_srcdoc_init_from_strbuf(dst, &src->content, src->filename);
 }
 void el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst) {
     dst->is_system = src->is_system;
