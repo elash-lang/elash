@@ -16,30 +16,29 @@
 
 #include <stdbool.h>
 
+#define EL_PP_DEFAULT_LIMIT (500 * 1000)
+
 typedef struct ElPpFrame ElPpFrame;
-typedef struct ElPpIfFrame ElPpIfFrame;
+typedef struct ElPpBlock ElPpBlock;
 typedef struct ElPpCallFrame ElPpCallFrame;
 
-typedef struct ElPpPendingFunc {
-    bool active;
-    bool is_public;
-    ElStringView name;
-    ElSourceSpan defspan;
-
-    ElPpParamList params;
-} ElPpPendingFunc;
-
 typedef struct ElPreproc {
+    uint operation_count;
+    uint operation_limit;
     uint include_depth;
     ElPpFrame* frame;
 
+    bool debug;
+    bool reached_eof;
+    bool debug_reported;
+    ElToken last_token;
+
     uint skip_depth;
-    ElPpIfFrame* if_stack;
+    ElPpBlock* block_stack;
 
     bool skip_capture;
     ElTokenBuf capture_buf;
 
-    ElPpPendingFunc pending_func;
     ElPpCallFrame* call_stack;
     uint call_depth;
 

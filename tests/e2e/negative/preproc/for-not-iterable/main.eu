@@ -1,0 +1,3 @@
+#for element: 2 + 2 * 2
+    #error "should not be reached"
+#end

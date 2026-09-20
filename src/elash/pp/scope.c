@@ -160,11 +160,12 @@ ElPpSymbol* el_pp_scope_lookup_local(ElPpScope* scope, ElStringView key) {
 }
 
 ElPpSymbol* el_pp_scope_lookup(ElPpScope* scope, ElStringView key) {
-    ElPpSymbol* var = el_pp_scope_lookup_local(scope, key);
-    if (var != NULL)
-        return var;
-    if (scope->parent != NULL)
-        return el_pp_scope_lookup(scope->parent, key);
+    for (ElPpScope* current = scope; current != NULL; current = current->parent) {
+        ElPpSymbol* var = el_pp_scope_lookup_local(current, key);
+        if (var != NULL)
+            return var;
+    }
+
     return NULL;
 }
 

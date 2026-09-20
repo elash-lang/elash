@@ -1,11 +1,20 @@
 #pragma once
-#include <elash/pp/preproc.h> // IWYU pragma: export
+#include <elash/pp/preproc.h>  // IWYU pragma: export
 #include <elash/util/assert.h> // IWYU pragma: export
+#include <elash/util/todo.h>   // IWYU pragma: export
 
 #include <elash/sema/unary-op.h>
 #include <elash/sema/bin-op.h>
 
+#include <elash/lexer/tokarr.h>
 #include <elash/util/int128.h>
+
+//////// operation count /////////
+#define EL_PP_DIR_OPS  4
+#define EL_PP_EXPR_OPS 1
+#define EL_PP_ITER_OPS 8
+
+bool _el_pp_ensure_ops_available(ElPreproc* pp, ElSourceSpan span);
 
 //////// include frames ////////
 #define INCLUDE_DEPTH_LIMIT 220
@@ -13,6 +22,7 @@
 typedef enum FrameType {
     FRAME_CALL,
     FRAME_INCLUDE,
+    FRAME_LOOP_BODY,
 } FrameType;
 
 typedef struct ElPpFrame {
@@ -25,25 +35,82 @@ typedef struct ElPpFrame {
 } ElPpFrame;
 
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
-void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream);
 void _el_pp_pop_frame(ElPreproc* pp);
 
-////////// if frames //////////
-struct ElPpIfFrame {
-    ElSourceSpan ifspan;
+void _el_pp_push_while_body_frame(ElPreproc* pp, ElPpFrame* frame, ElTokenStream stream);
+void _el_pp_push_eval_frame(ElPreproc* pp, ElTokenStream stream);
+
+///////////// blocks //////////////
+typedef enum ElPpBlockKind {
+    EL_PP_BLOCK_IF,
+    EL_PP_BLOCK_FUNC,
+    EL_PP_BLOCK_WHILE,
+    EL_PP_BLOCK_FOR,
+} ElPpBlockKind;
+
+typedef struct ElPpIfState {
     bool branch_taken;
     bool has_scope;
     bool had_else;
-    ElPpIfFrame* parent;
+} ElPpIfState;
+
+typedef struct ElPpFuncState {
+    bool is_public;
+    ElStringView name;
+    ElPpParamList params;
+} ElPpFuncState;
+
+typedef enum ElPpLoopKind {
+    EL_PP_LOOP_WHILE,
+    EL_PP_LOOP_FOR,
+} ElPpLoopKind;
+
+typedef struct ElPpLoopState {
+    ElPpLoopKind kind;
+    ElTokenArray body;
+    ElTokenArrayStream body_stream;
+    ElPpFrame body_frame;
+    bool capturing_body;
+    union {
+        struct {
+            ElTokenArray cond;
+        } while_;
+        struct {
+            ElStringView name;
+            ElPpValue* iterable;
+            usize index;
+        } for_;
+    } as;
+} ElPpLoopState;
+
+struct ElPpBlock {
+    ElPpBlockKind kind;
+    ElSourceSpan  open_span;
+    ElPpBlock*    parent;
+
+    union {
+        ElPpIfState    if_;
+        ElPpFuncState  func;
+        ElPpLoopState loop;
+    } as;
 };
 
-void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
+ElPpBlock* _el_pp_push_block(ElPreproc* pp, ElPpBlockKind kind, ElSourceSpan span);
+void _el_pp_pop_block(ElPreproc* pp);
+
+void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
+void _el_pp_push_while_block(ElPreproc* pp, ElSourceSpan whilespan, ElTokenArray cond, bool cond_val);
+void _el_pp_push_for_block(ElPreproc* pp, ElSourceSpan forspan, ElStringView name, ElPpValue* iterable, bool has_items);
+void _el_pp_push_func_block(ElPreproc* pp, ElSourceSpan defspan, bool is_public, ElStringView name, ElPpParamList params);
+
 void _el_pp_enter_if_branch(ElPreproc* pp);
 void _el_pp_leave_if_branch(ElPreproc* pp);
-void _el_pp_pop_if_frame(ElPreproc* pp);
+void _el_pp_pop_if_block(ElPreproc* pp);
+
+ElStringView _el_pp_block_kind_name(ElPpBlockKind kind);
 
 ////////// call frames /////////
-#define CALL_DEPTH_LIMIT 500
+#define CALL_DEPTH_LIMIT 80
 
 struct ElPpCallFrame {
     ElPpValue* return_value;
@@ -52,8 +119,8 @@ struct ElPpCallFrame {
     ElSourceSpan call_span;
     ElPpSymbol*  func;
 
-    ElPpIfFrame* saved_if_stack;
-    uint         saved_skip_depth;
+    ElPpBlock* saved_block_stack;
+    uint       saved_skip_depth;
 
     ElPpFrame* body_frame;
     ElPpFrame* caller_frame;
@@ -106,6 +173,13 @@ bool _el_pp_handle_func(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_return(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_skip_func(ElPreproc* pp);
 bool _el_pp_skip_return(ElPreproc* pp);
+
+bool _el_pp_handle_while(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_while(ElPreproc* pp);
+bool _el_pp_handle_for(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_for(ElPreproc* pp);
+bool _el_pp_finish_loop(ElPreproc* pp);
+bool _el_pp_loop_body_exhausted(ElPreproc* pp);
 
 /////////// functions ////////////
 typedef struct ElPpArgList {
@@ -163,7 +237,10 @@ ElToken _el_pp_advance(ElPreproc* pp);
 bool _el_pp_match(ElPreproc* pp, ElTokenType type);
 bool _el_pp_expect(ElPreproc* pp, ElTokenType type);
 
-/////// diagnostics ///////
+////////// utilities /////////////
+bool _el_pp_ensure_bool(ElPreproc* pp, ElPpValue* val, ElSourceSpan dspan, ElStringView dname);
+
+/////// diagnostics ////////////
 void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_incdec(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_unterm_quote(ElPreproc* pp, ElSourceSpan span);

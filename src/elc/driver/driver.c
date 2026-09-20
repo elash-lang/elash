@@ -183,6 +183,7 @@ static void init_backend(ElcDriver* driver) {
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
     driver->pctx.optlevel = args->opt;
     driver->pctx.imap     = &args->imap;
+    driver->pctx.debug    = args->debug;
 
     ElProfState prof;
     if (args->time_reports.is_enabled) {

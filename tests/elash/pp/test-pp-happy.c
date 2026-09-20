@@ -82,3 +82,21 @@ Test(el_pp_happy, scopes) {
     assert_eof(pp);
     assert_no_errors();
 }
+
+Test(el_pp_happy, while_loops) {
+    ElPreproc* pp = p(
+        "#var i = 0\n"
+        "#while i < 5\n"
+        "   #emit #{i}\n"
+        "   #inc i\n"
+        "#end\n"
+    );
+
+    assert_tok(pp, EL_TT_INT_LITERAL, "0");
+    assert_tok(pp, EL_TT_INT_LITERAL, "1");
+    assert_tok(pp, EL_TT_INT_LITERAL, "2");
+    assert_tok(pp, EL_TT_INT_LITERAL, "3");
+    assert_tok(pp, EL_TT_INT_LITERAL, "4");
+    assert_eof(pp);
+    assert_no_errors();
+}

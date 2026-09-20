@@ -6,34 +6,37 @@ static bool eval_cond(ElPreproc* pp, ElSourceSpan dspan, bool* out) {
     ElPpValue* val = _el_pp_eval(pp);
     if (val == NULL) return false;
 
-    if (val->type != EL_PP_TYPE_BOOL) {
-        return el_diag_report(
-            pp->diag, EL_DIAG_ERROR, "pp.if-type", dspan,
-            "#if condition must be a boolean, got ${type}",
-            EL_DIAG_STRING("type", _el_pp_type_name(val->type))
-        );
-    }
+    if (!_el_pp_ensure_bool(pp, val, dspan, EL_SV("if")))
+        return false;
 
     *out = val->as.bool_;
     return true;
 }
 
+static ElPpIfState* top_if(ElPreproc* pp) {
+    if (pp->block_stack == NULL || pp->block_stack->kind != EL_PP_BLOCK_IF) {
+        return NULL;
+    }
+    return &pp->block_stack->as.if_;
+}
+
 static bool check_else(ElPreproc* pp, ElSourceSpan dspan) {
-    if (pp->if_stack == NULL) {
+    ElPpIfState* state = top_if(pp);
+    if (state == NULL) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.stray-else",
             dspan, "#else without matching #if"
         );
     }
 
-    if (pp->if_stack->had_else) {
+    if (state->had_else) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.dup-else",
             dspan, "duplicated #else"
         );
     }
 
-    pp->if_stack->had_else = true;
+    state->had_else = true;
     return true;
 }
 
@@ -43,7 +46,7 @@ bool _el_pp_handle_if(ElPreproc* pp, ElSourceSpan dspan) {
         return false;
     }
 
-    _el_pp_push_if_frame(pp, cond, dspan);
+    _el_pp_push_if_block(pp, cond, dspan);
     if (!cond) {
         pp->skip_depth++;
     }
@@ -55,7 +58,7 @@ bool _el_pp_handle_else(ElPreproc* pp, ElSourceSpan dspan) {
         return false;
     }
 
-    EL_ASSERT(pp->if_stack->has_scope, "#else in active path without a scope");
+    EL_ASSERT(pp->block_stack->as.if_.has_scope, "#else in active path without a scope");
     _el_pp_leave_if_branch(pp);
 
     pp->skip_depth++;
@@ -63,14 +66,15 @@ bool _el_pp_handle_else(ElPreproc* pp, ElSourceSpan dspan) {
 }
 
 bool _el_pp_handle_elif(ElPreproc* pp, ElSourceSpan dspan) {
-    if (pp->if_stack == NULL) {
+    ElPpIfState* state = top_if(pp);
+    if (state == NULL) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.stray-elif",
             dspan, "#elif without matching #if"
         );
     }
 
-    if (pp->if_stack->had_else) {
+    if (state->had_else) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.elif-after-else",
             dspan, "#elif after #else"
@@ -82,18 +86,6 @@ bool _el_pp_handle_elif(ElPreproc* pp, ElSourceSpan dspan) {
     }
 
     pp->skip_depth++;
-    return true;
-}
-
-bool _el_pp_handle_end(ElPreproc* pp, ElSourceSpan dspan) {
-    if (pp->if_stack == NULL) {
-        return el_diag_report(
-            pp->diag, EL_DIAG_ERROR, "pp.stray-end",
-            dspan, "#end without matching #if"
-        );
-    }
-
-    _el_pp_pop_if_frame(pp);
     return true;
 }
 
@@ -114,7 +106,7 @@ bool _el_pp_skip_else(ElPreproc* pp, ElSourceSpan dspan) {
         return false;
     }
 
-    if (pp->if_stack->branch_taken) {
+    if (pp->block_stack->as.if_.branch_taken) {
         return true;
     }
 
@@ -131,21 +123,22 @@ bool _el_pp_skip_elif(ElPreproc* pp, ElSourceSpan dspan) {
         return true;
     }
 
-    if (pp->if_stack == NULL) {
+    ElPpIfState* state = top_if(pp);
+    if (state == NULL) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.stray-elif",
             dspan, "#elif without matching #if"
         );
     }
 
-    if (pp->if_stack->had_else) {
+    if (state->had_else) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.elif-after-else",
             dspan, "#elif after #else"
         );
     }
 
-    if (pp->if_stack->branch_taken) {
+    if (state->branch_taken) {
         if (!_el_pp_skip_expr(pp)) {
             return false;
         }
@@ -161,16 +154,5 @@ bool _el_pp_skip_elif(ElPreproc* pp, ElSourceSpan dspan) {
         _el_pp_enter_if_branch(pp);
         pp->skip_depth = 0;
     }
-    return true;
-}
-
-bool _el_pp_skip_end(ElPreproc* pp) {
-    if (pp->skip_depth > 1) {
-        pp->skip_depth--;
-        return true;
-    }
-
-    pp->skip_depth = 0;
-    _el_pp_pop_if_frame(pp);
     return true;
 }

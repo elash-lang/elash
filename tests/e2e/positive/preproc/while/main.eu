@@ -1,0 +1,21 @@
+#var i = 1
+#while i <= 3
+    #note "iteration no.", i
+    #inc i
+#end
+
+#while false
+    #error "should not be reached"
+#end
+
+int main() {
+    int result = 0;
+    #set i = 10
+    #while i > 0
+        #emit result += #{i};
+        #dec i
+    #end
+
+    // 10? = 55
+    return result;
+}

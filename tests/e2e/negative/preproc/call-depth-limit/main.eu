@@ -1,0 +1,9 @@
+#func a()
+    #return b()
+#end
+
+#func b()
+    #return a()
+#end
+
+#const x = a()

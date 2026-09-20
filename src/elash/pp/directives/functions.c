@@ -101,31 +101,32 @@ static bool skip_func_signature(ElPreproc* pp) {
 }
 
 bool _el_pp_finish_pending_func(ElPreproc* pp) {
-    EL_ASSERT(pp->pending_func.active, "no active pending function");
+    EL_ASSERT(pp->block_stack != NULL,                   "no active block");
+    EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_FUNC, "top block is not #func");
 
-    ElToken* body = NULL;
-    usize body_len = pp->capture_buf.len;
-    if (body_len > 0) {
-        body = EL_DYNARENA_NEW_ARR(pp->iarena, ElToken, body_len);
-        memcpy(body, pp->capture_buf.data, body_len * sizeof(ElToken));
+    ElTokenArray body = {
+        .count = pp->capture_buf.len,
+    };
+    if (body.count > 0) {
+        body.data = EL_DYNARENA_NEW_ARR(pp->iarena, ElToken, body.count);
+        memcpy(body.data, pp->capture_buf.data, body.count * sizeof(ElToken));
     }
 
-    ElPpPendingFunc* p = &pp->pending_func;
+    ElPpFuncState* f = &pp->block_stack->as.func;
     ElPpSymbol* sym = _el_pp_new_sym_func(
         pp->iarena,
 
-        p->name,
-        p->defspan,
-        p->is_public,
+        f->name,
+        pp->block_stack->open_span,
+        f->is_public,
 
-        .params   = p->params,
+        .params   = f->params,
         .body     = body,
-        .body_len = body_len,
     );
 
     bool ok = el_pp_scope_assign(pp->current_scope, sym->name, sym);
 
-    pp->pending_func.active = false;
+    _el_pp_pop_block(pp);
     pp->skip_capture = false;
     pp->skip_depth = 0;
     el_tkbuf_clear(&pp->capture_buf);
@@ -145,15 +146,11 @@ bool _el_pp_handle_func(ElPreproc* pp, ElSourceSpan dspan) {
         return false;
     }
 
-    pp->pending_func = (ElPpPendingFunc) {
-        .active = true,
-        .is_public = is_public,
-
-        .name = name_tok.lexeme,
-        .params = params,
-
-        .defspan = el_srcspan_merge(dspan, name_tok.span),
-    };
+    ElSourceSpan defspan = el_srcspan_merge(dspan, name_tok.span);
+    _el_pp_push_func_block(
+        pp, defspan,
+        is_public, name_tok.lexeme, params
+    );
 
     el_tkbuf_clear(&pp->capture_buf);
     pp->skip_capture = true;
