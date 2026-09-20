@@ -38,6 +38,7 @@ static void cleanup_call(ElPreproc* pp, ElPpCallFrame* call) {
             break;
         case EL_PP_BLOCK_FUNC:
         case EL_PP_BLOCK_WHILE:
+        case EL_PP_BLOCK_FOR:
             pp->skip_capture = false;
             el_tkbuf_clear(&pp->capture_buf);
             _el_pp_pop_block(pp);

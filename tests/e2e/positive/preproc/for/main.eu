@@ -1,0 +1,29 @@
+#for item: { 1, 4, 10, 29 }
+    #note "item -", item
+#end
+
+#const str = "Hey"
+#for char: str
+    #note "char -", char
+#end
+
+#func doMath(a)
+    #var result = a
+    #for x: { 10, 4, 2, 8, 2 }
+        #set result = result + a * x
+    #end
+    #return result
+#end
+
+#const result = doMath(3)
+#if result != 81
+    #error "result should be 81"
+#end
+
+int puts(char[&] c);
+int main() {
+    #for str: { "Hello", "Hey", "Hi", "Yo" }
+        #emit puts(#{str} ", world!\0" as char[&]);
+    #end
+    return 0;
+}

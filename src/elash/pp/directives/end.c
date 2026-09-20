@@ -15,6 +15,7 @@ bool _el_pp_handle_end(ElPreproc* pp, ElSourceSpan dspan) {
 
     case EL_PP_BLOCK_FUNC:
     case EL_PP_BLOCK_WHILE:
+    case EL_PP_BLOCK_FOR:
         EL_UNREACHABLE("handled elsewhere; should not be reached");
     }
 
@@ -39,7 +40,8 @@ bool _el_pp_skip_end(ElPreproc* pp) {
         return _el_pp_finish_pending_func(pp);
 
     case EL_PP_BLOCK_WHILE:
-        return _el_pp_finish_while(pp);
+    case EL_PP_BLOCK_FOR:
+        return _el_pp_finish_loop(pp);
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElPpBlockKind, pp->block_stack->kind);

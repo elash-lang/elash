@@ -75,6 +75,8 @@ static bool _preprocess_directive_internal(ElPreproc* pp, ElToken hash, ElToken*
 
     if (el_sv_eql(dir.lexeme, EL_SV("while")))
         return _el_pp_handle_while(pp, dspan);
+    if (el_sv_eql(dir.lexeme, EL_SV("for")))
+        return _el_pp_handle_for(pp, dspan);
 
     if (el_sv_eql(dir.lexeme, EL_SV("error")))
         return _el_pp_handle_diag(pp, EL_DIAG_ERROR, dspan);
@@ -156,6 +158,7 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
     if (el_sv_eql(dir.lexeme, EL_SV("func")))   return _el_pp_skip_func(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("return"))) return _el_pp_skip_return(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("while")))  return _el_pp_skip_while(pp);
+    if (el_sv_eql(dir.lexeme, EL_SV("for")))    return _el_pp_skip_for(pp);
 
     if (is_end) return _el_pp_skip_end(pp);
 

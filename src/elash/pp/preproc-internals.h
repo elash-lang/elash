@@ -22,7 +22,7 @@ bool _el_pp_ensure_ops_available(ElPreproc* pp, ElSourceSpan span);
 typedef enum FrameType {
     FRAME_CALL,
     FRAME_INCLUDE,
-    FRAME_WHILE_BODY,
+    FRAME_LOOP_BODY,
 } FrameType;
 
 typedef struct ElPpFrame {
@@ -45,6 +45,7 @@ typedef enum ElPpBlockKind {
     EL_PP_BLOCK_IF,
     EL_PP_BLOCK_FUNC,
     EL_PP_BLOCK_WHILE,
+    EL_PP_BLOCK_FOR,
 } ElPpBlockKind;
 
 typedef struct ElPpIfState {
@@ -59,13 +60,28 @@ typedef struct ElPpFuncState {
     ElPpParamList params;
 } ElPpFuncState;
 
-typedef struct ElPpWhileState {
-    ElTokenArray cond;
+typedef enum ElPpLoopKind {
+    EL_PP_LOOP_WHILE,
+    EL_PP_LOOP_FOR,
+} ElPpLoopKind;
+
+typedef struct ElPpLoopState {
+    ElPpLoopKind kind;
     ElTokenArray body;
     ElTokenArrayStream body_stream;
     ElPpFrame body_frame;
     bool capturing_body;
-} ElPpWhileState;
+    union {
+        struct {
+            ElTokenArray cond;
+        } while_;
+        struct {
+            ElStringView name;
+            ElPpValue* iterable;
+            usize index;
+        } for_;
+    } as;
+} ElPpLoopState;
 
 struct ElPpBlock {
     ElPpBlockKind kind;
@@ -75,7 +91,7 @@ struct ElPpBlock {
     union {
         ElPpIfState    if_;
         ElPpFuncState  func;
-        ElPpWhileState while_;
+        ElPpLoopState loop;
     } as;
 };
 
@@ -84,6 +100,7 @@ void _el_pp_pop_block(ElPreproc* pp);
 
 void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
 void _el_pp_push_while_block(ElPreproc* pp, ElSourceSpan whilespan, ElTokenArray cond, bool cond_val);
+void _el_pp_push_for_block(ElPreproc* pp, ElSourceSpan forspan, ElStringView name, ElPpValue* iterable, bool has_items);
 void _el_pp_push_func_block(ElPreproc* pp, ElSourceSpan defspan, bool is_public, ElStringView name, ElPpParamList params);
 
 void _el_pp_enter_if_branch(ElPreproc* pp);
@@ -159,8 +176,10 @@ bool _el_pp_skip_return(ElPreproc* pp);
 
 bool _el_pp_handle_while(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_skip_while(ElPreproc* pp);
-bool _el_pp_finish_while(ElPreproc* pp);
-bool _el_pp_while_body_exhausted(ElPreproc* pp);
+bool _el_pp_handle_for(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_for(ElPreproc* pp);
+bool _el_pp_finish_loop(ElPreproc* pp);
+bool _el_pp_loop_body_exhausted(ElPreproc* pp);
 
 /////////// functions ////////////
 typedef struct ElPpArgList {

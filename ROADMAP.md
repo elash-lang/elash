@@ -59,8 +59,8 @@
 - [ ] Preserve correct source locations after expansion
 - [x] Implement conditional compilation directives
 - [x] Implement `#while` loops
-- [ ] Implement `#for` loops
-- [ ] Implement global preprocessor operation limit
+- [x] Implement `#for` loops
+- [x] Implement global preprocessor operation limit
 - [ ] Support predefined preprocessor functions and macros
 - [ ] ~~Builtin constants (`ELC_MODE`, `ELC_VERSION`, `ELC_OPTLVL`)~~ *(moved to 0.3.0)*
 

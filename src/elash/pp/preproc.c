@@ -179,7 +179,7 @@ void _el_pp_push_while_body_frame(ElPreproc* pp, ElPpFrame* frame, ElTokenStream
         .stream = stream,
         .doc    = parent != NULL ? parent->doc : NULL,
         .parent = parent,
-        .type   = FRAME_WHILE_BODY,
+        .type   = FRAME_LOOP_BODY,
     };
     pp->frame = frame;
 
@@ -229,6 +229,7 @@ ElStringView _el_pp_block_kind_name(ElPpBlockKind kind) {
     case EL_PP_BLOCK_IF:    return EL_SV("#if");
     case EL_PP_BLOCK_FUNC:  return EL_SV("#func");
     case EL_PP_BLOCK_WHILE: return EL_SV("#while");
+    case EL_PP_BLOCK_FOR:   return EL_SV("#for");
     }
     return EL_SV("#block");
 }
@@ -261,10 +262,19 @@ void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) 
 
 void _el_pp_push_while_block(ElPreproc* pp, ElSourceSpan whilespan, ElTokenArray cond, bool cond_val) {
     ElPpBlock* block = _el_pp_push_block(pp, EL_PP_BLOCK_WHILE, whilespan);
-    block->as.while_ = (ElPpWhileState) {
-        .cond = cond,
-        .body = EL_TOKARR_NULL,
+    block->as.loop = (ElPpLoopState) {
+        .kind = EL_PP_LOOP_WHILE,
         .capturing_body = cond_val,
+        .as.while_ = { .cond = cond },
+    };
+}
+
+void _el_pp_push_for_block(ElPreproc* pp, ElSourceSpan forspan, ElStringView name, ElPpValue* iterable, bool has_items) {
+    ElPpBlock* block = _el_pp_push_block(pp, EL_PP_BLOCK_FOR, forspan);
+    block->as.loop = (ElPpLoopState) {
+        .kind = EL_PP_LOOP_FOR,
+        .capturing_body = has_items,
+        .as.for_ = { .name = name, .iterable = iterable, .index = 0 },
     };
 }
 
@@ -370,8 +380,8 @@ static bool fetch_next_token(ElPreproc* pp, ElToken* input_tok) {
         } else if (!read_from_active_frame(pp, input_tok)) {
             FrameType type = pp->frame->type;
             _el_pp_pop_frame(pp);
-            if (type == FRAME_WHILE_BODY) {
-                if (!_el_pp_while_body_exhausted(pp)) {
+            if (type == FRAME_LOOP_BODY) {
+                if (!_el_pp_loop_body_exhausted(pp)) {
                     return false;
                 }
             }
@@ -399,7 +409,10 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
         case EL_TT_NEWLINE:
             // some directives depend on new lines so we need
             // to preserve them in the #while body
-            if (pp->skip_capture && pp->block_stack != NULL && pp->block_stack->kind == EL_PP_BLOCK_WHILE) {
+            if (pp->skip_capture && pp->block_stack != NULL
+                && (pp->block_stack->kind == EL_PP_BLOCK_FUNC
+                    || pp->block_stack->kind == EL_PP_BLOCK_WHILE
+                    || pp->block_stack->kind == EL_PP_BLOCK_FOR)) {
                 if (!el_tkbuf_push(&pp->capture_buf, input_tok)) return false;
             }
             continue;
