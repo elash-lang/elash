@@ -5,7 +5,7 @@
 - [x] Init-statements in `if` and `while`
 - [ ] Add `for (init; cond; post)` loop
 - [x] Initializers as `return` values
-- [ ] Warn when the result or an expression without side effects is ignored
+- [x] Warn when the result or an expression without side effects is ignored
 - [ ] Support `if case` and `while case` for optionals
 
 ### Declarations

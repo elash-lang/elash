@@ -1,0 +1,2 @@
+7,8:warn[sema.side-effects]
+11,12,13:warn[sema.ignored]
