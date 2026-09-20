@@ -125,10 +125,13 @@ bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan) {
         return false;
     }
 
-    ElPpIncPath path;
+    // zero initialization is not needed but compiler reports a false positive warning
+    // which fails the compilation because of -Werror=maybe-uninitialized
+
+    ElPpIncPath path = {0};
     if (!parse_inc_path(pp, &path)) return false;
 
-    ElPpIncFile file;
+    ElPpIncFile file = {0};
     if (!_el_pp_resolve_inc_path(pp, &path, &file)) return false;
 
     ElSourceDocument* doc = EL_DYNARENA_NEW(pp->iarena, ElSourceDocument);
