@@ -23,7 +23,7 @@ ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
 
     for (ElAstStmt* curr = in->stmts; curr != NULL; curr = curr->next) {
         ElHirStmt* binded = el_binder_bind_stmt(binder, curr);
-        if (binded) {
+        if (binded != NULL) {
             el_hir_stmt_list_append(&head, &tail, binded);
         }
     }
@@ -201,6 +201,36 @@ e1:
     return NULL;
 }
 
+static ElHirStmt* bind_expr_stmt(ElBinder* binder, ElAstStmt* in) {
+    ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
+    if (expr == NULL) return NULL;
+
+    expr = _el_binder_apply_default_type(binder, expr);
+    if (expr == NULL) return NULL;
+
+    switch (_el_binder_redundancy_if_ignored(binder, expr)) {
+    case REDUNDANCY_NONE:
+        break;
+    case REDUNDANCY_FULL:
+        el_diag_report(
+            binder->diag, EL_DIAG_WARN, "sema.side-effects",
+            in->span, "statement has no side effects",
+        );
+        el_diag_help(
+            binder->diag, "the entire statement can be safely removed"
+        );
+        return NULL;
+    case REDUNDANCY_PARTIAL:
+        el_diag_report(
+            binder->diag, EL_DIAG_WARN, "sema.ignored",
+            in->span, "result of operation is unused"
+        );
+        break;
+    }
+
+    return el_hir_new_expr_stmt(binder->arena, in->span, expr);
+}
+
 static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
@@ -208,13 +238,6 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
         ElHirBlockStmt block = _el_binder_bind_block(binder, &in->as.block);
         _el_binder_pop_scope(binder);
         return el_hir_new_block_stmt(binder->arena, in->span, block.stmts);
-    }
-    case EL_AST_STMT_EXPR: {
-        ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
-        if (expr != NULL) {
-            expr = _el_binder_apply_default_type(binder, expr);
-        }
-        return el_hir_new_expr_stmt(binder->arena, in->span, expr);
     }
     case EL_AST_STMT_DECL: {
         ElHirDecl* decl = el_binder_bind_decl(binder, in->as.decl);
@@ -229,6 +252,8 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
 
     case EL_AST_STMT_RETURN:
         return bind_return(binder, in);
+    case EL_AST_STMT_EXPR:
+        return bind_expr_stmt(binder, in);
 
     case EL_AST_STMT_BREAK:
         if (binder->loop_depth <= 0)

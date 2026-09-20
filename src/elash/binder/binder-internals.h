@@ -34,9 +34,16 @@ ElScope* _el_binder_push_scope(ElBinder* binder);
 ElScope* _el_binder_pop_scope(ElBinder* binder);
 
 ///////////////// analysis /////////////////////
+typedef enum Redundancy {
+    REDUNDANCY_NONE,    //< expressions with side effects;            i.e. foo();
+    REDUNDANCY_PARTIAL, //< has side effects but partially redundant; i.e. 1 + foo();
+    REDUNDANCY_FULL,    //< zero side effects, can be safely removed; i.e. 2 * 2;
+} Redundancy;
+
 bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt);
 bool _el_binder_block_always_returns(ElBinder* binder, ElHirBlockStmt block);
 
+Redundancy _el_binder_redundancy_if_ignored(ElBinder* binder, ElHirExpr* expr);
 bool _el_binder_ensure_complete(ElBinder* binder, ElSourceSpan span, ElHirType* type);
 
 ////////////// builtins //////////////

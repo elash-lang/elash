@@ -1,0 +1,16 @@
+int foo() {
+    return 3;
+}
+
+int main() {
+    // zero side effects, can be optimized away
+    10;
+    (2 * 3 - 19) as float + 2.0;
+
+    // partially redundant
+    foo() * 30;
+    -foo();
+    int[2] { foo(), 10 };
+
+    return 0;
+}
