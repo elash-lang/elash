@@ -11,7 +11,7 @@
 #define INCLUDE_DEPTH_LIMIT 220
 
 typedef enum FrameType {
-    FRAME_FUNC,
+    FRAME_CALL,
     FRAME_INCLUDE,
 } FrameType;
 
@@ -108,19 +108,14 @@ bool _el_pp_skip_func(ElPreproc* pp);
 bool _el_pp_skip_return(ElPreproc* pp);
 
 /////////// functions ////////////
-typedef struct ElPpArg {
-    ElPpValue* value;
-    struct ElPpArg* next;
-} ElPpArg;
-
 typedef struct ElPpArgList {
-    ElPpArg* head;
-    ElPpArg* tail;
+    ElPpValue* head;
+    ElPpValue* tail;
     usize count;
 } ElPpArgList;
 
 void _el_pp_append_param(ElPpParamList* list, ElDynArena* arena, ElStringView name);
-void _el_pp_append_arg(ElPpArgList* list, ElDynArena* arena, ElPpValue* val);
+void _el_pp_append_arg(ElPpArgList* list,  ElPpValue* val);
 
 bool _el_pp_finish_pending_func(ElPreproc* pp);
 ElPpValue* _el_pp_call_func(ElPreproc* pp, ElPpSymbol* sym, ElSourceSpan cspan);

@@ -25,7 +25,7 @@ typedef struct ElPpList {
     usize count;
 } ElPpList;
 
-typedef struct ElPpValue {
+struct ElPpValue {
     union {
         ElInt128     int_;   // EL_PP_TYPE_INT
         double       float_; // EL_PP_TYPE_FLOAT
@@ -35,8 +35,9 @@ typedef struct ElPpValue {
         ElStringView str_;   // EL_PP_TYPE_STR
         ElToken      tok_;   // EL_PP_TYPE_TOK
     } as;
+    ElPpValue* next;
     ElPpType type;
-} ElPpValue;
+};
 
 ElStringView _el_pp_type_name(ElPpType type);
 

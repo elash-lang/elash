@@ -17,18 +17,15 @@ void _el_pp_append_param(ElPpParamList* list, ElDynArena* arena, ElStringView na
     list->count++;
 }
 
-void _el_pp_append_arg(ElPpArgList* list, ElDynArena* arena, ElPpValue* val) {
-    ElPpArg* new = EL_DYNARENA_NEW_STRUCT(arena, ElPpArg, {
-        .value = val,
-        .next  = NULL,
-    });
+void _el_pp_append_arg(ElPpArgList* list, ElPpValue* val) {
+    val->next = NULL;
 
     if (list->tail != NULL) {
-        list->tail->next = new;
+        list->tail->next = val;
     } else {
-        list->head = new;
+        list->head = val;
     }
-    list->tail = new;
+    list->tail = val;
     list->count++;
 }
 
@@ -81,12 +78,12 @@ static ElPpValue* execute_function(
     _el_pp_push_call_body_frame(pp, body_stream);
     call->body_frame = pp->frame;
 
-    ElPpArg* arg = args.head;
+    ElPpValue* arg = args.head;
     ElPpFuncParam* param = func->params.head;
     while (arg != NULL) {
         ElPpSymbol* psym = _el_pp_new_sym_var(
             pp->iarena, param->name, cspan,
-            arg->value, /*mut=*/false, /*is_public=*/false
+            arg, /*mut=*/false, /*is_public=*/false
         );
 
         if (!el_pp_scope_assign(pp->current_scope, param->name, psym)) {
@@ -143,7 +140,7 @@ ElPpValue* _el_pp_call_func(ElPreproc* pp, ElPpSymbol* sym, ElSourceSpan cspan) 
             ElPpValue* arg = _el_pp_eval(pp);
             if (arg == NULL) return NULL;
 
-            _el_pp_append_arg(&args, pp->iarena, arg);
+            _el_pp_append_arg(&args, arg);
 
             if (_el_pp_match(pp, EL_TT_RPAREN)) break;
             if (!_el_pp_expect(pp, EL_TT_COMMA)) return NULL;

@@ -138,7 +138,7 @@ void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocume
         .stream = stream,
         .doc    = doc,
         .parent = parent,
-        .type   = FRAME_FUNC,
+        .type   = FRAME_CALL,
     });
 
     if (parent != NULL) {
@@ -153,7 +153,7 @@ void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream) {
         .stream = stream,
         .doc    = parent != NULL ? parent->doc : NULL,
         .parent = parent,
-        .type   = FRAME_FUNC,
+        .type   = FRAME_CALL,
     });
 
     ElPpScope* scope = _el_pp_push_scope(pp);
