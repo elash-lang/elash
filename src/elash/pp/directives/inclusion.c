@@ -133,6 +133,7 @@ bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan) {
 
     ElSourceDocument* doc = EL_DYNARENA_NEW(pp->iarena, ElSourceDocument);
     if (el_srcdoc_init_from_file(doc, el_dynarena_make_cstr(pp->iarena, file.path)) != 0) return false;
+    doc->is_system = file.is_system;
 
     ElLexer* lexer = EL_DYNARENA_NEW(pp->iarena, ElLexer);
     el_lexer_init_prof(lexer, doc, EL_LEXER_FLAGS_DEFAULT, pp->prof,

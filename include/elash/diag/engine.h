@@ -52,6 +52,7 @@ typedef struct ElDiagEngine {
         usize count;
     } diag;
 
+    bool last_report_accepted;
     ElDiagSummary summary;
 } ElDiagEngine;
 
@@ -65,7 +66,8 @@ void* el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElStringView category,
     ElSourceSpan span, ElSourceLocInfo source,
-    ElStringView template, ElDiagMeta meta
+    ElStringView template, ElDiagMeta meta,
+    bool noignore
 );
 
 void el_diag_help_impl(
@@ -81,16 +83,16 @@ static inline bool el_diag_engine_has_errors(const ElDiagEngine* engine) {
 }
 
 #define el_diag_report(engine, sev, cat, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__), false)
 
 #define el_diag_report_nocat(engine, sev, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__), false)
 
-#define el_diag_report_ex(engine, sev, cat, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SRCLOC_INFO, template, EL_DIAG_META(__VA_ARGS__))
+#define el_diag_report_ex(engine, noignore, sev, cat, span, template, ...) \
+    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SRCLOC_INFO, template, EL_DIAG_META(__VA_ARGS__), noignore)
 
-#define el_diag_report_ex_nocat(engine, sev, span, template, ...) \
-    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SRCLOC_INFO, template, EL_DIAG_META(__VA_ARGS__))
+#define el_diag_report_ex_nocat(engine, noignore, sev, span, template, ...) \
+    el_diag_report_impl(engine, sev, EL_SV_NULL, span, EL_SRCLOC_INFO, template, EL_DIAG_META(__VA_ARGS__), noignore)
 
 #define el_diag_help(engine, template, ...) \
     el_diag_help_impl(engine, EL_SRCLOC_INFO, EL_SV(template), EL_DIAG_META(__VA_ARGS__))

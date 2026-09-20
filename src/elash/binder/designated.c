@@ -40,7 +40,7 @@ static ElHirExpr* report_duplicate_init(ElBinder* binder, ElSourceSpan span, ElH
         );
     } else {
         return el_diag_report_ex(
-            binder->diag, EL_DIAG_ERROR, "sema.duplicate-init", span,
+            binder->diag, false, EL_DIAG_ERROR, "sema.duplicate-init", span,
             (type->kind == EL_HIR_TYPE_TUPLE)
                 ? EL_SV("duplicate initializer for tuple index ${idx}")
                 : EL_SV("duplicate initializer for array index ${idx}"),
@@ -57,7 +57,7 @@ static ElHirExpr* report_missing_init(ElBinder* binder, ElSourceSpan span, ElHir
         );
     } else {
         return el_diag_report_ex(
-            binder->diag, EL_DIAG_ERROR, "sema.missing-init", span,
+            binder->diag, false, EL_DIAG_ERROR, "sema.missing-init", span,
             (type->kind == EL_HIR_TYPE_TUPLE)
                 ? EL_SV("missing initializer for tuple element ${index}")
                 : EL_SV("missing initializer for array element ${index}"),

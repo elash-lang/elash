@@ -44,7 +44,7 @@
 - [ ] ~~Predefined modes (`release`, `debug`)~~ *(moved to 0.3.0)*
 - [ ] ~~Invoke system linker~~ *(moved to 0.3.0)*
 - [ ] ~~Produce final executable~~ *(moved to 0.3.0)*
-- [ ] Don't report warnings from system headers
+- [x] Don't report warnings from system headers
 
 ## Preprocessor
 - [x] Implement file inclusion directive

@@ -36,16 +36,19 @@ bool _el_strdoc_get_file_size(FILE* f, usize* out_size) {
 
 ElSrcDocStatus el_srcdoc_init_empty(ElSourceDocument* srcdoc, ElStringView filename) {
     srcdoc->filename = filename;
+    srcdoc->is_system = false;
     return _el_strdoc_ret_err(el_strbuf_init(&srcdoc->content));
 }
 ElSrcDocStatus el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv, ElStringView filename) {
     srcdoc->filename = filename;
+    srcdoc->is_system = false;
     return _el_strdoc_ret_err(el_strbuf_init_from(&srcdoc->content, sv));
 }
 
 ElSrcDocStatus el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char* path) {
     ElSrcDocStatus err = EL_SRCDOC_ERR_SUCCESS;
     srcdoc->filename = el_sv_from_cstr(path);
+    srcdoc->is_system = false;
 
     FILE* f = fopen(path, "rb");
     if (f == NULL) {
@@ -93,18 +96,22 @@ end:
 }
 
 ElSrcDocStatus el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst) {
+    dst->is_system = src->is_system;
     return _el_strdoc_ret_err(el_srcdoc_init_from_strbuf(dst, &src->content, src->filename));
 }
 void el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst) {
+    dst->is_system = src->is_system;
     return el_srcdoc_init_from_strbuf_move(dst, &src->content, src->filename);
 }
 
 ElSrcDocStatus el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf, ElStringView filename) {
     srcdoc->filename = filename;
+    srcdoc->is_system = false;
     return _el_strdoc_ret_err(el_strbuf_copy(buf, &srcdoc->content));
 }
 void el_srcdoc_init_from_strbuf_move(ElSourceDocument* srcdoc, ElStringBuf* buf, ElStringView filename) {
     srcdoc->filename = filename;
+    srcdoc->is_system = false;
     return el_strbuf_move(buf, &srcdoc->content);
 }
 

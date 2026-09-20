@@ -10,6 +10,7 @@
 typedef struct ElSourceDocument {
     ElStringBuf content;
     ElStringView filename;
+    bool is_system;
 } ElSourceDocument;
 
 /// Creates an empty source document with given file name.

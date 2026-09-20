@@ -57,8 +57,8 @@ bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan dspan) {
         el_strbuf_append_char(&message, ' ');
     }
 
-    el_diag_report_nocat(
-        pp->diag, sev, dspan, "${message}",
+    el_diag_report_ex_nocat(
+        pp->diag, true, sev, dspan, EL_SV("${message}"),
         EL_DIAG_STRING("message", el_strbuf_view(&message)),
     );
 

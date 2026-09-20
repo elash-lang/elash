@@ -4,6 +4,8 @@
 #include <elash/util/strbuf.h>
 #include <elash/util/assert.h>
 
+#include <elash/source/doc.h>
+
 void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena) {
     *engine = (ElDiagEngine) {
         .arena = arena,
@@ -56,8 +58,18 @@ void* el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElStringView category,
     ElSourceSpan span, ElSourceLocInfo source,
-    ElStringView template, ElDiagMeta meta
+    ElStringView template, ElDiagMeta meta,
+    bool noignore
 ) {
+    bool ignore = false;
+    if (!noignore && (sev == EL_DIAG_WARN || sev == EL_DIAG_NOTE))
+        for (ElSourceRange* r = span.ranges; r < span.ranges + span.count; ++r)
+            ignore |= r->doc->is_system;
+
+    engine->last_report_accepted = !ignore;
+    if (ignore)
+        return NULL;
+
     ElDiagnostic* diag = EL_DYNARENA_NEW_STRUCT(engine->arena, ElDiagnostic, {
         .sev = sev,
         .source = source,
@@ -94,6 +106,8 @@ void el_diag_help_impl(
     ElDiagEngine* engine, ElSourceLocInfo source,
     ElStringView template, ElDiagMeta meta
 ) {
+    if (!engine->last_report_accepted) return;
+
     // just in case
     EL_ASSERT(engine->diag.tail != NULL, "no diagnostic to add help to");
 
