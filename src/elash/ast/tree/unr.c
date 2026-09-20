@@ -62,7 +62,7 @@ ElAstExpr* el_ast_unr_as_expr(ElDynArena* arena, ElAstUnr* node) {
 
         return el_ast_new_bin_expr(
             arena, node->span,
-            EL_SEMA_BIN_OP_INDEX, base, index
+            EL_BIN_OP_INDEX, base, index
         );
     }
     }

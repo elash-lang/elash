@@ -11,13 +11,13 @@ Test(el_parser_happy, parse_expr) {
     cr_assert_eq(diag.summary.total_errors, 0);
 
     cr_assert_eq(expr->type, EL_AST_EXPR_BINARY);
-    cr_assert_eq(expr->as.binary.op, EL_SEMA_BIN_OP_SUB);
+    cr_assert_eq(expr->as.binary.op, EL_BIN_OP_SUB);
 
     // left: 1 + 2 / 30
     ElAstExpr* left = expr->as.binary.left;
     cr_assert_not_null(left);
     cr_assert_eq(left->type, EL_AST_EXPR_BINARY);
-    cr_assert_eq(left->as.binary.op, EL_SEMA_BIN_OP_ADD);
+    cr_assert_eq(left->as.binary.op, EL_BIN_OP_ADD);
 
     // left-left: 1
     cr_assert_eq(left->as.binary.left->type, EL_AST_EXPR_LITERAL);
@@ -27,7 +27,7 @@ Test(el_parser_happy, parse_expr) {
     ElAstExpr* div_node = left->as.binary.right;
     cr_assert_not_null(div_node);
     cr_assert_eq(div_node->type, EL_AST_EXPR_BINARY);
-    cr_assert_eq(div_node->as.binary.op, EL_SEMA_BIN_OP_DIV);
+    cr_assert_eq(div_node->as.binary.op, EL_BIN_OP_DIV);
 
     assert_int_lit(div_node->as.binary.left,  EL_INT128(2));
     assert_int_lit(div_node->as.binary.right, EL_INT128(30));
@@ -36,7 +36,7 @@ Test(el_parser_happy, parse_expr) {
     ElAstExpr* right = expr->as.binary.right;
     cr_assert_not_null(right);
     cr_assert_eq(right->type, EL_AST_EXPR_BINARY);
-    cr_assert_eq(right->as.binary.op, EL_SEMA_BIN_OP_ADD);
+    cr_assert_eq(right->as.binary.op, EL_BIN_OP_ADD);
     assert_char_lit(right->as.binary.left, 'X');
     assert_str_lit(right->as.binary.right, "Hello");
 }
@@ -87,7 +87,7 @@ Test(el_parser_happy, parse_stmt_aug_assign) {
     cr_assert(el_sv_eql(stmt->as.cassign.target->as.ident.name, EL_SV("x")));
 
     // op: +=
-    cr_assert_eq(stmt->as.cassign.op, EL_SEMA_BIN_OP_ADD);
+    cr_assert_eq(stmt->as.cassign.op, EL_BIN_OP_ADD);
 
     // value: 10
     cr_assert_not_null(stmt->as.cassign.value);

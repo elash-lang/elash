@@ -17,9 +17,9 @@ bool el_hir_expr_is_lvalue(const ElHirExpr* hir) {
     case EL_HIR_EXPR_SYMBOL:
         return hir->as.symbol->kind == EL_SYM_VAR || hir->as.symbol->kind == EL_SYM_FUNC;
     case EL_HIR_EXPR_UNARY:
-        return hir->as.unary.op == EL_SEMA_UNARY_OP_DEREF || hir->as.unary.op == EL_SEMA_UNARY_OP_OPT_UNWRAP;
+        return hir->as.unary.op == EL_UNARY_OP_DEREF || hir->as.unary.op == EL_UNARY_OP_OPT_UNWRAP;
     case EL_HIR_EXPR_BINARY:
-        return hir->as.binary.op == EL_SEMA_BIN_OP_INDEX;
+        return hir->as.binary.op == EL_BIN_OP_INDEX;
     case EL_HIR_EXPR_MEMBER:
         return el_hir_expr_is_lvalue(hir->as.member.expr);
     case EL_HIR_EXPR_TMEMBER:

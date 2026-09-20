@@ -216,18 +216,18 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
     while (true) {
         if (el_parser_check(parser, EL_TT_INC)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_POST_INC, expr);
         } else if (el_parser_check(parser, EL_TT_DEC)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_POST_DEC, expr);
         } else if (el_parser_match(parser, EL_TT_LPAREN)) {
             expr = _el_parser_parse_call(parser, expr);
         } else if (el_parser_check(parser, EL_TT_CARET)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_DEREF, expr);
         } else if (el_parser_check(parser, EL_TT_LOGICAL_NOT)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_OPT_UNWRAP, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_OPT_UNWRAP, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
             if (el_parser_has_errs(parser)) {
@@ -248,7 +248,7 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
             expr = el_ast_new_bin_expr(
                 parser->aarena,
                 el_srcspan_merge(expr->span, rbracket.span),
-                EL_SEMA_BIN_OP_INDEX, expr, index
+                EL_BIN_OP_INDEX, expr, index
             );
         } else if (el_parser_match(parser, EL_TT_DOT)) {
             expr = _el_parser_parse_member(parser, expr, false);
@@ -268,43 +268,43 @@ ElAstExpr* _el_parser_parse_unary(ElParser* parser) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_POS, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_POS, operand);
     }
     if (el_parser_check(parser, EL_TT_MINUS)) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_NEG, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_NEG, operand);
     }
     if (el_parser_check(parser, EL_TT_LOGICAL_NOT)) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_NOT, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_NOT, operand);
     }
     if (el_parser_check(parser, EL_TT_BITWISE_NOT)) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_BW_NOT, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_BW_NOT, operand);
     }
     if (el_parser_check(parser, EL_TT_INC)) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_PRE_INC, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_PRE_INC, operand);
     }
     if (el_parser_check(parser, EL_TT_DEC)) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_PRE_DEC, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_PRE_DEC, operand);
     }
     if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
         ElToken tok = el_parser_advance(parser);
         ElAstExpr* operand = _el_parser_parse_unary(parser);
         if (el_parser_has_errs(parser)) return NULL;
-        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_SEMA_UNARY_OP_ADDROF, operand);
+        return el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(tok.span, operand->span), EL_UNARY_OP_ADDROF, operand);
     }
 
     return _el_parser_parse_postfix(parser);
@@ -337,9 +337,9 @@ ElAstExpr* _el_parser_parse_multiplicative(ElParser* parser) {
 
     while (true) {
         ElAstBinOp type;
-        if (el_parser_match(parser, EL_TT_STAR)) type = EL_SEMA_BIN_OP_MUL;
-        else if (el_parser_match(parser, EL_TT_SLASH)) type = EL_SEMA_BIN_OP_DIV;
-        else if (el_parser_match(parser, EL_TT_PERCENT)) type = EL_SEMA_BIN_OP_MOD;
+        if (el_parser_match(parser, EL_TT_STAR)) type = EL_BIN_OP_MUL;
+        else if (el_parser_match(parser, EL_TT_SLASH)) type = EL_BIN_OP_DIV;
+        else if (el_parser_match(parser, EL_TT_PERCENT)) type = EL_BIN_OP_MOD;
         else break;
 
         ElAstExpr* right = _el_parser_parse_cast(parser);
@@ -358,8 +358,8 @@ ElAstExpr* _el_parser_parse_additive(ElParser* parser) {
 
     while (true) {
         ElAstBinOp type;
-        if (el_parser_match(parser, EL_TT_PLUS)) type = EL_SEMA_BIN_OP_ADD;
-        else if (el_parser_match(parser, EL_TT_MINUS)) type = EL_SEMA_BIN_OP_SUB;
+        if (el_parser_match(parser, EL_TT_PLUS)) type = EL_BIN_OP_ADD;
+        else if (el_parser_match(parser, EL_TT_MINUS)) type = EL_BIN_OP_SUB;
         else break;
 
         ElAstExpr* right = _el_parser_parse_multiplicative(parser);
@@ -378,8 +378,8 @@ ElAstExpr* _el_parser_parse_shift(ElParser* parser) {
 
     while (true) {
         ElAstBinOp type;
-        if (el_parser_match(parser, EL_TT_SHL)) type = EL_SEMA_BIN_OP_SHL;
-        else if (el_parser_match(parser, EL_TT_SHR)) type = EL_SEMA_BIN_OP_SHR;
+        if (el_parser_match(parser, EL_TT_SHL)) type = EL_BIN_OP_SHL;
+        else if (el_parser_match(parser, EL_TT_SHR)) type = EL_BIN_OP_SHR;
         else break;
 
         ElAstExpr* right = _el_parser_parse_additive(parser);
@@ -398,10 +398,10 @@ ElAstExpr* _el_parser_parse_relational(ElParser* parser) {
 
     while (true) {
         ElAstBinOp type;
-        if (el_parser_match(parser, EL_TT_LT)) type = EL_SEMA_BIN_OP_LT;
-        else if (el_parser_match(parser, EL_TT_LTE)) type = EL_SEMA_BIN_OP_LTE;
-        else if (el_parser_match(parser, EL_TT_GT)) type = EL_SEMA_BIN_OP_GT;
-        else if (el_parser_match(parser, EL_TT_GTE)) type = EL_SEMA_BIN_OP_GTE;
+        if (el_parser_match(parser, EL_TT_LT)) type = EL_BIN_OP_LT;
+        else if (el_parser_match(parser, EL_TT_LTE)) type = EL_BIN_OP_LTE;
+        else if (el_parser_match(parser, EL_TT_GT)) type = EL_BIN_OP_GT;
+        else if (el_parser_match(parser, EL_TT_GTE)) type = EL_BIN_OP_GTE;
         else break;
 
         ElAstExpr* right = _el_parser_parse_shift(parser);
@@ -420,8 +420,8 @@ ElAstExpr* _el_parser_parse_equality(ElParser* parser) {
 
     while (true) {
         ElAstBinOp type;
-        if (el_parser_match(parser, EL_TT_EQL)) type = EL_SEMA_BIN_OP_EQ;
-        else if (el_parser_match(parser, EL_TT_NEQ)) type = EL_SEMA_BIN_OP_NEQ;
+        if (el_parser_match(parser, EL_TT_EQL)) type = EL_BIN_OP_EQ;
+        else if (el_parser_match(parser, EL_TT_NEQ)) type = EL_BIN_OP_NEQ;
         else break;
 
         ElAstExpr* right = _el_parser_parse_relational(parser);
@@ -444,7 +444,7 @@ ElAstExpr* _el_parser_parse_bitwise_and(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_BW_AND, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_BW_AND, expr, right);
     }
     return expr;
 }
@@ -459,7 +459,7 @@ ElAstExpr* _el_parser_parse_bitwise_xor(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_BW_XOR, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_BW_XOR, expr, right);
     }
     return expr;
 }
@@ -474,7 +474,7 @@ ElAstExpr* _el_parser_parse_bitwise_or(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_BW_OR, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_BW_OR, expr, right);
     }
     return expr;
 }
@@ -489,7 +489,7 @@ ElAstExpr* _el_parser_parse_bitwise_imp(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_BW_IMP, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_BW_IMP, expr, right);
     }
     return expr;
 }
@@ -504,7 +504,7 @@ ElAstExpr* _el_parser_parse_logical_and(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_AND, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_AND, expr, right);
     }
     return expr;
 }
@@ -519,7 +519,7 @@ ElAstExpr* _el_parser_parse_logical_or(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_OR, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_OR, expr, right);
     }
     return expr;
 }
@@ -534,7 +534,7 @@ ElAstExpr* _el_parser_parse_logical_imp(ElParser* parser) {
             el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
             break;
         }
-        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_SEMA_BIN_OP_IMP, expr, right);
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), EL_BIN_OP_IMP, expr, right);
     }
     return expr;
 }
@@ -545,8 +545,8 @@ ElAstExpr* _el_parser_parse_optional(ElParser* parser) {
 
     while (true) {
         ElAstBinOp type;
-        if (el_parser_match(parser, EL_TT_OPT_FB)) type = EL_SEMA_BIN_OP_OPT_FB;
-        else if (el_parser_match(parser, EL_TT_OPT_MAP)) type = EL_SEMA_BIN_OP_OPT_MAP;
+        if (el_parser_match(parser, EL_TT_OPT_FB)) type = EL_BIN_OP_OPT_FB;
+        else if (el_parser_match(parser, EL_TT_OPT_MAP)) type = EL_BIN_OP_OPT_MAP;
         else break;
 
         ElAstExpr* right = _el_parser_parse_logical_imp(parser);

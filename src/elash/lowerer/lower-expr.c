@@ -92,7 +92,7 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHir
 }
 
 static bool _el_lowerer_is_incdec(ElUnaryOp op) {
-    return op >= EL_SEMA_UNARY_OP_PRE_INC && op <= EL_SEMA_UNARY_OP_POST_DEC;
+    return op >= EL_UNARY_OP_PRE_INC && op <= EL_UNARY_OP_POST_DEC;
 }
 
 static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr) {
@@ -112,9 +112,9 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
     }
     ElMirValue* one = el_mir_new_const(lw->arena, val_type, one_lit);
 
-    ElBinOp bin_op = (expr->op == EL_SEMA_UNARY_OP_PRE_INC || expr->op == EL_SEMA_UNARY_OP_POST_INC)
-        ? EL_SEMA_BIN_OP_ADD
-        : EL_SEMA_BIN_OP_SUB;
+    ElBinOp bin_op = (expr->op == EL_UNARY_OP_PRE_INC || expr->op == EL_UNARY_OP_POST_INC)
+        ? EL_BIN_OP_ADD
+        : EL_BIN_OP_SUB;
 
     ElMirValue* updated = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, updated, bin_op, current, one));
@@ -125,7 +125,7 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
 
 ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
-    if (bin->op == EL_SEMA_BIN_OP_INDEX) {
+    if (bin->op == EL_BIN_OP_INDEX) {
          ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir);
          ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
          el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
@@ -133,7 +133,7 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
     }
 
     if (el_bin_op_is_optional(bin->op))
-        return bin->op == EL_SEMA_BIN_OP_OPT_FB
+        return bin->op == EL_BIN_OP_OPT_FB
             ? _el_lowerer_lower_opt_fb(lw, hir, bin)
             : _el_lowerer_lower_opt_map(lw, hir, bin);
 
@@ -150,14 +150,14 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
         }
     }
 
-    if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_OR || bin->op == EL_SEMA_BIN_OP_IMP) {
+    if (bin->op == EL_BIN_OP_AND || bin->op == EL_BIN_OP_OR || bin->op == EL_BIN_OP_IMP) {
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirValue* res_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, res_ptr, mir_type));
 
         ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
 
-        if (bin->op == EL_SEMA_BIN_OP_IMP) {
+        if (bin->op == EL_BIN_OP_IMP) {
             ElMirConstant true_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = EL_INT128(1) };
             ElMirValue* true_val = el_mir_new_const(lw->arena, mir_type, true_lit);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, true_val));
@@ -168,7 +168,7 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
         uint32_t rhs_id = lw->current_func->block_count++;
         uint32_t merge_id = lw->current_func->block_count++;
 
-        if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_IMP) {
+        if (bin->op == EL_BIN_OP_AND || bin->op == EL_BIN_OP_IMP) {
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, rhs_id, merge_id));
         } else {
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, merge_id, rhs_id));
@@ -199,18 +199,18 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
 
 ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExpr* hir, ElHirUnaryExpr* unary) {
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
-    if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
+    if (unary->op == EL_UNARY_OP_ADDROF) {
         return el_lowerer_get_lvalue(lw, unary->operand);
     }
 
-    if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
+    if (unary->op == EL_UNARY_OP_DEREF) {
         ElMirValue* ptr = el_lowerer_lower_expr(lw, unary->operand);
         ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
         return reg;
     }
 
-    if (unary->op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+    if (unary->op == EL_UNARY_OP_OPT_UNWRAP) {
         ElMirValue* val = _el_lowerer_opt_get_value(lw, unary->operand->type, el_lowerer_lower_expr(lw, unary->operand));
         return val;
     }

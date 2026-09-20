@@ -199,12 +199,12 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
 
 LLVMIntPredicate elc_llvm_get_predicate_of(ElBinOp op, bool is_signed) {
     switch (op) {
-    case EL_SEMA_BIN_OP_EQ:  return LLVMIntEQ;
-    case EL_SEMA_BIN_OP_NEQ: return LLVMIntNE;
-    case EL_SEMA_BIN_OP_GT:  return is_signed ? LLVMIntSGT : LLVMIntUGT;
-    case EL_SEMA_BIN_OP_GTE: return is_signed ? LLVMIntSGE : LLVMIntUGE;
-    case EL_SEMA_BIN_OP_LT:  return is_signed ? LLVMIntSLT : LLVMIntULT;
-    case EL_SEMA_BIN_OP_LTE: return is_signed ? LLVMIntSLE : LLVMIntULE;
+    case EL_BIN_OP_EQ:  return LLVMIntEQ;
+    case EL_BIN_OP_NEQ: return LLVMIntNE;
+    case EL_BIN_OP_GT:  return is_signed ? LLVMIntSGT : LLVMIntUGT;
+    case EL_BIN_OP_GTE: return is_signed ? LLVMIntSGE : LLVMIntUGE;
+    case EL_BIN_OP_LT:  return is_signed ? LLVMIntSLT : LLVMIntULT;
+    case EL_BIN_OP_LTE: return is_signed ? LLVMIntSLE : LLVMIntULE;
     default:
         EL_UNREACHABLE("op should be a comparison operator");
     }
@@ -218,12 +218,12 @@ bool elc_llvm_is_type_signed(const ElMirType* type) {
 
 LLVMRealPredicate elc_llvm_get_fp_predicate_of(ElBinOp op) {
     switch (op) {
-    case EL_SEMA_BIN_OP_EQ:  return LLVMRealOEQ;
-    case EL_SEMA_BIN_OP_NEQ: return LLVMRealONE;
-    case EL_SEMA_BIN_OP_GT:  return LLVMRealOGT;
-    case EL_SEMA_BIN_OP_GTE: return LLVMRealOGE;
-    case EL_SEMA_BIN_OP_LT:  return LLVMRealOLT;
-    case EL_SEMA_BIN_OP_LTE: return LLVMRealOLE;
+    case EL_BIN_OP_EQ:  return LLVMRealOEQ;
+    case EL_BIN_OP_NEQ: return LLVMRealONE;
+    case EL_BIN_OP_GT:  return LLVMRealOGT;
+    case EL_BIN_OP_GTE: return LLVMRealOGE;
+    case EL_BIN_OP_LT:  return LLVMRealOLT;
+    case EL_BIN_OP_LTE: return LLVMRealOLE;
     default:
         EL_UNREACHABLE("op should be a comparison operator");
     }
@@ -240,22 +240,22 @@ void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr*
 
     LLVMValueRef res = NULL;
     switch (bin->op) {
-    case EL_SEMA_BIN_OP_ADD: res = (is_float ? LLVMBuildFAdd : LLVMBuildAdd)(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_SUB: res = (is_float ? LLVMBuildFSub : LLVMBuildSub)(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_MUL: res = (is_float ? LLVMBuildFMul : LLVMBuildMul)(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_DIV: res = (is_float ? LLVMBuildFDiv : (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv))(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_MOD: res = (is_float ? LLVMBuildFRem : (is_signed ? LLVMBuildSRem : LLVMBuildURem))(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_ADD: res = (is_float ? LLVMBuildFAdd : LLVMBuildAdd)(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_SUB: res = (is_float ? LLVMBuildFSub : LLVMBuildSub)(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_MUL: res = (is_float ? LLVMBuildFMul : LLVMBuildMul)(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_DIV: res = (is_float ? LLVMBuildFDiv : (is_signed ? LLVMBuildSDiv : LLVMBuildUDiv))(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_MOD: res = (is_float ? LLVMBuildFRem : (is_signed ? LLVMBuildSRem : LLVMBuildURem))(ctx->builder, lhs, rhs, ""); break;
 
-    case EL_SEMA_BIN_OP_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
-    case EL_SEMA_BIN_OP_IMP: res = LLVMBuildOr(ctx->builder, LLVMBuildNot(ctx->builder, lhs, ""), rhs, ""); break;
+    case EL_BIN_OP_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
+    case EL_BIN_OP_IMP: res = LLVMBuildOr(ctx->builder, LLVMBuildNot(ctx->builder, lhs, ""), rhs, ""); break;
 
-    case EL_SEMA_BIN_OP_BW_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_BW_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
-    case EL_SEMA_BIN_OP_BW_XOR: res = LLVMBuildXor(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_BW_IMP: res = LLVMBuildOr(ctx->builder, LLVMBuildNot(ctx->builder, lhs, ""), rhs, ""); break;
-    case EL_SEMA_BIN_OP_SHL:    res = LLVMBuildShl(ctx->builder, lhs, rhs, ""); break;
-    case EL_SEMA_BIN_OP_SHR:
+    case EL_BIN_OP_BW_AND: res = LLVMBuildAnd(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_BW_OR:  res = LLVMBuildOr(ctx->builder, lhs, rhs, "");  break;
+    case EL_BIN_OP_BW_XOR: res = LLVMBuildXor(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_BW_IMP: res = LLVMBuildOr(ctx->builder, LLVMBuildNot(ctx->builder, lhs, ""), rhs, ""); break;
+    case EL_BIN_OP_SHL:    res = LLVMBuildShl(ctx->builder, lhs, rhs, ""); break;
+    case EL_BIN_OP_SHR:
         res = (is_signed ? LLVMBuildAShr : LLVMBuildLShr)(ctx->builder, lhs, rhs, ""); break;
 
     default:
@@ -283,26 +283,26 @@ void elc_llvm_compile_unary_instr(Context* ctx, FunctionContext* func, ElMirInst
 
     LLVMValueRef res = NULL;
     switch (unary->op) {
-    case EL_SEMA_UNARY_OP_POS:
+    case EL_UNARY_OP_POS:
         res = operand;
         break;
-    case EL_SEMA_UNARY_OP_NEG:
+    case EL_UNARY_OP_NEG:
         res = LLVMBuildNeg(ctx->builder, operand, "");
         break;
-    case EL_SEMA_UNARY_OP_NOT:
+    case EL_UNARY_OP_NOT:
         res = LLVMBuildICmp(ctx->builder, LLVMIntEQ, operand, zero, "");
         break;
-    case EL_SEMA_UNARY_OP_BW_NOT:
+    case EL_UNARY_OP_BW_NOT:
         res = LLVMBuildNot(ctx->builder, operand, "");
         break;
 
-    case EL_SEMA_UNARY_OP_PRE_INC:
-    case EL_SEMA_UNARY_OP_PRE_DEC:
-    case EL_SEMA_UNARY_OP_POST_INC:
-    case EL_SEMA_UNARY_OP_POST_DEC:
-    case EL_SEMA_UNARY_OP_DEREF:
-    case EL_SEMA_UNARY_OP_ADDROF:
-    case EL_SEMA_UNARY_OP_OPT_UNWRAP:
+    case EL_UNARY_OP_PRE_INC:
+    case EL_UNARY_OP_PRE_DEC:
+    case EL_UNARY_OP_POST_INC:
+    case EL_UNARY_OP_POST_DEC:
+    case EL_UNARY_OP_DEREF:
+    case EL_UNARY_OP_ADDROF:
+    case EL_UNARY_OP_OPT_UNWRAP:
         EL_UNREACHABLE("should be lowered before codegen");
         break;
 

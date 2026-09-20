@@ -31,58 +31,58 @@ enum {
 
 static int bin_op_prec(ElAstBinOp op) {
     switch (op) {
-    case EL_SEMA_BIN_OP_OPT_FB:
-    case EL_SEMA_BIN_OP_OPT_MAP: return PREC_OPT;
-    case EL_SEMA_BIN_OP_IMP:    return PREC_IMP;
-    case EL_SEMA_BIN_OP_OR:     return PREC_OR;
-    case EL_SEMA_BIN_OP_AND:    return PREC_AND;
-    case EL_SEMA_BIN_OP_BW_IMP: return PREC_BW_IMP;
-    case EL_SEMA_BIN_OP_BW_OR:  return PREC_BW_OR;
-    case EL_SEMA_BIN_OP_BW_XOR: return PREC_BW_XOR;
-    case EL_SEMA_BIN_OP_BW_AND: return PREC_BW_AND;
-    case EL_SEMA_BIN_OP_EQ:
-    case EL_SEMA_BIN_OP_NEQ:    return PREC_EQ;
-    case EL_SEMA_BIN_OP_LT:
-    case EL_SEMA_BIN_OP_LTE:
-    case EL_SEMA_BIN_OP_GT:
-    case EL_SEMA_BIN_OP_GTE:    return PREC_REL;
-    case EL_SEMA_BIN_OP_SHL:
-    case EL_SEMA_BIN_OP_SHR:    return PREC_SHIFT;
-    case EL_SEMA_BIN_OP_ADD:
-    case EL_SEMA_BIN_OP_SUB:    return PREC_ADD;
-    case EL_SEMA_BIN_OP_MUL:
-    case EL_SEMA_BIN_OP_DIV:
-    case EL_SEMA_BIN_OP_MOD:    return PREC_MUL;
-    case EL_SEMA_BIN_OP_INDEX:  return PREC_POSTFIX;
+    case EL_BIN_OP_OPT_FB:
+    case EL_BIN_OP_OPT_MAP: return PREC_OPT;
+    case EL_BIN_OP_IMP:    return PREC_IMP;
+    case EL_BIN_OP_OR:     return PREC_OR;
+    case EL_BIN_OP_AND:    return PREC_AND;
+    case EL_BIN_OP_BW_IMP: return PREC_BW_IMP;
+    case EL_BIN_OP_BW_OR:  return PREC_BW_OR;
+    case EL_BIN_OP_BW_XOR: return PREC_BW_XOR;
+    case EL_BIN_OP_BW_AND: return PREC_BW_AND;
+    case EL_BIN_OP_EQ:
+    case EL_BIN_OP_NEQ:    return PREC_EQ;
+    case EL_BIN_OP_LT:
+    case EL_BIN_OP_LTE:
+    case EL_BIN_OP_GT:
+    case EL_BIN_OP_GTE:    return PREC_REL;
+    case EL_BIN_OP_SHL:
+    case EL_BIN_OP_SHR:    return PREC_SHIFT;
+    case EL_BIN_OP_ADD:
+    case EL_BIN_OP_SUB:    return PREC_ADD;
+    case EL_BIN_OP_MUL:
+    case EL_BIN_OP_DIV:
+    case EL_BIN_OP_MOD:    return PREC_MUL;
+    case EL_BIN_OP_INDEX:  return PREC_POSTFIX;
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstBinOp, op);
 }
 
 static ElTokenType bin_op_token(ElAstBinOp op) {
     switch (op) {
-    case EL_SEMA_BIN_OP_ADD:     return EL_TT_PLUS;
-    case EL_SEMA_BIN_OP_SUB:     return EL_TT_MINUS;
-    case EL_SEMA_BIN_OP_MUL:     return EL_TT_STAR;
-    case EL_SEMA_BIN_OP_DIV:     return EL_TT_SLASH;
-    case EL_SEMA_BIN_OP_MOD:     return EL_TT_PERCENT;
-    case EL_SEMA_BIN_OP_EQ:      return EL_TT_EQL;
-    case EL_SEMA_BIN_OP_NEQ:     return EL_TT_NEQ;
-    case EL_SEMA_BIN_OP_LT:      return EL_TT_LT;
-    case EL_SEMA_BIN_OP_LTE:     return EL_TT_LTE;
-    case EL_SEMA_BIN_OP_GT:      return EL_TT_GT;
-    case EL_SEMA_BIN_OP_GTE:     return EL_TT_GTE;
-    case EL_SEMA_BIN_OP_AND:     return EL_TT_LOGICAL_AND;
-    case EL_SEMA_BIN_OP_OR:      return EL_TT_LOGICAL_OR;
-    case EL_SEMA_BIN_OP_IMP:     return EL_TT_LOGICAL_IMP;
-    case EL_SEMA_BIN_OP_OPT_FB:  return EL_TT_OPT_FB;
-    case EL_SEMA_BIN_OP_OPT_MAP: return EL_TT_OPT_MAP;
-    case EL_SEMA_BIN_OP_BW_AND:  return EL_TT_BITWISE_AND;
-    case EL_SEMA_BIN_OP_BW_OR:   return EL_TT_BITWISE_OR;
-    case EL_SEMA_BIN_OP_BW_XOR:  return EL_TT_BITWISE_XOR;
-    case EL_SEMA_BIN_OP_BW_IMP:  return EL_TT_BITWISE_IMP;
-    case EL_SEMA_BIN_OP_SHL:     return EL_TT_SHL;
-    case EL_SEMA_BIN_OP_SHR:     return EL_TT_SHR;
-    case EL_SEMA_BIN_OP_INDEX:   EL_UNREACHABLE("index is not a single token");
+    case EL_BIN_OP_ADD:     return EL_TT_PLUS;
+    case EL_BIN_OP_SUB:     return EL_TT_MINUS;
+    case EL_BIN_OP_MUL:     return EL_TT_STAR;
+    case EL_BIN_OP_DIV:     return EL_TT_SLASH;
+    case EL_BIN_OP_MOD:     return EL_TT_PERCENT;
+    case EL_BIN_OP_EQ:      return EL_TT_EQL;
+    case EL_BIN_OP_NEQ:     return EL_TT_NEQ;
+    case EL_BIN_OP_LT:      return EL_TT_LT;
+    case EL_BIN_OP_LTE:     return EL_TT_LTE;
+    case EL_BIN_OP_GT:      return EL_TT_GT;
+    case EL_BIN_OP_GTE:     return EL_TT_GTE;
+    case EL_BIN_OP_AND:     return EL_TT_LOGICAL_AND;
+    case EL_BIN_OP_OR:      return EL_TT_LOGICAL_OR;
+    case EL_BIN_OP_IMP:     return EL_TT_LOGICAL_IMP;
+    case EL_BIN_OP_OPT_FB:  return EL_TT_OPT_FB;
+    case EL_BIN_OP_OPT_MAP: return EL_TT_OPT_MAP;
+    case EL_BIN_OP_BW_AND:  return EL_TT_BITWISE_AND;
+    case EL_BIN_OP_BW_OR:   return EL_TT_BITWISE_OR;
+    case EL_BIN_OP_BW_XOR:  return EL_TT_BITWISE_XOR;
+    case EL_BIN_OP_BW_IMP:  return EL_TT_BITWISE_IMP;
+    case EL_BIN_OP_SHL:     return EL_TT_SHL;
+    case EL_BIN_OP_SHR:     return EL_TT_SHR;
+    case EL_BIN_OP_INDEX:   EL_UNREACHABLE("index is not a single token");
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstBinOp, op);
 }
@@ -93,7 +93,7 @@ static int expr_prec(ElAstExpr* expr) {
         return bin_op_prec(expr->as.binary.op);
     case EL_AST_EXPR_UNARY:
         if (el_unary_op_is_post(expr->as.unary.op)
-            || expr->as.unary.op == EL_SEMA_UNARY_OP_DEREF) {
+            || expr->as.unary.op == EL_UNARY_OP_DEREF) {
             return PREC_POSTFIX;
         }
         return PREC_UNARY;
@@ -192,26 +192,26 @@ static bool unparse_unary(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstExpr* operand = expr->as.unary.operand;
     int prec = expr_prec(expr);
 
-    if (el_unary_op_is_post(op) || op == EL_SEMA_UNARY_OP_DEREF) {
+    if (el_unary_op_is_post(op) || op == EL_UNARY_OP_DEREF) {
         if (!unparse_child(unpar, operand, prec, false)) return false;
 
         switch (op) {
-        case EL_SEMA_UNARY_OP_POST_INC: return el_unparser_push_punct(unpar, EL_TT_INC);
-        case EL_SEMA_UNARY_OP_POST_DEC: return el_unparser_push_punct(unpar, EL_TT_DEC);
-        case EL_SEMA_UNARY_OP_DEREF:    return el_unparser_push_punct(unpar, EL_TT_CARET);
-        case EL_SEMA_UNARY_OP_OPT_UNWRAP: return el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT);
+        case EL_UNARY_OP_POST_INC: return el_unparser_push_punct(unpar, EL_TT_INC);
+        case EL_UNARY_OP_POST_DEC: return el_unparser_push_punct(unpar, EL_TT_DEC);
+        case EL_UNARY_OP_DEREF:    return el_unparser_push_punct(unpar, EL_TT_CARET);
+        case EL_UNARY_OP_OPT_UNWRAP: return el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT);
         default: EL_UNREACHABLE("not a postfix unary");
         }
     }
 
     switch (op) {
-    case EL_SEMA_UNARY_OP_POS:     if (!el_unparser_push_punct(unpar, EL_TT_PLUS))        return false; break;
-    case EL_SEMA_UNARY_OP_NEG:     if (!el_unparser_push_punct(unpar, EL_TT_MINUS))       return false; break;
-    case EL_SEMA_UNARY_OP_NOT:     if (!el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT)) return false; break;
-    case EL_SEMA_UNARY_OP_BW_NOT:  if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_NOT)) return false; break;
-    case EL_SEMA_UNARY_OP_ADDROF:  if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_AND)) return false; break;
-    case EL_SEMA_UNARY_OP_PRE_INC: if (!el_unparser_push_punct(unpar, EL_TT_INC))         return false; break;
-    case EL_SEMA_UNARY_OP_PRE_DEC: if (!el_unparser_push_punct(unpar, EL_TT_DEC))         return false; break;
+    case EL_UNARY_OP_POS:     if (!el_unparser_push_punct(unpar, EL_TT_PLUS))        return false; break;
+    case EL_UNARY_OP_NEG:     if (!el_unparser_push_punct(unpar, EL_TT_MINUS))       return false; break;
+    case EL_UNARY_OP_NOT:     if (!el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT)) return false; break;
+    case EL_UNARY_OP_BW_NOT:  if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_NOT)) return false; break;
+    case EL_UNARY_OP_ADDROF:  if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_AND)) return false; break;
+    case EL_UNARY_OP_PRE_INC: if (!el_unparser_push_punct(unpar, EL_TT_INC))         return false; break;
+    case EL_UNARY_OP_PRE_DEC: if (!el_unparser_push_punct(unpar, EL_TT_DEC))         return false; break;
     default: EL_UNREACHABLE("not a prefix unary");
     }
 
@@ -222,7 +222,7 @@ static bool unparse_binary(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstBinOp op = expr->as.binary.op;
     int prec = bin_op_prec(op);
 
-    if (op == EL_SEMA_BIN_OP_INDEX) {
+    if (op == EL_BIN_OP_INDEX) {
         if (!unparse_child(unpar, expr->as.binary.left, prec, false)) return false;
         if (!el_unparser_push_punct(unpar, EL_TT_LBRACKET))           return false;
         if (!el_unparser_unparse_expr(unpar, expr->as.binary.right))  return false;

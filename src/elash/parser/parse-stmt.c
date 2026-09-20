@@ -132,21 +132,21 @@ static ElAstStmt* _el_parser_parse_while(ElParser* parser, ElToken while_tok) {
 }
 
 static bool match_compound_op(ElParser* parser, ElBinOp* op) {
-    if      (el_parser_match(parser, EL_TT_ADD_ASSIGN))         { return *op = EL_SEMA_BIN_OP_ADD,    true; }
-    else if (el_parser_match(parser, EL_TT_SUB_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SUB,    true; }
-    else if (el_parser_match(parser, EL_TT_MUL_ASSIGN))         { return *op = EL_SEMA_BIN_OP_MUL,    true; }
-    else if (el_parser_match(parser, EL_TT_DIV_ASSIGN))         { return *op = EL_SEMA_BIN_OP_DIV,    true; }
-    else if (el_parser_match(parser, EL_TT_MOD_ASSIGN))         { return *op = EL_SEMA_BIN_OP_MOD,    true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_AND_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_AND, true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_OR_ASSIGN))  { return *op = EL_SEMA_BIN_OP_BW_OR,  true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_XOR_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_XOR, true; }
-    else if (el_parser_match(parser, EL_TT_LOGICAL_AND_ASSIGN)) { return *op = EL_SEMA_BIN_OP_AND,    true; }
-    else if (el_parser_match(parser, EL_TT_LOGICAL_OR_ASSIGN))  { return *op = EL_SEMA_BIN_OP_OR,     true; }
-    else if (el_parser_match(parser, EL_TT_LOGICAL_IMP_ASSIGN)) { return *op = EL_SEMA_BIN_OP_IMP,    true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_IMP_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_IMP, true; }
-    else if (el_parser_match(parser, EL_TT_OPT_FB_ASSIGN))      { return *op = EL_SEMA_BIN_OP_OPT_FB, true; }
-    else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SHL,    true; }
-    else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SHR,    true; }
+    if      (el_parser_match(parser, EL_TT_ADD_ASSIGN))         { return *op = EL_BIN_OP_ADD,    true; }
+    else if (el_parser_match(parser, EL_TT_SUB_ASSIGN))         { return *op = EL_BIN_OP_SUB,    true; }
+    else if (el_parser_match(parser, EL_TT_MUL_ASSIGN))         { return *op = EL_BIN_OP_MUL,    true; }
+    else if (el_parser_match(parser, EL_TT_DIV_ASSIGN))         { return *op = EL_BIN_OP_DIV,    true; }
+    else if (el_parser_match(parser, EL_TT_MOD_ASSIGN))         { return *op = EL_BIN_OP_MOD,    true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_AND_ASSIGN)) { return *op = EL_BIN_OP_BW_AND, true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_OR_ASSIGN))  { return *op = EL_BIN_OP_BW_OR,  true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_XOR_ASSIGN)) { return *op = EL_BIN_OP_BW_XOR, true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_AND_ASSIGN)) { return *op = EL_BIN_OP_AND,    true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_OR_ASSIGN))  { return *op = EL_BIN_OP_OR,     true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_IMP_ASSIGN)) { return *op = EL_BIN_OP_IMP,    true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_IMP_ASSIGN)) { return *op = EL_BIN_OP_BW_IMP, true; }
+    else if (el_parser_match(parser, EL_TT_OPT_FB_ASSIGN))      { return *op = EL_BIN_OP_OPT_FB, true; }
+    else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { return *op = EL_BIN_OP_SHL,    true; }
+    else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { return *op = EL_BIN_OP_SHR,    true; }
     return false;
 }
 

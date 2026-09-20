@@ -8,6 +8,6 @@ static inline bool el_is_lvalue(ElHirExpr* operand) {
         || operand->kind == EL_HIR_EXPR_SYMBOL
         || operand->kind == EL_HIR_EXPR_MEMBER
         || operand->kind == EL_HIR_EXPR_TMEMBER
-        ||(operand->kind == EL_HIR_EXPR_BINARY && operand->as.binary.op == EL_SEMA_BIN_OP_INDEX)
-        ||(operand->kind == EL_HIR_EXPR_UNARY  && operand->as.unary.op == EL_SEMA_UNARY_OP_DEREF);
+        ||(operand->kind == EL_HIR_EXPR_BINARY && operand->as.binary.op == EL_BIN_OP_INDEX)
+        ||(operand->kind == EL_HIR_EXPR_UNARY  && operand->as.unary.op == EL_UNARY_OP_DEREF);
 }

@@ -277,7 +277,7 @@ static ElPpValue* parse_postfix(ElPreproc* pp) {
             }
             expr = _el_pp_apply_bin_op(
                 pp, el_srcspan_merge(open_span, tok.span),
-                EL_SEMA_BIN_OP_INDEX, expr, index
+                EL_BIN_OP_INDEX, expr, index
             );
         } else {
             break;
@@ -299,10 +299,10 @@ static ElPpValue* parse_unary(ElPreproc* pp) {
 
     ElUnaryOp op;
     switch (tok.type) {
-    case EL_TT_PLUS:        op = EL_SEMA_UNARY_OP_POS;    break;
-    case EL_TT_MINUS:       op = EL_SEMA_UNARY_OP_NEG;    break;
-    case EL_TT_LOGICAL_NOT: op = EL_SEMA_UNARY_OP_NOT;    break;
-    case EL_TT_BITWISE_NOT: op = EL_SEMA_UNARY_OP_BW_NOT; break;
+    case EL_TT_PLUS:        op = EL_UNARY_OP_POS;    break;
+    case EL_TT_MINUS:       op = EL_UNARY_OP_NEG;    break;
+    case EL_TT_LOGICAL_NOT: op = EL_UNARY_OP_NOT;    break;
+    case EL_TT_BITWISE_NOT: op = EL_UNARY_OP_BW_NOT; break;
     default:                return parse_postfix(pp);
     }
 
@@ -321,9 +321,9 @@ static ElPpValue* parse_multiplicative(ElPreproc* pp) {
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
-        if (tok.type == EL_TT_STAR) op = EL_SEMA_BIN_OP_MUL;
-        else if (tok.type == EL_TT_SLASH) op = EL_SEMA_BIN_OP_DIV;
-        else if (tok.type == EL_TT_PERCENT) op = EL_SEMA_BIN_OP_MOD;
+        if (tok.type == EL_TT_STAR) op = EL_BIN_OP_MUL;
+        else if (tok.type == EL_TT_SLASH) op = EL_BIN_OP_DIV;
+        else if (tok.type == EL_TT_PERCENT) op = EL_BIN_OP_MOD;
         else break;
 
         _el_pp_advance(pp);
@@ -345,8 +345,8 @@ static ElPpValue* parse_additive(ElPreproc* pp) {
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
-        if (tok.type == EL_TT_PLUS) op = EL_SEMA_BIN_OP_ADD;
-        else if (tok.type == EL_TT_MINUS) op = EL_SEMA_BIN_OP_SUB;
+        if (tok.type == EL_TT_PLUS) op = EL_BIN_OP_ADD;
+        else if (tok.type == EL_TT_MINUS) op = EL_BIN_OP_SUB;
         else break;
 
         _el_pp_advance(pp);
@@ -368,8 +368,8 @@ static ElPpValue* parse_shift(ElPreproc* pp) {
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
-        if (tok.type == EL_TT_SHL) op = EL_SEMA_BIN_OP_SHL;
-        else if (tok.type == EL_TT_SHR) op = EL_SEMA_BIN_OP_SHR;
+        if (tok.type == EL_TT_SHL) op = EL_BIN_OP_SHL;
+        else if (tok.type == EL_TT_SHR) op = EL_BIN_OP_SHR;
         else break;
 
         _el_pp_advance(pp);
@@ -391,10 +391,10 @@ static ElPpValue* parse_relational(ElPreproc* pp) {
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
-        if (tok.type == EL_TT_LT) op = EL_SEMA_BIN_OP_LT;
-        else if (tok.type == EL_TT_LTE) op = EL_SEMA_BIN_OP_LTE;
-        else if (tok.type == EL_TT_GT) op = EL_SEMA_BIN_OP_GT;
-        else if (tok.type == EL_TT_GTE) op = EL_SEMA_BIN_OP_GTE;
+        if (tok.type == EL_TT_LT) op = EL_BIN_OP_LT;
+        else if (tok.type == EL_TT_LTE) op = EL_BIN_OP_LTE;
+        else if (tok.type == EL_TT_GT) op = EL_BIN_OP_GT;
+        else if (tok.type == EL_TT_GTE) op = EL_BIN_OP_GTE;
         else break;
 
         _el_pp_advance(pp);
@@ -416,8 +416,8 @@ static ElPpValue* parse_equality(ElPreproc* pp) {
         ElToken tok;
         if (!peek(pp, &tok)) break;
 
-        if (tok.type == EL_TT_EQL) op = EL_SEMA_BIN_OP_EQ;
-        else if (tok.type == EL_TT_NEQ) op = EL_SEMA_BIN_OP_NEQ;
+        if (tok.type == EL_TT_EQL) op = EL_BIN_OP_EQ;
+        else if (tok.type == EL_TT_NEQ) op = EL_BIN_OP_NEQ;
         else break;
 
         _el_pp_advance(pp);
@@ -440,7 +440,7 @@ static ElPpValue* parse_bitwise_and(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_equality(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_BW_AND, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_BW_AND, expr, rhs);
         if (expr == NULL) return NULL;
     }
 
@@ -457,7 +457,7 @@ static ElPpValue* parse_bitwise_xor(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_bitwise_and(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_BW_XOR, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_BW_XOR, expr, rhs);
         if (expr == NULL) return NULL;
     }
 
@@ -474,7 +474,7 @@ static ElPpValue* parse_bitwise_or(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_bitwise_xor(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_BW_OR, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_BW_OR, expr, rhs);
         if (expr == NULL) return NULL;
     }
 
@@ -491,7 +491,7 @@ static ElPpValue* parse_bitwise_imp(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_bitwise_or(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_BW_IMP, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_BW_IMP, expr, rhs);
         if (expr == NULL) return NULL;
     }
 
@@ -508,7 +508,7 @@ static ElPpValue* parse_logical_and(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_bitwise_imp(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_AND, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_AND, expr, rhs);
         if (expr == NULL) return NULL;
     }
 
@@ -525,7 +525,7 @@ static ElPpValue* parse_logical_or(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_logical_and(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_OR, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_OR, expr, rhs);
         if (expr == NULL) return NULL;
     }
 
@@ -542,7 +542,7 @@ static ElPpValue* _eval_internal(ElPreproc* pp) {
         _el_pp_advance(pp);
         ElPpValue* rhs = parse_logical_or(pp);
         if (rhs == NULL) return NULL;
-        expr = _el_pp_apply_bin_op(pp, tok.span, EL_SEMA_BIN_OP_IMP, expr, rhs);
+        expr = _el_pp_apply_bin_op(pp, tok.span, EL_BIN_OP_IMP, expr, rhs);
         if (expr == NULL) return NULL;
     }
 

@@ -60,7 +60,7 @@ ElMirValue* _el_lowerer_opt_has_value(ElLowerer* lw, const ElHirType* type, ElMi
         ElMirValue* null = null_ptr(lw, ptr_type);
         ElMirType* bool_type = lw->tcache->bool_type;
         ElMirValue* result = el_mir_new_reg(lw->arena, bool_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, EL_SEMA_BIN_OP_NEQ, opt, null));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, EL_BIN_OP_NEQ, opt, null));
         return result;
     }
     return _el_lowerer_extract_tuple_field(lw, opt, OPT_FIELD_HAS_VALUE);
@@ -199,23 +199,23 @@ ElMirValue* _el_lowerer_lower_opt_opt_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBi
     // some-eq   = both-some && vals-eq
     // is-equal  = both-null || some-eq
 
-    ElMirValue* left_empty  = emit_unary(lw, EL_SEMA_UNARY_OP_NOT, left_has);
-    ElMirValue* right_empty = emit_unary(lw, EL_SEMA_UNARY_OP_NOT, right_has);
-    ElMirValue* both_null   = emit_bin(lw, EL_SEMA_BIN_OP_AND, left_empty, right_empty);
+    ElMirValue* left_empty  = emit_unary(lw, EL_UNARY_OP_NOT, left_has);
+    ElMirValue* right_empty = emit_unary(lw, EL_UNARY_OP_NOT, right_has);
+    ElMirValue* both_null   = emit_bin(lw, EL_BIN_OP_AND, left_empty, right_empty);
 
-    ElMirValue* both_some = emit_bin(lw, EL_SEMA_BIN_OP_AND, left_has, right_has);
-    ElMirValue* vals_eq   = emit_bin(lw, EL_SEMA_BIN_OP_EQ,  left_val, right_val);
-    ElMirValue* some_eq   = emit_bin(lw, EL_SEMA_BIN_OP_AND, both_some, vals_eq);
-    ElMirValue* is_eq     = emit_bin(lw, EL_SEMA_BIN_OP_OR,  both_null, some_eq);
+    ElMirValue* both_some = emit_bin(lw, EL_BIN_OP_AND, left_has, right_has);
+    ElMirValue* vals_eq   = emit_bin(lw, EL_BIN_OP_EQ,  left_val, right_val);
+    ElMirValue* some_eq   = emit_bin(lw, EL_BIN_OP_AND, both_some, vals_eq);
+    ElMirValue* is_eq     = emit_bin(lw, EL_BIN_OP_OR,  both_null, some_eq);
 
-    if (bin->op == EL_SEMA_BIN_OP_EQ) {
+    if (bin->op == EL_BIN_OP_EQ) {
         return is_eq;
     } else {
         // Theoretically, we could optimize it a bit. Instead of using == and then negating the entire result, we
         // count generate expressions like `different-nullness || vals-neq`, BUT we're using llvm and llvm optimization
         // passes are clearly smarter than me. let's just let them do their job. i LOVE llvm (it's slow, though).
         ElMirValue* result = el_mir_new_reg(lw->arena, lw->tcache->bool_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_unary_instr(lw->arena, result, EL_SEMA_UNARY_OP_NOT, is_eq));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_unary_instr(lw->arena, result, EL_UNARY_OP_NOT, is_eq));
         return result;
     }
 }
@@ -237,12 +237,12 @@ ElMirValue* _el_lowerer_lower_opt_base_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirB
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, val_cmp, bin->op, val, other));
 
     ElMirValue* result = el_mir_new_reg(lw->arena, bool_type, lw->current_func->reg_count++);
-    if (bin->op == EL_SEMA_BIN_OP_EQ) {
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, EL_SEMA_BIN_OP_AND, has, val_cmp));
-    } else if (bin->op == EL_SEMA_BIN_OP_NEQ) {
+    if (bin->op == EL_BIN_OP_EQ) {
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, EL_BIN_OP_AND, has, val_cmp));
+    } else if (bin->op == EL_BIN_OP_NEQ) {
         ElMirValue* not_has = el_mir_new_reg(lw->arena, bool_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_unary_instr(lw->arena, not_has, EL_SEMA_UNARY_OP_NOT, has));
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, EL_SEMA_BIN_OP_OR, not_has, val_cmp));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_unary_instr(lw->arena, not_has, EL_UNARY_OP_NOT, has));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, EL_BIN_OP_OR, not_has, val_cmp));
     } else {
         EL_UNREACHABLE("unsupported optional comparison");
     }

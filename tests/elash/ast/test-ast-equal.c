@@ -92,19 +92,19 @@ Test(ast_equal, expressions) {
     ElAstExpr* two = el_ast_new_int_lit(&arena, span,   EL_INT128(2));
     ElAstExpr* three = el_ast_new_int_lit(&arena, span, EL_INT128(3));
 
-    ElAstExpr* plus = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_ADD, one, two);
-    ElAstExpr* mul = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_MUL, plus, three);
+    ElAstExpr* plus = el_ast_new_bin_expr(&arena, span, EL_BIN_OP_ADD, one, two);
+    ElAstExpr* mul = el_ast_new_bin_expr(&arena, span, EL_BIN_OP_MUL, plus, three);
 
-    ElAstExpr* plus2 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_ADD,
+    ElAstExpr* plus2 = el_ast_new_bin_expr(&arena, span, EL_BIN_OP_ADD,
         el_ast_new_int_lit(&arena, span, EL_INT128(1)), el_ast_new_int_lit(&arena, span, EL_INT128(2)));
 
-    ElAstExpr* mul2 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_MUL, plus2,
+    ElAstExpr* mul2 = el_ast_new_bin_expr(&arena, span, EL_BIN_OP_MUL, plus2,
             el_ast_new_int_lit(&arena, span, EL_INT128(3)));
 
     cr_assert(el_ast_equal_expr(mul, mul2));
 
     // different op
-    ElAstExpr* mul3 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_SUB, plus, three);
+    ElAstExpr* mul3 = el_ast_new_bin_expr(&arena, span, EL_BIN_OP_SUB, plus, three);
     cr_assert(!el_ast_equal_expr(mul, mul3));
 }
 

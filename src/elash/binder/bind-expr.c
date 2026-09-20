@@ -120,7 +120,7 @@ static ElHirExpr* bind_optional_bin_op(
     ElHirType* otype = left->type;
     ElHirType* base  = otype->as.opt.base;
 
-    if (bin->op == EL_SEMA_BIN_OP_OPT_FB) {
+    if (bin->op == EL_BIN_OP_OPT_FB) {
         if (right->type == NULL) {
             right = _el_binder_implicit_cast(binder, bin->right->span, right, base);
         } else if (right->type->kind == EL_HIR_TYPE_OPT) {
@@ -203,7 +203,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
     }
 
     ElHirType* type = left->type;
-    if (bin->op != EL_SEMA_BIN_OP_INDEX) {
+    if (bin->op != EL_BIN_OP_INDEX) {
         if (el_bin_op_is_logical(bin->op)) {
             IMPLICIT_CAST_IF_NEEDED(left, bin->left->span, binder->builtins->type_bool);
             IMPLICIT_CAST_IF_NEEDED(right, bin->right->span, binder->builtins->type_bool);
@@ -247,7 +247,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
     if (operand == NULL) return NULL;
 
     ElHirType* type = operand->type;
-    if (unary->op == EL_SEMA_UNARY_OP_NOT) {
+    if (unary->op == EL_UNARY_OP_NOT) {
         if (operand->type == NULL) {
             operand = _el_binder_implicit_cast(binder, unary->operand->span, operand, binder->builtins->type_bool);
             if (operand == NULL) return NULL;
@@ -258,7 +258,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                 unary->operand->span, "operand of logical NOT must be boolean"
             );
         type = binder->builtins->type_bool;
-    } else if (unary->op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+    } else if (unary->op == EL_UNARY_OP_OPT_UNWRAP) {
         if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
@@ -267,12 +267,12 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
         }
         type = type->as.opt.base;
     } else if (type == NULL){
-        if (unary->op == EL_SEMA_UNARY_OP_DEREF)
+        if (unary->op == EL_UNARY_OP_DEREF)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                 in->span, "cannot dereference an untyped literal"
             );
-        if (unary->op == EL_SEMA_UNARY_OP_ADDROF)
+        if (unary->op == EL_UNARY_OP_ADDROF)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                 in->span, "cannot perform address-of on an untyped literal"
@@ -283,7 +283,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                 in->span, "cannot increment or decrement an untyped literal"
             );
     } else {
-        if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
+        if (unary->op == EL_UNARY_OP_ADDROF) {
             if (!el_hir_expr_is_lvalue(operand))
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
@@ -296,7 +296,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                     binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                     in->span, "increment/decrement requires an lvalue"
                 );
-        } else if (unary->op == EL_SEMA_UNARY_OP_DEREF) {
+        } else if (unary->op == EL_UNARY_OP_DEREF) {
             if (operand->type->kind != EL_HIR_TYPE_REF)
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
@@ -493,10 +493,10 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
 
         // expr ?> expr!.field
         ElHirType* result_type = el_hir_new_opt_type(binder->arena, field_type);
-        return el_hir_new_bin_expr(binder->arena, in->span, result_type, EL_SEMA_BIN_OP_OPT_MAP, expr,
+        return el_hir_new_bin_expr(binder->arena, in->span, result_type, EL_BIN_OP_OPT_MAP, expr,
                 el_hir_new_member_expr(
                     binder->arena, in->span, field_type, el_hir_new_unary_expr(
-                        binder->arena, in->span, expr->type->as.opt.base, EL_SEMA_UNARY_OP_OPT_UNWRAP, expr),
+                        binder->arena, in->span, expr->type->as.opt.base, EL_UNARY_OP_OPT_UNWRAP, expr),
             member->name, field_index
         ));
     }
@@ -561,10 +561,10 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
 
         // expr ?> expr!.index
         return el_hir_new_bin_expr(
-            binder->arena, in->span, result_type, EL_SEMA_BIN_OP_OPT_MAP, expr,
+            binder->arena, in->span, result_type, EL_BIN_OP_OPT_MAP, expr,
                 el_hir_new_tmember_expr(
                     binder->arena, in->span, elem_type, el_hir_new_unary_expr(
-                        binder->arena, in->span, type, EL_SEMA_UNARY_OP_OPT_UNWRAP, expr),
+                        binder->arena, in->span, type, EL_UNARY_OP_OPT_UNWRAP, expr),
                 tmember->index
             )
         );

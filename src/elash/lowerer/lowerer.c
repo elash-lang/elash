@@ -104,7 +104,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         return get_symbol_lvalue(lw, hir->as.symbol, hir->type);
 
     case EL_HIR_EXPR_BINARY:
-        if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
+        if (hir->as.binary.op == EL_BIN_OP_INDEX) {
             ElMirValue* ptr;
             ElHirType* left_type = hir->as.binary.left->type;
             while (left_type->kind == EL_HIR_TYPE_DISTINCT) {
@@ -130,11 +130,11 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         break;
 
     case EL_HIR_EXPR_UNARY:
-        if (hir->as.unary.op == EL_SEMA_UNARY_OP_DEREF) {
+        if (hir->as.unary.op == EL_UNARY_OP_DEREF) {
             // from what i understand, lvalue of *p is effectively the value p
             return el_lowerer_lower_expr(lw, hir->as.unary.operand);
         }
-        if (hir->as.unary.op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+        if (hir->as.unary.op == EL_UNARY_OP_OPT_UNWRAP) {
             return _el_lowerer_get_opt_lvalue(lw, hir->as.unary.operand);
         }
         break;

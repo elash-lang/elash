@@ -109,14 +109,14 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, cassign->target);
     ElMirType* target_mir_type = el_tcache_get_mir(lw->tcache, cassign->target->type);
 
-    if (cassign->op == EL_SEMA_BIN_OP_AND || cassign->op == EL_SEMA_BIN_OP_OR || cassign->op == EL_SEMA_BIN_OP_IMP) {
+    if (cassign->op == EL_BIN_OP_AND || cassign->op == EL_BIN_OP_OR || cassign->op == EL_BIN_OP_IMP) {
         ElMirValue* current_val = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
 
         uint32_t rhs_id = lw->current_func->block_count++;
         uint32_t merge_id = lw->current_func->block_count++;
 
-        if (cassign->op == EL_SEMA_BIN_OP_AND) {
+        if (cassign->op == EL_BIN_OP_AND) {
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, current_val, rhs_id, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
 
@@ -125,7 +125,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
-        } else if (cassign->op == EL_SEMA_BIN_OP_OR) {
+        } else if (cassign->op == EL_BIN_OP_OR) {
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, current_val, merge_id, rhs_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
 
@@ -134,7 +134,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
-        } else if (cassign->op == EL_SEMA_BIN_OP_IMP) {
+        } else if (cassign->op == EL_BIN_OP_IMP) {
             uint32_t lhs_false_id = lw->current_func->block_count++;
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, current_val, rhs_id, lhs_false_id));
             el_lowerer_emit_block(lw, lw->current_block_id);

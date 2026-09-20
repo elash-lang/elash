@@ -46,20 +46,20 @@ ElPpValue* _el_pp_apply_numeric_bin(
     ElInt128 ri = rhs.kind == EL_PP_NUM_INT ? rhs.as.int_ : EL_INT128((int64_t)rhs.as.float_);
 
     switch (op) {
-    case EL_SEMA_BIN_OP_ADD:
+    case EL_BIN_OP_ADD:
         return fp ? _el_pp_new_float(pp->iarena, lf + rf) : _el_pp_new_int(pp->iarena, el_i128_add(li, ri));
-    case EL_SEMA_BIN_OP_SUB:
+    case EL_BIN_OP_SUB:
         return fp ? _el_pp_new_float(pp->iarena, lf - rf) : _el_pp_new_int(pp->iarena, el_i128_sub(li, ri));
-    case EL_SEMA_BIN_OP_MUL:
+    case EL_BIN_OP_MUL:
         return fp ? _el_pp_new_float(pp->iarena, lf * rf) : _el_pp_new_int(pp->iarena, el_i128_mul(li, ri));
 
-    case EL_SEMA_BIN_OP_DIV:
+    case EL_BIN_OP_DIV:
         if ((!fp && el_i128_eq(ri, EL_INT128(0))) || (fp && rf == 0.0))
             return el_diag_report(
                 pp->diag, EL_DIAG_ERROR, "pp.div-by-zero", span, "division by zero"
             );
         return fp ? _el_pp_new_float(pp->iarena, lf / rf) : _el_pp_new_int(pp->iarena, el_i128_div(li, ri));
-    case EL_SEMA_BIN_OP_MOD:
+    case EL_BIN_OP_MOD:
         if ((!fp && el_i128_eq(ri, EL_INT128(0))) || (fp && rf == 0.0))
             return el_diag_report(
                 pp->diag, EL_DIAG_ERROR, "pp.mod-by-zero", span, "modulo by zero"
@@ -71,22 +71,22 @@ ElPpValue* _el_pp_apply_numeric_bin(
             return _el_pp_new_int(pp->iarena, el_i128_mod(li, ri));
         }
 
-    case EL_SEMA_BIN_OP_BW_AND:
+    case EL_BIN_OP_BW_AND:
         if (fp) return _el_pp_report_float_bw(pp, span, op);
         return _el_pp_new_int(pp->iarena, el_i128_and(li, ri));
-    case EL_SEMA_BIN_OP_BW_OR:
+    case EL_BIN_OP_BW_OR:
         if (fp) return _el_pp_report_float_bw(pp, span, op);
         return _el_pp_new_int(pp->iarena, el_i128_or(li, ri));
-    case EL_SEMA_BIN_OP_BW_XOR:
+    case EL_BIN_OP_BW_XOR:
         if (fp) return _el_pp_report_float_bw(pp, span, op);
         return _el_pp_new_int(pp->iarena, el_i128_xor(li, ri));
-    case EL_SEMA_BIN_OP_BW_IMP:
+    case EL_BIN_OP_BW_IMP:
         if (fp) return _el_pp_report_float_bw(pp, span, op);
         return _el_pp_new_int(pp->iarena, el_i128_or(el_i128_not(li), ri));
-    case EL_SEMA_BIN_OP_SHL:
+    case EL_BIN_OP_SHL:
         if (fp) return _el_pp_report_float_bw(pp, span, op);
         return _el_pp_new_int(pp->iarena, el_i128_shl(li, (int)el_u128_lo(el_i128_bitcast_u128(ri))));
-    case EL_SEMA_BIN_OP_SHR:
+    case EL_BIN_OP_SHR:
         if (fp) return _el_pp_report_float_bw(pp, span, op);
         return _el_pp_new_int(pp->iarena, el_i128_shr(li, (int)el_u128_lo(el_i128_bitcast_u128(ri))));
 
@@ -103,7 +103,7 @@ ElPpValue* _el_pp_apply_numeric_bin(
 ElPpValue* _el_pp_apply_bin_op(
     ElPreproc* pp, ElSourceSpan span, ElBinOp op, ElPpValue* lhs, ElPpValue* rhs
 ) {
-    if (op == EL_SEMA_BIN_OP_ADD) {
+    if (op == EL_BIN_OP_ADD) {
         if (lhs->type == EL_PP_TYPE_STR || rhs->type == EL_PP_TYPE_STR) {
             return _el_pp_strcat(pp, lhs, rhs);
         }
@@ -112,7 +112,7 @@ ElPpValue* _el_pp_apply_bin_op(
         }
     }
 
-    if (op == EL_SEMA_BIN_OP_INDEX) {
+    if (op == EL_BIN_OP_INDEX) {
         int64_t index = 0;
         if (!_el_pp_to_int(rhs, &index)) {
             return el_diag_report(
@@ -160,19 +160,19 @@ ElPpValue* _el_pp_apply_bin_op(
         );
     }
 
-    if (op == EL_SEMA_BIN_OP_EQ || op == EL_SEMA_BIN_OP_NEQ ||
-        op == EL_SEMA_BIN_OP_LT || op == EL_SEMA_BIN_OP_LTE ||
-        op == EL_SEMA_BIN_OP_GT || op == EL_SEMA_BIN_OP_GTE) {
+    if (op == EL_BIN_OP_EQ || op == EL_BIN_OP_NEQ ||
+        op == EL_BIN_OP_LT || op == EL_BIN_OP_LTE ||
+        op == EL_BIN_OP_GT || op == EL_BIN_OP_GTE) {
         bool res;
-        if (op == EL_SEMA_BIN_OP_EQ || op == EL_SEMA_BIN_OP_NEQ) {
+        if (op == EL_BIN_OP_EQ || op == EL_BIN_OP_NEQ) {
             res = _el_pp_value_eq(pp, lhs, rhs, span);
-            if (op == EL_SEMA_BIN_OP_NEQ) res = !res;
-        } else if (op == EL_SEMA_BIN_OP_LT || op == EL_SEMA_BIN_OP_GTE) {
+            if (op == EL_BIN_OP_NEQ) res = !res;
+        } else if (op == EL_BIN_OP_LT || op == EL_BIN_OP_GTE) {
             res = _el_pp_value_lt(pp, lhs, rhs, span);
-            if (op == EL_SEMA_BIN_OP_GTE) res = !res;
+            if (op == EL_BIN_OP_GTE) res = !res;
         } else {
             res = _el_pp_value_gt(pp, lhs, rhs, span);
-            if (op == EL_SEMA_BIN_OP_LTE) res = !res;
+            if (op == EL_BIN_OP_LTE) res = !res;
         }
 
         if (el_diag_engine_has_errors(pp->diag)) {
@@ -181,17 +181,17 @@ ElPpValue* _el_pp_apply_bin_op(
         return _el_pp_new_bool(pp->iarena, res);
     }
 
-    if (op == EL_SEMA_BIN_OP_AND) {
+    if (op == EL_BIN_OP_AND) {
         if (lhs->type != EL_PP_TYPE_BOOL || rhs->type != EL_PP_TYPE_BOOL)
             return _el_pp_report_non_bool_logical(pp, span, op);
         return _el_pp_new_bool(pp->iarena, lhs->as.bool_ && rhs->as.bool_);
     }
-    if (op == EL_SEMA_BIN_OP_OR) {
+    if (op == EL_BIN_OP_OR) {
         if (lhs->type != EL_PP_TYPE_BOOL || rhs->type != EL_PP_TYPE_BOOL)
             return _el_pp_report_non_bool_logical(pp, span, op);
         return _el_pp_new_bool(pp->iarena, lhs->as.bool_ || rhs->as.bool_);
     }
-    if (op == EL_SEMA_BIN_OP_IMP) {
+    if (op == EL_BIN_OP_IMP) {
         if (lhs->type != EL_PP_TYPE_BOOL || rhs->type != EL_PP_TYPE_BOOL)
             return _el_pp_report_non_bool_logical(pp, span, op);
         return _el_pp_new_bool(pp->iarena, !lhs->as.bool_ || rhs->as.bool_);
@@ -213,7 +213,7 @@ ElPpValue* _el_pp_apply_bin_op(
 }
 
 ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElUnaryOp op, ElPpValue* operand) {
-    if (op == EL_SEMA_UNARY_OP_NOT) {
+    if (op == EL_UNARY_OP_NOT) {
         if (operand->type != EL_PP_TYPE_BOOL)
             return _el_pp_report_non_bool_logical_unary(pp, span, op);
         return _el_pp_new_bool(pp->iarena, !operand->as.bool_);
@@ -231,9 +231,9 @@ ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElUnaryOp op,
 
     if (num.kind == EL_PP_NUM_FLOAT) {
         switch (op) {
-        case EL_SEMA_UNARY_OP_POS:
+        case EL_UNARY_OP_POS:
             return _el_pp_new_float(pp->iarena, +num.as.float_);
-        case EL_SEMA_UNARY_OP_NEG:
+        case EL_UNARY_OP_NEG:
             return _el_pp_new_float(pp->iarena, -num.as.float_);
         default:
             return el_diag_report(
@@ -246,16 +246,16 @@ ElPpValue* _el_pp_apply_unary_op(ElPreproc* pp, ElSourceSpan span, ElUnaryOp op,
 
     ElInt128 val = num.as.int_;
     switch (op) {
-    case EL_SEMA_UNARY_OP_POS:
+    case EL_UNARY_OP_POS:
         return _el_pp_new_int(pp->iarena, val);
-    case EL_SEMA_UNARY_OP_NEG:
+    case EL_UNARY_OP_NEG:
         return _el_pp_new_int(pp->iarena, el_i128_neg(val));
-    case EL_SEMA_UNARY_OP_BW_NOT:
+    case EL_UNARY_OP_BW_NOT:
         return _el_pp_new_int(pp->iarena, el_i128_not(val));
-    case EL_SEMA_UNARY_OP_PRE_INC:
-    case EL_SEMA_UNARY_OP_PRE_DEC:
-    case EL_SEMA_UNARY_OP_POST_INC:
-    case EL_SEMA_UNARY_OP_POST_DEC:
+    case EL_UNARY_OP_PRE_INC:
+    case EL_UNARY_OP_PRE_DEC:
+    case EL_UNARY_OP_POST_INC:
+    case EL_UNARY_OP_POST_DEC:
         return _el_pp_report_incdec(pp, span);
     default:
         return el_diag_report(

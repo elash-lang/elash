@@ -134,10 +134,10 @@ static ElAstInit* gen_init(ElDynArena* arena, int depth) {
 
 static ElBinOp gen_cassign_op(void) {
     static const ElBinOp ops[] = {
-        EL_SEMA_BIN_OP_ADD, EL_SEMA_BIN_OP_SUB, EL_SEMA_BIN_OP_MUL, EL_SEMA_BIN_OP_DIV,
-        EL_SEMA_BIN_OP_MOD, EL_SEMA_BIN_OP_BW_AND, EL_SEMA_BIN_OP_BW_OR, EL_SEMA_BIN_OP_BW_XOR,
-        EL_SEMA_BIN_OP_AND, EL_SEMA_BIN_OP_OR, EL_SEMA_BIN_OP_IMP, EL_SEMA_BIN_OP_BW_IMP,
-        EL_SEMA_BIN_OP_SHL, EL_SEMA_BIN_OP_SHR
+        EL_BIN_OP_ADD, EL_BIN_OP_SUB, EL_BIN_OP_MUL, EL_BIN_OP_DIV,
+        EL_BIN_OP_MOD, EL_BIN_OP_BW_AND, EL_BIN_OP_BW_OR, EL_BIN_OP_BW_XOR,
+        EL_BIN_OP_AND, EL_BIN_OP_OR, EL_BIN_OP_IMP, EL_BIN_OP_BW_IMP,
+        EL_BIN_OP_SHL, EL_BIN_OP_SHR
     };
     return ops[rand() % (sizeof(ops) / sizeof(ops[0]))];
 }

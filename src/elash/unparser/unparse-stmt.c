@@ -5,20 +5,20 @@
 
 static ElTokenType cassign_token(ElBinOp op) {
     switch (op) {
-    case EL_SEMA_BIN_OP_ADD:    return EL_TT_ADD_ASSIGN;
-    case EL_SEMA_BIN_OP_SUB:    return EL_TT_SUB_ASSIGN;
-    case EL_SEMA_BIN_OP_MUL:    return EL_TT_MUL_ASSIGN;
-    case EL_SEMA_BIN_OP_DIV:    return EL_TT_DIV_ASSIGN;
-    case EL_SEMA_BIN_OP_MOD:    return EL_TT_MOD_ASSIGN;
-    case EL_SEMA_BIN_OP_BW_AND: return EL_TT_BITWISE_AND_ASSIGN;
-    case EL_SEMA_BIN_OP_BW_OR:  return EL_TT_BITWISE_OR_ASSIGN;
-    case EL_SEMA_BIN_OP_BW_XOR: return EL_TT_BITWISE_XOR_ASSIGN;
-    case EL_SEMA_BIN_OP_AND:    return EL_TT_LOGICAL_AND_ASSIGN;
-    case EL_SEMA_BIN_OP_OR:     return EL_TT_LOGICAL_OR_ASSIGN;
-    case EL_SEMA_BIN_OP_IMP:    return EL_TT_LOGICAL_IMP_ASSIGN;
-    case EL_SEMA_BIN_OP_BW_IMP: return EL_TT_BITWISE_IMP_ASSIGN;
-    case EL_SEMA_BIN_OP_SHL:    return EL_TT_SHL_ASSIGN;
-    case EL_SEMA_BIN_OP_SHR:    return EL_TT_SHR_ASSIGN;
+    case EL_BIN_OP_ADD:    return EL_TT_ADD_ASSIGN;
+    case EL_BIN_OP_SUB:    return EL_TT_SUB_ASSIGN;
+    case EL_BIN_OP_MUL:    return EL_TT_MUL_ASSIGN;
+    case EL_BIN_OP_DIV:    return EL_TT_DIV_ASSIGN;
+    case EL_BIN_OP_MOD:    return EL_TT_MOD_ASSIGN;
+    case EL_BIN_OP_BW_AND: return EL_TT_BITWISE_AND_ASSIGN;
+    case EL_BIN_OP_BW_OR:  return EL_TT_BITWISE_OR_ASSIGN;
+    case EL_BIN_OP_BW_XOR: return EL_TT_BITWISE_XOR_ASSIGN;
+    case EL_BIN_OP_AND:    return EL_TT_LOGICAL_AND_ASSIGN;
+    case EL_BIN_OP_OR:     return EL_TT_LOGICAL_OR_ASSIGN;
+    case EL_BIN_OP_IMP:    return EL_TT_LOGICAL_IMP_ASSIGN;
+    case EL_BIN_OP_BW_IMP: return EL_TT_BITWISE_IMP_ASSIGN;
+    case EL_BIN_OP_SHL:    return EL_TT_SHL_ASSIGN;
+    case EL_BIN_OP_SHR:    return EL_TT_SHR_ASSIGN;
     default:
         EL_UNREACHABLE("invalid compound assignment op");
     }

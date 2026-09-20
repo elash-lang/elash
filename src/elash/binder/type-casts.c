@@ -143,8 +143,8 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
                 el_hir_new_unary_expr(
                     binder->arena, expr->span,
                     el_hir_new_ref_type(binder->arena, base_type),
-                    EL_SEMA_UNARY_OP_ADDROF,
-                    el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
+                    EL_UNARY_OP_ADDROF,
+                    el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_BIN_OP_INDEX,
                         expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, EL_INT128(0))
             )));
         }
@@ -291,10 +291,10 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
     }
     case EL_HIR_EXPR_UNARY: {
         ElUnaryOp op = expr->as.unary.op;
-        if (op == EL_SEMA_UNARY_OP_PRE_INC || op == EL_SEMA_UNARY_OP_PRE_DEC
-            || op == EL_SEMA_UNARY_OP_POST_INC || op == EL_SEMA_UNARY_OP_POST_DEC
-            || op == EL_SEMA_UNARY_OP_ADDROF || op == EL_SEMA_UNARY_OP_DEREF
-            || op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+        if (op == EL_UNARY_OP_PRE_INC || op == EL_UNARY_OP_PRE_DEC
+            || op == EL_UNARY_OP_POST_INC || op == EL_UNARY_OP_POST_DEC
+            || op == EL_UNARY_OP_ADDROF || op == EL_UNARY_OP_DEREF
+            || op == EL_UNARY_OP_OPT_UNWRAP) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
                 "operator cannot be used in this context"
