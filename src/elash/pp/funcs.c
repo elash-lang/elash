@@ -1,6 +1,7 @@
 #include "preproc-internals.h"
 
 #include <elash/lexer/tokarr.h>
+#include <elash/lexer/tokbuf.h>
 
 void _el_pp_append_param(ElPpParamList* list, ElDynArena* arena, ElStringView name) {
     ElPpFuncParam* new = EL_DYNARENA_NEW_STRUCT(arena, ElPpFuncParam, {
@@ -30,12 +31,23 @@ void _el_pp_append_arg(ElPpArgList* list, ElPpValue* val) {
 }
 
 static void cleanup_call(ElPreproc* pp, ElPpCallFrame* call) {
-    while (pp->if_stack != NULL) {
-        _el_pp_pop_if_frame(pp);
+    while (pp->block_stack != NULL) {
+        switch (pp->block_stack->kind) {
+        case EL_PP_BLOCK_IF:
+            _el_pp_pop_if_block(pp);
+            break;
+        case EL_PP_BLOCK_FUNC:
+            pp->skip_capture = false;
+            el_tkbuf_clear(&pp->capture_buf);
+            _el_pp_pop_block(pp);
+            break;
+        case EL_PP_BLOCK_WHILE:
+            EL_TODO("implement while loops");
+        }
     }
 
-    pp->if_stack   = call->saved_if_stack;
-    pp->skip_depth = call->saved_skip_depth;
+    pp->block_stack = call->saved_block_stack;
+    pp->skip_depth  = call->saved_skip_depth;
 
     while (pp->frame != NULL && pp->frame != call->caller_frame) {
         _el_pp_pop_frame(pp);
@@ -47,15 +59,15 @@ static void cleanup_call(ElPreproc* pp, ElPpCallFrame* call) {
 
 static ElPpCallFrame* make_call_frame(ElPreproc* pp, ElPpSymbol* sym, ElSourceSpan cspan) {
     return EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpCallFrame, {
-        .return_value = NULL,
-        .has_returned = false,
-        .call_span = cspan,
-        .func = sym,
-        .saved_if_stack = pp->if_stack,
-        .saved_skip_depth = pp->skip_depth,
-        .body_frame = NULL,
-        .caller_frame = pp->frame,
-        .parent = pp->call_stack,
+        .return_value      = NULL,
+        .has_returned      = false,
+        .call_span         = cspan,
+        .func              = sym,
+        .saved_block_stack = pp->block_stack,
+        .saved_skip_depth  = pp->skip_depth,
+        .body_frame        = NULL,
+        .caller_frame      = pp->frame,
+        .parent            = pp->call_stack,
     });
 }
 
@@ -72,7 +84,7 @@ static ElPpValue* execute_function(
 
     pp->call_stack = call;
     pp->call_depth++;
-    pp->if_stack = NULL;
+    pp->block_stack = NULL;
     pp->skip_depth = 0;
 
     _el_pp_push_call_body_frame(pp, body_stream);

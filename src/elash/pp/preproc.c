@@ -10,11 +10,10 @@ bool el_pp_init(
     pp->frame = NULL;
     pp->include_depth = 0;
     pp->skip_depth = 0;
-    pp->if_stack = NULL;
+    pp->block_stack = NULL;
     pp->has_lookahead = false;
     pp->skip_capture = false;
 
-    pp->pending_func = (ElPpPendingFunc) {0};
     pp->call_stack = NULL;
     pp->call_depth = 0;
 
@@ -196,43 +195,77 @@ static bool read_from_active_frame(ElPreproc* pp, ElToken* out_tok) {
     return out_tok->type != EL_TT_EOF;
 }
 
-////////////// if frames //////////////
-void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) {
-    pp->if_stack = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpIfFrame, {
+////////////// blocks //////////////
+ElStringView _el_pp_block_kind_name(ElPpBlockKind kind) {
+    switch (kind) {
+    case EL_PP_BLOCK_IF:    return EL_SV("#if");
+    case EL_PP_BLOCK_FUNC:  return EL_SV("#func");
+    case EL_PP_BLOCK_WHILE: return EL_SV("#while");
+    }
+    return EL_SV("#block");
+}
+
+ElPpBlock* _el_pp_push_block(ElPreproc* pp, ElPpBlockKind kind, ElSourceSpan span) {
+    return pp->block_stack = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpBlock, {
+        .kind      = kind,
+        .open_span = span,
+        .parent    = pp->block_stack,
+    });
+}
+
+void _el_pp_pop_block(ElPreproc* pp) {
+    EL_ASSERT(pp->block_stack != NULL, "pop_block with empty block stack");
+    pp->block_stack = pp->block_stack->parent;
+}
+
+void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) {
+    ElPpBlock* block = _el_pp_push_block(pp, EL_PP_BLOCK_IF, ifspan);
+    block->as.if_ = (ElPpIfState) {
         .branch_taken = take_branch,
         .has_scope    = take_branch,
         .had_else     = false,
-        .ifspan       = ifspan,
-        .parent       = pp->if_stack,
-    });
+    };
+
     if (take_branch) {
         _el_pp_push_scope(pp);
     }
 }
 
-void _el_pp_enter_if_branch(ElPreproc* pp) {
-    EL_ASSERT(pp->if_stack != NULL,     "if stack should not be empty");
-    EL_ASSERT(!pp->if_stack->has_scope, "branch scope is already open");
+void _el_pp_push_func_block(ElPreproc* pp, ElSourceSpan defspan, bool is_public, ElStringView name, ElPpParamList params) {
+    ElPpBlock* block = _el_pp_push_block(pp, EL_PP_BLOCK_FUNC, defspan);
+    block->as.func = (ElPpFuncState) {
+        .is_public = is_public,
+        .name      = name,
+        .params    = params,
+    };
+}
 
-    pp->if_stack->branch_taken = true;
-    pp->if_stack->has_scope = true;
+void _el_pp_enter_if_branch(ElPreproc* pp) {
+    EL_ASSERT(pp->block_stack != NULL,                  "block stack should not be empty");
+    EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_IF,  "top block is not #if");
+    EL_ASSERT(!pp->block_stack->as.if_.has_scope,       "branch scope is already open");
+
+    pp->block_stack->as.if_.branch_taken = true;
+    pp->block_stack->as.if_.has_scope = true;
     _el_pp_push_scope(pp);
 }
 
 void _el_pp_leave_if_branch(ElPreproc* pp) {
-    EL_ASSERT(pp->if_stack != NULL,    "if stack should not be empty");
-    EL_ASSERT(pp->if_stack->has_scope, "no open branch scope");
+    EL_ASSERT(pp->block_stack != NULL,                 "block stack should not be empty");
+    EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_IF, "top block is not #if");
+    EL_ASSERT(pp->block_stack->as.if_.has_scope,       "no open branch scope");
 
-    pp->if_stack->has_scope = false;
+    pp->block_stack->as.if_.has_scope = false;
     _el_pp_pop_scope(pp);
 }
 
-void _el_pp_pop_if_frame(ElPreproc* pp) {
-    EL_ASSERT(pp->if_stack != NULL, "pop_if_frame with empty if stack");
-    if (pp->if_stack->has_scope) {
+void _el_pp_pop_if_block(ElPreproc* pp) {
+    EL_ASSERT(pp->block_stack != NULL,                 "pop_if_block with empty block stack");
+    EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_IF, "top block is not #if");
+    if (pp->block_stack->as.if_.has_scope) {
         _el_pp_pop_scope(pp);
     }
-    pp->if_stack = pp->if_stack->parent;
+    _el_pp_pop_block(pp);
 }
 
 bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
@@ -288,14 +321,19 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
             input_tok = pp->lookahead;
             pp->has_lookahead = false;
         } else if (pp->frame == NULL) {
-            if (pp->if_stack != NULL || pp->skip_depth != 0) {
-                el_diag_report(
-                    pp->diag, EL_DIAG_ERROR, "pp.unterm-if",
-                    pp->if_stack->ifspan, "unterminated #if directive"
-                );
-                pp->if_stack = NULL;
-                pp->skip_depth = 0;
-            }
+            if (pp->block_stack == NULL)
+                return false;
+
+            ElStringView name = _el_pp_block_kind_name(pp->block_stack->kind);
+            el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.unterm-block",
+                pp->block_stack->open_span, "unterminated ${dir} directive",
+                EL_DIAG_STRING("dir", name),
+            );
+
+            pp->block_stack = NULL;
+            pp->skip_depth = 0;
+            pp->skip_capture = false;
             return false;
         } else if (!read_from_active_frame(pp, &input_tok)) {
             _el_pp_pop_frame(pp);

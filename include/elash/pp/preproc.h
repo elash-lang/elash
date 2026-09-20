@@ -17,29 +17,19 @@
 #include <stdbool.h>
 
 typedef struct ElPpFrame ElPpFrame;
-typedef struct ElPpIfFrame ElPpIfFrame;
+typedef struct ElPpBlock ElPpBlock;
 typedef struct ElPpCallFrame ElPpCallFrame;
-
-typedef struct ElPpPendingFunc {
-    bool active;
-    bool is_public;
-    ElStringView name;
-    ElSourceSpan defspan;
-
-    ElPpParamList params;
-} ElPpPendingFunc;
 
 typedef struct ElPreproc {
     uint include_depth;
     ElPpFrame* frame;
 
     uint skip_depth;
-    ElPpIfFrame* if_stack;
+    ElPpBlock* block_stack;
 
     bool skip_capture;
     ElTokenBuf capture_buf;
 
-    ElPpPendingFunc pending_func;
     ElPpCallFrame* call_stack;
     uint call_depth;
 

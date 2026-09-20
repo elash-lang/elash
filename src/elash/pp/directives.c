@@ -104,9 +104,9 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
     ElSourceSpan dspan =
         el_srcspan_merge(hash.span, dir.span);
 
-    if (capturing && el_sv_eql(dir.lexeme, EL_SV("end")) && pp->skip_depth == 1) {
-        pp->skip_capture = true;
-        return _el_pp_finish_pending_func(pp);
+    bool is_end = el_sv_eql(dir.lexeme, EL_SV("end"));
+    if (is_end && capturing && pp->skip_depth == 1) {
+        return _el_pp_skip_end(pp);
     }
 
     if (capturing) {
@@ -139,10 +139,11 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
     if (el_sv_eql(dir.lexeme, EL_SV("if")))    return _el_pp_skip_if(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("else")))  return _el_pp_skip_else(pp, dspan);
     if (el_sv_eql(dir.lexeme, EL_SV("elif")))  return _el_pp_skip_elif(pp, dspan);
-    if (el_sv_eql(dir.lexeme, EL_SV("end")))   return _el_pp_skip_end(pp);
 
     if (el_sv_eql(dir.lexeme, EL_SV("func")))   return _el_pp_skip_func(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("return"))) return _el_pp_skip_return(pp);
+
+    if (is_end) return _el_pp_skip_end(pp);
 
     // theoretically we could just skip unknown directives,
     // but maybe it's better to validate them for catching

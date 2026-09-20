@@ -1,6 +1,7 @@
 #pragma once
-#include <elash/pp/preproc.h> // IWYU pragma: export
+#include <elash/pp/preproc.h>  // IWYU pragma: export
 #include <elash/util/assert.h> // IWYU pragma: export
+#include <elash/util/todo.h>   // IWYU pragma: export
 
 #include <elash/sema/unary-op.h>
 #include <elash/sema/bin-op.h>
@@ -28,19 +29,55 @@ void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocume
 void _el_pp_push_call_body_frame(ElPreproc* pp, ElTokenStream stream);
 void _el_pp_pop_frame(ElPreproc* pp);
 
-////////// if frames //////////
-struct ElPpIfFrame {
-    ElSourceSpan ifspan;
+////////// blocks (#if / #func / #while) //////////
+typedef enum ElPpBlockKind {
+    EL_PP_BLOCK_IF,
+    EL_PP_BLOCK_FUNC,
+    EL_PP_BLOCK_WHILE,
+} ElPpBlockKind;
+
+typedef struct ElPpIfState {
     bool branch_taken;
     bool has_scope;
     bool had_else;
-    ElPpIfFrame* parent;
+} ElPpIfState;
+
+typedef struct ElPpFuncState {
+    bool is_public;
+    ElStringView name;
+    ElPpParamList params;
+} ElPpFuncState;
+
+typedef struct ElPpWhileState {
+    ElToken* cond;
+    usize    cond_len;
+    ElToken* body;
+    usize    body_len;
+} ElPpWhileState;
+
+struct ElPpBlock {
+    ElPpBlockKind kind;
+    ElSourceSpan  open_span;
+    ElPpBlock*    parent;
+
+    union {
+        ElPpIfState    if_;
+        ElPpFuncState  func;
+        ElPpWhileState while_;
+    } as;
 };
 
-void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
+ElPpBlock* _el_pp_push_block(ElPreproc* pp, ElPpBlockKind kind, ElSourceSpan span);
+void _el_pp_pop_block(ElPreproc* pp);
+
+void _el_pp_push_if_block(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
+void _el_pp_push_func_block(ElPreproc* pp, ElSourceSpan defspan, bool is_public, ElStringView name, ElPpParamList params);
+
 void _el_pp_enter_if_branch(ElPreproc* pp);
 void _el_pp_leave_if_branch(ElPreproc* pp);
-void _el_pp_pop_if_frame(ElPreproc* pp);
+void _el_pp_pop_if_block(ElPreproc* pp);
+
+ElStringView _el_pp_block_kind_name(ElPpBlockKind kind);
 
 ////////// call frames /////////
 #define CALL_DEPTH_LIMIT 500
@@ -52,8 +89,8 @@ struct ElPpCallFrame {
     ElSourceSpan call_span;
     ElPpSymbol*  func;
 
-    ElPpIfFrame* saved_if_stack;
-    uint         saved_skip_depth;
+    ElPpBlock* saved_block_stack;
+    uint       saved_skip_depth;
 
     ElPpFrame* body_frame;
     ElPpFrame* caller_frame;
