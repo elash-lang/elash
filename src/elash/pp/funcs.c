@@ -74,6 +74,7 @@ static ElPpValue* execute_function(
     ElPreproc* pp, ElPpSymbol* sym, ElPpArgList args, ElSourceSpan cspan
 ) {
     ElPpFuncSym* func = &sym->as.func;
+    uint errors_before = pp->diag->summary.total_errors;
 
     ElTokenArrayStream* stream_ctx = EL_DYNARENA_NEW(pp->iarena, ElTokenArrayStream);
     ElTokenStream body_stream = el_tokarr_as_stream(stream_ctx, func->body);
@@ -120,6 +121,11 @@ static ElPpValue* execute_function(
     if (!call->has_returned) {
         ElSourceSpan span = sym->defspan;
         cleanup_call(pp, call);
+
+        // to avoid function reached the end without return spam
+        if (pp->diag->summary.total_errors != errors_before)
+            return NULL;
+
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.func-no-return",
             span, "function '${name}' reached the end without #return",
@@ -137,10 +143,15 @@ ElPpValue* _el_pp_call_func(ElPreproc* pp, ElPpSymbol* sym, ElSourceSpan cspan) 
     ElPpFuncSym* func = &sym->as.func;
 
     if (pp->call_depth >= CALL_DEPTH_LIMIT) {
-        return el_diag_report(
+        el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.call-depth",
             cspan, "preprocessor function call depth limit exceeded"
         );
+        el_diag_help(
+            pp->diag, "the call depth limit is currently set to ${limit} because of stack size limitations",
+            EL_DIAG_INT("limit", CALL_DEPTH_LIMIT),
+        );
+        return NULL;
     }
 
     if (!_el_pp_expect(pp, EL_TT_LPAREN)) return NULL;

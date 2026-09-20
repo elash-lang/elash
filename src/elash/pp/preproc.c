@@ -7,12 +7,9 @@ bool el_pp_init(
     ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
     ElDynArena* arena, const ElPpIncMap* imap, ElProfState* prof
 ) {
-    pp->frame = NULL;
-    pp->include_depth = 0;
-    pp->skip_depth = 0;
-    pp->block_stack = NULL;
-    pp->has_lookahead = false;
-    pp->skip_capture = false;
+    memset(pp, 0, sizeof(ElPreproc));
+    pp->operation_limit = EL_PP_DEFAULT_LIMIT;
+    pp->last_token = (ElToken) { .type = EL_TT_EOF };
 
     pp->call_stack = NULL;
     pp->call_depth = 0;
@@ -53,6 +50,22 @@ void el_pp_free(ElPreproc* pp) {
     el_dynarena_free(pp->iarena);
     el_tkque_destroy(&pp->pending);
     el_tkbuf_destroy(&pp->capture_buf);
+}
+
+bool _el_pp_ensure_ops_available(ElPreproc* pp, ElSourceSpan span) {
+    if (pp->operation_count >= pp->operation_limit) {
+        el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.operation-limit",
+            span, "preprocessor operation limit of ${limit} exceeded",
+            EL_DIAG_INT("limit", pp->operation_limit),
+        );
+        el_diag_help(pp->diag, "likely caused by infinite macro expansion or recursion");
+        el_diag_help(pp->diag, "each directive and expression increments the operation counter");
+        el_diag_help(pp->diag, "you can change the limit using the --pp-op-limit=... cli flag");
+        return false;
+    }
+
+    return true;
 }
 
 ////////// scopes ////////////
@@ -252,7 +265,6 @@ void _el_pp_push_while_block(ElPreproc* pp, ElSourceSpan whilespan, ElTokenArray
         .cond = cond,
         .body = EL_TOKARR_NULL,
         .capturing_body = cond_val,
-        .iter_count = 0,
     };
 }
 
@@ -339,8 +351,10 @@ static bool fetch_next_token(ElPreproc* pp, ElToken* input_tok) {
             pp->has_lookahead = false;
             return true;
         } else if (pp->frame == NULL) {
-            if (pp->block_stack == NULL)
+            if (pp->block_stack == NULL) {
+                pp->reached_eof = true;
                 return false;
+            }
 
             ElStringView name = _el_pp_block_kind_name(pp->block_stack->kind);
             el_diag_report(
@@ -406,9 +420,19 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
                 }
                 continue;
             }
+
             if (handle_directives) {
-                return _el_pp_preprocess_directive(pp, input_tok, out_tok);
+                *out_tok = (ElToken) { .type = EL_TT_EOF };
+                if (!_el_pp_preprocess_directive(pp, input_tok, out_tok))
+                    return false;
+
+                // #return dont produce tokens so it returns eof here
+                if (pp->call_stack != NULL && pp->call_stack->has_returned)
+                    return true;
+
+                continue;
             }
+
             *out_tok = input_tok;
             return true;
 
@@ -438,7 +462,20 @@ bool _el_pp_next_d(ElPreproc* pp, ElToken* out_tok) {
 
 bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
     pp->diag = diag;
-    return _el_pp_next_internal(pp, out_tok, true);
+
+    ElToken last;
+    bool result = _el_pp_next_internal(pp, out_tok != NULL ? out_tok : &last, true);
+    if (result) {
+        pp->last_token = out_tok != NULL ? *out_tok : last;
+    } else if (pp->debug && pp->reached_eof && !pp->debug_reported) {
+        pp->debug_reported = true;
+        el_diag_report_nocat(
+            pp->diag, EL_DIAG_NOTE, pp->last_token.span,
+            "preprocessor operations counter: ${ops}",
+            EL_DIAG_INT("ops", pp->operation_count)
+        );
+    }
+    return result;
 }
 
 ElToken _el_pp_advance(ElPreproc* pp) {

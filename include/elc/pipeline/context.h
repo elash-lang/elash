@@ -21,8 +21,9 @@
 
 typedef struct ElcPipelineContext {
     ElDynArena*   arena;
-    ElProfState* prof;
+    ElProfState*  prof;
     ElDiagEngine* diag;
+    bool debug;
 
     const ElPpIncMap* imap;
     const ElSourceDocument* root_src;

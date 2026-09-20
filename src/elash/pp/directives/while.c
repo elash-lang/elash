@@ -7,13 +7,6 @@
 
 #include <string.h>
 
-// this is temporary. it is currently easily bypassable by just nesting loops.
-// this mechanism is basically useless and will be replaced by something like
-// a global operation counter that is incremented by every executed directive
-// or evaluated expression, no matter if it happens inside a loop, a recursive
-// function, recursive include or... all of them at once
-#define WHILE_ITER_LIMIT 100000
-
 static ElTokenArray clone_tokbuf(ElPreproc* pp, const ElTokenBuf* buf) {
     if (buf->len == 0)
         return EL_TOKARR_NULL;
@@ -58,14 +51,10 @@ static bool while_enter_body(ElPreproc* pp) {
     EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_WHILE, "top block is not #while");
 
     ElPpWhileState* w = &pp->block_stack->as.while_;
-    if (w->iter_count >= WHILE_ITER_LIMIT) {
-        return el_diag_report(
-            pp->diag, EL_DIAG_ERROR, "pp.while-limit",
-            pp->block_stack->open_span,
-            "#while iteration limit exceeded"
-        );
-    }
-    w->iter_count++;
+
+    pp->operation_count += EL_PP_ITER_OPS;
+    if (!_el_pp_ensure_ops_available(pp, pp->block_stack->open_span))
+        return false;
 
     ElTokenStream stream = el_tokarr_as_stream(&w->body_stream, w->body);
     _el_pp_push_while_body_frame(pp, &w->body_frame, stream);

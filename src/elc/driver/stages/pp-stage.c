@@ -10,6 +10,7 @@ bool elc_preproc_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, cons
         // TODO: error handling
         return false;
     }
+    pp->debug = ctx->debug;
 
     ElTokenStream stream = el_pp_as_token_stream(pp);
 

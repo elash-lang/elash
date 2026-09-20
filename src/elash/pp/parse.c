@@ -533,6 +533,11 @@ static ElPpValue* parse_logical_or(ElPreproc* pp) {
 }
 
 static ElPpValue* _eval_internal(ElPreproc* pp) {
+    // don't calling _el_pp_ensure_ops_available is intentional
+    // let it fail on a directive because we don't have a span here
+    // incrementing only in this function is intentional too
+    pp->operation_count += EL_PP_EXPR_OPS;
+
     ElPpValue* expr = parse_logical_or(pp);
     if (expr == NULL) return NULL;
 

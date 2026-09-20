@@ -9,6 +9,13 @@
 #include <elash/lexer/tokarr.h>
 #include <elash/util/int128.h>
 
+//////// operation count /////////
+#define EL_PP_DIR_OPS  4
+#define EL_PP_EXPR_OPS 1
+#define EL_PP_ITER_OPS 8
+
+bool _el_pp_ensure_ops_available(ElPreproc* pp, ElSourceSpan span);
+
 //////// include frames ////////
 #define INCLUDE_DEPTH_LIMIT 220
 
@@ -33,7 +40,7 @@ void _el_pp_pop_frame(ElPreproc* pp);
 void _el_pp_push_while_body_frame(ElPreproc* pp, ElPpFrame* frame, ElTokenStream stream);
 void _el_pp_push_eval_frame(ElPreproc* pp, ElTokenStream stream);
 
-////////// blocks (#if / #func / #while) //////////
+///////////// blocks //////////////
 typedef enum ElPpBlockKind {
     EL_PP_BLOCK_IF,
     EL_PP_BLOCK_FUNC,
@@ -58,7 +65,6 @@ typedef struct ElPpWhileState {
     ElTokenArrayStream body_stream;
     ElPpFrame body_frame;
     bool capturing_body;
-    uint iter_count;
 } ElPpWhileState;
 
 struct ElPpBlock {
@@ -87,7 +93,7 @@ void _el_pp_pop_if_block(ElPreproc* pp);
 ElStringView _el_pp_block_kind_name(ElPpBlockKind kind);
 
 ////////// call frames /////////
-#define CALL_DEPTH_LIMIT 500
+#define CALL_DEPTH_LIMIT 80
 
 struct ElPpCallFrame {
     ElPpValue* return_value;

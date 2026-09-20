@@ -16,13 +16,22 @@
 
 #include <stdbool.h>
 
+#define EL_PP_DEFAULT_LIMIT (500 * 1000)
+
 typedef struct ElPpFrame ElPpFrame;
 typedef struct ElPpBlock ElPpBlock;
 typedef struct ElPpCallFrame ElPpCallFrame;
 
 typedef struct ElPreproc {
+    uint operation_count;
+    uint operation_limit;
     uint include_depth;
     ElPpFrame* frame;
+
+    bool debug;
+    bool reached_eof;
+    bool debug_reported;
+    ElToken last_token;
 
     uint skip_depth;
     ElPpBlock* block_stack;
