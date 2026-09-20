@@ -50,18 +50,18 @@
 - [x] Implement file inclusion directive
 - [x] Resolve scoped and local include paths
 - [x] Max include depth limit
-- [ ] Implement embed directive
+- [ ] ~~Implement embed directive~~ *(moved to 0.3.0)*
 - [x] Solve source spans issues with #include
 - [x] Support preprocessor variables and constants
 - [x] Support preprocessor functions
-- [ ] Implement macro expansion engine
-- [ ] Implement macro expansion result rescan
-- [ ] Preserve correct source locations after expansion
+- [ ] ~~Implement macro expansion engine~~ *(moved to 0.3.0)*
+- [ ] ~~Implement macro expansion result rescan~~ *(moved to 0.3.0)*
+- [ ] ~~Preserve correct source locations after expansion~~ *(moved to 0.3.0)*
 - [x] Implement conditional compilation directives
 - [x] Implement `#while` loops
 - [x] Implement `#for` loops
 - [x] Implement global preprocessor operation limit
-- [ ] Support predefined preprocessor functions and macros
+- [ ] ~~Support predefined preprocessor functions and macros~~ *(moved to 0.3.0 or later)*
 - [ ] ~~Builtin constants (`ELC_MODE`, `ELC_VERSION`, `ELC_OPTLVL`)~~ *(moved to 0.3.0)*
 
 ## Library
