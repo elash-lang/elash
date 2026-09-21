@@ -1,0 +1,45 @@
+uint main() {
+    uint whileSum = 0;
+    #var i = 1
+    #while i <= 10
+        #if i == 6
+            #break
+        #end
+        #emit whileSum += #{i};
+        #inc i
+    #end
+
+    if (whileSum != 15)
+        return 1;
+
+    uint forSum = 0;
+    #for val: { 5, 10, 15, 20, 25 }
+        #if val == 20
+            #break
+        #end
+        #emit forSum += #{val};
+    #end
+
+    if (forSum != 30)
+        return 2;
+
+    uint nestedSum = 0;
+
+    #var outer = 1
+    #while outer <= 3
+        #var inner = 10
+        #while inner <= 50
+            #if inner == 30
+                #break
+            #end
+            #emit nestedSum += #{inner};
+            #set inner = inner + 10
+        #end
+        #inc outer
+    #end
+
+    if (nestedSum != 90)
+        return 3;
+
+    return 0;
+}
