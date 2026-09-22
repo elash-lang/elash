@@ -1,0 +1,33 @@
+#func sumOdds(limit)
+    #var sum = 0
+    #var i = 0
+    #while i < limit
+        #inc i
+        #if i % 2 == 0
+            #continue
+        #end
+        #set sum = sum + i
+    #end
+    #return sum
+#end
+
+#const check = sumOdds(6)
+#if check != 9
+    #error "#continue in #while failed"
+#end
+
+int main() {
+    uint32 total = 0;
+
+    #for item: { 10, 20, 30, 40 }
+        #if item == 20
+            #continue
+        #end
+        #emit total += #{item};
+    #end
+
+    if (total != 80)
+        return 1;
+
+    return 0;
+}

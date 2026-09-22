@@ -89,8 +89,8 @@ struct ElPpBlock {
     ElPpBlock*    parent;
 
     union {
-        ElPpIfState    if_;
-        ElPpFuncState  func;
+        ElPpIfState   if_;
+        ElPpFuncState func;
         ElPpLoopState loop;
     } as;
 };
@@ -175,9 +175,15 @@ bool _el_pp_skip_func(ElPreproc* pp);
 bool _el_pp_skip_return(ElPreproc* pp);
 
 bool _el_pp_handle_while(ElPreproc* pp, ElSourceSpan dspan);
-bool _el_pp_skip_while(ElPreproc* pp);
 bool _el_pp_handle_for(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_while(ElPreproc* pp);
 bool _el_pp_skip_for(ElPreproc* pp);
+
+bool _el_pp_handle_continue(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_break(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_continue(ElPreproc* pp);
+bool _el_pp_skip_break(ElPreproc* pp);
+
 bool _el_pp_finish_loop(ElPreproc* pp);
 bool _el_pp_loop_body_exhausted(ElPreproc* pp);
 

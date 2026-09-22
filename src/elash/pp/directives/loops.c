@@ -7,6 +7,20 @@
 
 #include <string.h>
 
+#define ENSURE_INSIDE_LOOP(PP, DIR, DSPAN, LOOP) do {             \
+    (LOOP) = (PP)->block_stack;                                   \
+    while ((LOOP) != NULL && !is_loop((LOOP)->kind)) {            \
+        (LOOP) = (LOOP)->parent;                                  \
+    }                                                             \
+                                                                  \
+    if ((LOOP) == NULL) {                                         \
+        return el_diag_report(                                    \
+            (PP)->diag, EL_DIAG_ERROR, "pp." DIR "-outside-loop", \
+            (DSPAN), "'#" DIR "' can only be used inside loops"   \
+        );                                                        \
+    }                                                             \
+} while (0)
+
 static ElTokenArray clone_tokbuf(ElPreproc* pp, const ElTokenBuf* buf) {
     if (buf->len == 0)
         return EL_TOKARR_NULL;
@@ -183,6 +197,47 @@ bool _el_pp_skip_for(ElPreproc* pp) {
     if (!_el_pp_read(pp, &tok) || tok.type != EL_TT_COLON) return false;
     if (!_el_pp_skip_expr(pp)) return false;
     pp->skip_depth++;
+    return true;
+}
+
+static bool leave_loop_body(ElPreproc* pp, ElPpBlock* loop, bool continues) {
+    // this needs to be updated every time new block kinds are added
+    while (pp->block_stack != loop) {
+        EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_IF,
+                  "unexpected block kind");
+        _el_pp_pop_if_block(pp);
+    }
+
+    while (pp->frame->type != FRAME_LOOP_BODY)
+        _el_pp_pop_frame(pp);
+
+    _el_pp_pop_frame(pp);
+    if (!continues) {
+        _el_pp_pop_block(pp);
+        return true;
+    }
+
+    return _el_pp_loop_body_exhausted(pp);
+}
+
+bool _el_pp_handle_continue(ElPreproc* pp, ElSourceSpan dspan) {
+    ElPpBlock* loop;
+    ENSURE_INSIDE_LOOP(pp, "continue", dspan, loop);
+    return leave_loop_body(pp, loop, /*continues=*/true);
+}
+
+bool _el_pp_handle_break(ElPreproc* pp, ElSourceSpan dspan) {
+    ElPpBlock* loop;
+    ENSURE_INSIDE_LOOP(pp, "break", dspan, loop);
+    return leave_loop_body(pp, loop, /*continues=*/false);
+}
+
+bool _el_pp_skip_continue(ElPreproc* pp) {
+    (void)pp;
+    return true;
+}
+bool _el_pp_skip_break(ElPreproc* pp) {
+    (void)pp;
     return true;
 }
 
