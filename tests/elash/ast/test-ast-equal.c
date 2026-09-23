@@ -53,13 +53,13 @@ Test(ast_equal, integration_test) {
 
     el_lexer_init(&lexer, &doc1, LEX_FLAGS);
     el_parser_init(&parser, el_lexer_as_token_stream(&lexer), &diag, &arena, &arena, NULL);
-    ElAstModule* mod1 = el_parser_parse_module(&parser);
+    ElAstModule* mod1 = el_parse_module(&parser);
     cr_assert(diag.summary.total_errors == 0);
     el_parser_destroy(&parser);
 
     el_lexer_init(&lexer, &doc2, LEX_FLAGS);
     el_parser_init(&parser, el_lexer_as_token_stream(&lexer), &diag, &arena, &arena, NULL);
-    ElAstModule* mod2 = el_parser_parse_module(&parser);
+    ElAstModule* mod2 = el_parse_module(&parser);
     cr_assert(diag.summary.total_errors == 0);
     el_parser_destroy(&parser);
 

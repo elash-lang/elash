@@ -29,7 +29,7 @@ static ElBSType* process(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, E
     return el_tcache_get_bst_from_hir(binder->tcache, ttype);
 }
 
-ElHirExpr* _el_binder_bind_sizeof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
+ElHirExpr* _el_bind_sizeof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     ElBSType* bstype = process(binder, in, call, EL_SV("sizeof"));
     if (bstype == NULL) return NULL;
 
@@ -37,7 +37,7 @@ ElHirExpr* _el_binder_bind_sizeof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr
     return el_hir_new_int_lit(binder->arena, in->span, EL_INT128(size));
 }
 
-ElHirExpr* _el_binder_bind_alignof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
+ElHirExpr* _el_bind_alignof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     ElBSType* bstype = process(binder, in, call, EL_SV("alignof"));
     if (bstype == NULL) return NULL;
 

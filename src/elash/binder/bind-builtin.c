@@ -17,7 +17,7 @@ ElHirToE* _el_binder_ensure_toe(ElBinder* binder, ElAstToI* toi, ElStringView bn
         return NULL;
     }
 
-    return el_binder_bind_toi(binder, toi, NULL, EL_STORAGECLS_LOCAL);
+    return el_bind_toi(binder, toi, NULL, EL_STORAGECLS_LOCAL);
 }
 
 bool _el_binder_ensure_params(ElBinder* binder, ElAstExpr* in, usize count, ElStringView bname) {
@@ -35,18 +35,18 @@ bool _el_binder_ensure_params(ElBinder* binder, ElAstExpr* in, usize count, ElSt
     return true;
 }
 
-ElHirExpr* el_binder_bind_builtin_call(
+ElHirExpr* el_bind_builtin_call(
     ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElHirSymbol* builtin
 ) {
     switch (builtin->as.builtin.kind) {
     case EL_BUILTIN_LEN:
-        return _el_binder_bind_len_call(binder, in, call);
+        return _el_bind_len_call(binder, in, call);
     case EL_BUILTIN_MKSLICE:
-        return _el_binder_bind_mkslice_call(binder, in, call);
+        return _el_bind_mkslice_call(binder, in, call);
     case EL_BUILTIN_SIZEOF:
-        return _el_binder_bind_sizeof(binder, in, call);
+        return _el_bind_sizeof(binder, in, call);
     case EL_BUILTIN_ALIGNOF:
-        return _el_binder_bind_alignof(binder, in, call);
+        return _el_bind_alignof(binder, in, call);
     }
     EL_UNREACHABLE_ENUM_VAL(ElBuiltinKind, builtin->as.builtin.kind);
 }

@@ -23,7 +23,7 @@ static ElHirExpr* bind_init_list_array(ElBinder* binder, ElAstInit* in, ElHirTyp
     ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExpr*, in->list.count);
     usize i = 0;
     for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
-        values[i] = el_binder_bind_init(binder, node, base_type, scls);
+        values[i] = el_bind_init(binder, node, base_type, scls);
         if (values[i] == NULL) return NULL;
     }
 
@@ -46,7 +46,7 @@ static ElHirExpr* bind_init_list_struct(ElBinder* binder, ElAstInit* in, ElHirTy
     usize i = 0;
     for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
         ElHirType* field_type = stype->fields[i].type;
-        values[i] = el_binder_bind_init(binder, node, field_type, scls);
+        values[i] = el_bind_init(binder, node, field_type, scls);
         if (values[i] == NULL) return NULL;
     }
 
@@ -69,14 +69,14 @@ static ElHirExpr* bind_init_list_tuple(ElBinder* binder, ElAstInit* in, ElHirTyp
     usize i = 0;
     for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
         ElHirType* elem_type = ttype->elements[i];
-        values[i] = el_binder_bind_init(binder, node, elem_type, scls);
+        values[i] = el_bind_init(binder, node, elem_type, scls);
         if (values[i] == NULL) return NULL;
     }
 
     return el_hir_new_agg_init(binder->arena, in->span, expected_type, values, ttype->count, scls);
 }
 
-ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
+ElHirExpr* _el_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
     ElHirType* etype = el_hir_type_unwrap_distinct(expected_type);
     switch (etype->kind) {
     case EL_HIR_TYPE_ARRAY:

@@ -32,7 +32,7 @@ static bool bind_param_types(
     usize i = 0;
 
     for (ElAstFuncParam* param = params->head; param != NULL; param = param->next) {
-        param_types[i] = el_binder_bind_type(binder, param->type);
+        param_types[i] = el_bind_type(binder, param->type);
         if (!_el_binder_ensure_complete(binder, param->span, param_types[i]))
             has_error = true;
 
@@ -79,7 +79,7 @@ static bool _el_binder_create_param_symbols(
 }
 
 static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
-    ElHirType* ret_type = el_binder_bind_type(binder, sig->ret_type);
+    ElHirType* ret_type = el_bind_type(binder, sig->ret_type);
     if (ret_type == NULL) return NULL;
 
     if (!el_hir_type_eql(ret_type, binder->builtins->type_void))
@@ -135,7 +135,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
     ElHirDecl* head = NULL;
     ElHirDecl* tail = NULL;
 
-    ElHirType* type = el_binder_bind_type(binder, var->type);
+    ElHirType* type = el_bind_type(binder, var->type);
     if (!_el_binder_ensure_complete(binder, var->type->span, type))
         return NULL;
 
@@ -151,7 +151,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
 
         ElHirExpr* init = NULL;
         if (d->init != NULL) {
-            init = el_binder_bind_init(binder, d->init, type, scls);
+            init = el_bind_init(binder, d->init, type, scls);
             if (init == NULL) return NULL;
         }
 
@@ -166,7 +166,7 @@ static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* v
     ElHirDecl* head = NULL;
     ElHirDecl* tail = NULL;
 
-    ElHirType* type = el_binder_bind_type(binder, var->type);
+    ElHirType* type = el_bind_type(binder, var->type);
     if (!_el_binder_ensure_complete(binder, var->type->span, type))
         return NULL;
 
@@ -210,7 +210,7 @@ static ElHirDecl* bind_func_def(ElBinder* binder, ElAstDecl* in, ElAstFuncDef* d
         (void) el_hir_scope_insert(binder->current_scope, sym->as.func.params[i]);
     }
 
-    ElHirBlockStmt block = _el_binder_bind_block(binder, def->block);
+    ElHirBlockStmt block = _el_bind_block(binder, def->block);
     _el_binder_pop_scope(binder);
 
     binder->current_func = prev_func;
@@ -236,7 +236,7 @@ static ElHirDecl* bind_func_decl(ElBinder* binder, ElAstDecl* in, ElAstFuncDecl*
 }
 
 static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias) {
-    ElHirToE* toe = el_binder_bind_toe(binder, &alias->target);
+    ElHirToE* toe = el_bind_toe(binder, &alias->target);
     if (toe == NULL) return NULL;
 
     if (toe->is_type) {
@@ -279,7 +279,7 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
             return el_hir_decl_none(binder->arena, in->span);
         }
 
-        ElHirType* target = el_binder_bind_type(binder, typedef_->target);
+        ElHirType* target = el_bind_type(binder, typedef_->target);
         if (target == NULL) return NULL;
 
         ElHirType* incomplete = el_hir_type_unwrap_distinct(existing->as.type.type);
@@ -294,7 +294,7 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
         return REPORT_REDEFINITION(binder, in->span, typedef_->name);
 
     if (typedef_->target != NULL) {
-        ElHirType* target = el_binder_bind_type(binder, typedef_->target);
+        ElHirType* target = el_bind_type(binder, typedef_->target);
         if (target == NULL) return NULL;
 
         distinct->as.distinct.orig = target;
@@ -321,7 +321,7 @@ static ElHirDecl* _bind_decl_internal(ElBinder* binder, ElAstDecl* in) {
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, in->type);
 }
 
-ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
+ElHirDecl* el_bind_decl(ElBinder* binder, ElAstDecl* in) {
     if (in == NULL) return NULL;
     el_prof_begin_sub(binder->prof, binder->pss_decl);
     ElHirDecl* result = _bind_decl_internal(binder, in);

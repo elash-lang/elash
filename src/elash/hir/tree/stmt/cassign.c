@@ -5,7 +5,7 @@ ElHirStmt* el_hir_new_compound_assign_stmt(
     ElBinOp op, ElHirExpr* target, ElHirExpr* value
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirStmt, {
-        .kind = EL_HIR_STMT_COMPOUND_ASSIGN,
+        .kind = EL_HIR_STMT_CASSIGN,
         .span = span,
         .next = NULL,
         .as.cassign = {

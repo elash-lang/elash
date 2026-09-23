@@ -34,7 +34,7 @@ static void lower_func_def(ElLowerer* lw, ElHirFuncDef* hir_func) {
     }
 
     for (ElHirStmt* node = hir_func->block.stmts; node != NULL; node = node->next) {
-        el_lowerer_lower_stmt(lw, node);
+        el_lower_stmt(lw, node);
     }
 
     if (!el_lowerer_has_terminator(lw)) {
@@ -79,7 +79,7 @@ static void _lower_global_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
 
         ElMirConstant* init = NULL;
         if (decl->as.var_def.init != NULL) {
-            init = _el_lowerer_lower_const(lw, decl->as.var_def.init);
+            init = _el_lower_const(lw, decl->as.var_def.init);
         }
 
         lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym, init, true);
@@ -109,7 +109,7 @@ static void _lower_global_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
     }
 }
 
-void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
+void el_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
     el_prof_begin_sub(lw->prof, lw->pss_decl);
     _lower_global_decl_internal(lw, decl);
     el_prof_finish_sub(lw->prof, lw->pss_decl);
@@ -120,7 +120,7 @@ static void _lower_local_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
     case EL_HIR_DECL_VAR_DEF: {
         // ugly but (i guess) works
         if (decl->as.var_def.scls == EL_STORAGECLS_STATIC) {
-            return el_lowerer_lower_global_decl(lw, decl);
+            return el_lower_global_decl(lw, decl);
         }
 
         ElHirSymbol* sym = decl->as.var_def.var;
@@ -133,9 +133,9 @@ static void _lower_local_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
 
         if (decl->as.var_def.init != NULL) {
             if (decl->as.var_def.init->kind == EL_HIR_EXPR_AGGINIT) {
-                _el_lowerer_lower_agginit(lw, ptr_reg, &decl->as.var_def.init->as.agginit);
+                _el_lower_agginit(lw, ptr_reg, &decl->as.var_def.init->as.agginit);
             } else {
-                ElMirValue* init_val = el_lowerer_lower_expr(lw, decl->as.var_def.init);
+                ElMirValue* init_val = el_lower_expr(lw, decl->as.var_def.init);
                 el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr_reg, init_val));
             }
         }
@@ -160,7 +160,7 @@ static void _lower_local_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
     }
 }
 
-void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
+void el_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
     el_prof_begin_sub(lw->prof, lw->pss_decl);
     _lower_local_decl_internal(lw, decl);
     el_prof_finish_sub(lw->prof, lw->pss_decl);

@@ -105,7 +105,7 @@ ElMirValue* _el_lowerer_make_some_opt(ElLowerer* lw, const ElHirType* type, ElMi
 ElMirValue* _el_lowerer_get_opt_lvalue(ElLowerer* lw, ElHirExpr* operand) {
     const ElHirType* type = operand->type;
     if (_el_hir_type_opt_is_ref(type)) {
-        return el_lowerer_lower_expr(lw, operand);
+        return el_lower_expr(lw, operand);
     }
 
     if (el_is_lvalue(operand)) {
@@ -114,7 +114,7 @@ ElMirValue* _el_lowerer_get_opt_lvalue(ElLowerer* lw, ElHirExpr* operand) {
     }
 
     ElMirType* mir_opt = el_tcache_get_mir(lw->tcache, type);
-    ElMirValue* opt = el_lowerer_lower_expr(lw, operand);
+    ElMirValue* opt = el_lower_expr(lw, operand);
     ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_opt);
     ElMirValue* tmp = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, tmp, mir_opt));
@@ -150,43 +150,43 @@ static ElMirValue* lower_conditional_opt(ElLowerer* lw, ElMirType* mir_type, ElM
     return result;
 }
 
-ElMirValue* _el_lowerer_lower_opt_fb(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
+ElMirValue* _el_lower_opt_fb(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     const ElHirType* type = bin->left->type;
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
 
-    ElMirValue* left = el_lowerer_lower_expr(lw, bin->left);
+    ElMirValue* left = el_lower_expr(lw, bin->left);
     ElMirValue* has = _el_lowerer_opt_has_value(lw, type, left);
-    ElMirValue* right = el_lowerer_lower_expr(lw, bin->right);
+    ElMirValue* right = el_lower_expr(lw, bin->right);
 
     return lower_conditional_opt(lw, mir_type, has, left, right);
 }
 
-ElMirValue* _el_lowerer_lower_opt_map(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
+ElMirValue* _el_lower_opt_map(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     const ElHirType* type = bin->left->type;
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
 
-    ElMirValue* left = el_lowerer_lower_expr(lw, bin->left);
+    ElMirValue* left = el_lower_expr(lw, bin->left);
     ElMirValue* has = _el_lowerer_opt_has_value(lw, type, left);
-    ElMirValue* mapped = _el_lowerer_make_some_opt(lw, hir->type, el_lowerer_lower_expr(lw, bin->right));
+    ElMirValue* mapped = _el_lowerer_make_some_opt(lw, hir->type, el_lower_expr(lw, bin->right));
     ElMirValue* none = _el_lowerer_make_null_opt(lw, hir->type);
 
     return lower_conditional_opt(lw, mir_type, has, mapped, none);
 }
 
-ElMirValue* _el_lowerer_lower_opt_opt_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
+ElMirValue* _el_lower_opt_opt_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     (void)hir;
 
     const ElHirType* type = bin->left->type;
     if (_el_hir_type_opt_is_ref(type)) {
-        ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
-        ElMirValue* other = el_lowerer_lower_expr(lw, bin->right);
+        ElMirValue* lhs = el_lower_expr(lw, bin->left);
+        ElMirValue* other = el_lower_expr(lw, bin->right);
         ElMirValue* result = el_mir_new_reg(lw->arena, lw->tcache->bool_type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, bin->op, lhs, other));
         return result;
     }
 
-    ElMirValue* left      = el_lowerer_lower_expr(lw, bin->left);
-    ElMirValue* right     = el_lowerer_lower_expr(lw, bin->right);
+    ElMirValue* left      = el_lower_expr(lw, bin->left);
+    ElMirValue* right     = el_lower_expr(lw, bin->right);
     ElMirValue* left_has  = _el_lowerer_opt_has_value(lw, type, left);
     ElMirValue* right_has = _el_lowerer_opt_has_value(lw, type, right);
     ElMirValue* left_val  = _el_lowerer_opt_get_value(lw, type, left);
@@ -220,15 +220,15 @@ ElMirValue* _el_lowerer_lower_opt_opt_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBi
     }
 }
 
-ElMirValue* _el_lowerer_lower_opt_base_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
+ElMirValue* _el_lower_opt_base_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     // TODO: this generates ugly MIR
     (void)hir;
 
     const ElHirType* type = bin->left->type;
     ElMirType* bool_type = lw->tcache->bool_type;
 
-    ElMirValue* opt   = el_lowerer_lower_expr(lw, bin->left);
-    ElMirValue* other = el_lowerer_lower_expr(lw, bin->right);
+    ElMirValue* opt   = el_lower_expr(lw, bin->left);
+    ElMirValue* other = el_lower_expr(lw, bin->right);
 
     ElMirValue* has = _el_lowerer_opt_has_value(lw, type, opt);
     ElMirValue* val = _el_lowerer_opt_get_value(lw, type, opt);

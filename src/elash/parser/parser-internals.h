@@ -12,17 +12,17 @@ void _el_parser_report_unexpected(ElParser* parser, ElToken tok);
 bool _el_parser_lookahead_skip_type(ElParser* parser, usize* idx);
 bool _el_parser_is_type_literal(ElParser* parser);
 
-ElAstStmt*  _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok);
-ElAstIdent* _el_parser_parse_ident(ElParser* parser);
-ElAstType*  _el_parser_parse_type(ElParser* parser);
-ElAstType*  _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type);
+ElAstStmt*  _el_parse_block(ElParser* parser, ElToken lbrace_tok);
+ElAstIdent* _el_parse_ident(ElParser* parser);
+ElAstType*  _el_parse_type(ElParser* parser);
+ElAstType*  _el_parse_type_suffixes(ElParser* parser, ElAstType* type);
 
-ElAstExpr* _el_parser_parse_primary(ElParser* parser);
-ElAstExpr* _el_parser_parse_postfix(ElParser* parser);
-ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
-ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr, bool is_optional);
+ElAstExpr* _el_parse_primary(ElParser* parser);
+ElAstExpr* _el_parse_postfix(ElParser* parser);
+ElAstExpr* _el_parse_call(ElParser* parser, ElAstExpr* callee);
+ElAstExpr* _el_parse_member(ElParser* parser, ElAstExpr* expr, bool is_optional);
 
-bool _el_parser_parse_const_idx(ElParser* parser, ElToken tok, usize* out);
+bool _el_parse_const_idx(ElParser* parser, ElToken tok, usize* out);
 
 typedef enum ElParseAmbigKind {
     EL_PARSE_AMBIG_TYPE,
@@ -41,5 +41,5 @@ typedef struct ElParseAmbig {
 } ElParseAmbig;
 
 bool         _el_parser_is_complex_expr(ElParser* parser);
-ElParseAmbig _el_parser_parse_ambig(ElParser* parser);
+ElParseAmbig _el_parse_ambig(ElParser* parser);
 ElAstToE* _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node);

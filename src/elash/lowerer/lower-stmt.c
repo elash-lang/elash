@@ -13,8 +13,8 @@
 #include <elash/hir/tree/stmt/break.h>
 #include <elash/hir/tree/stmt/continue.h>
 
-void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
-    ElMirValue* cond = el_lowerer_lower_expr(lw, if_stmt->cond);
+static void lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
+    ElMirValue* cond = el_lower_expr(lw, if_stmt->cond);
 
     uint32_t then_id = lw->current_func->block_count++;
     uint32_t merge_id = lw->current_func->block_count++;
@@ -26,7 +26,7 @@ void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = then_id;
-    el_lowerer_lower_stmt(lw, if_stmt->then);
+    el_lower_stmt(lw, if_stmt->then);
     if (!el_lowerer_has_terminator(lw)) {
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
     }
@@ -34,7 +34,7 @@ void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
 
     if (if_stmt->else_ != NULL) {
         lw->current_block_id = else_id;
-        el_lowerer_lower_stmt(lw, if_stmt->else_);
+        el_lower_stmt(lw, if_stmt->else_);
         if (!el_lowerer_has_terminator(lw)) {
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
         }
@@ -44,17 +44,17 @@ void _el_lowerer_lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
     lw->current_block_id = merge_id;
 }
 
-void _el_lowerer_lower_break(ElLowerer* lw, ElHirBreakStmt* node) {
+static void lower_break(ElLowerer* lw, ElHirBreakStmt* node) {
     (void) node;
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->break_target_id));
 }
 
-void _el_lowerer_lower_continue(ElLowerer* lw, ElHirContinueStmt* node) {
+static void lower_continue(ElLowerer* lw, ElHirContinueStmt* node) {
     (void) node;
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->continue_target_id));
 }
 
-void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
+static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     uint32_t cond_id = lw->current_func->block_count++;
     uint32_t body_id = lw->current_func->block_count++;
     uint32_t exit_id = lw->current_func->block_count++;
@@ -68,7 +68,7 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = cond_id;
-    ElMirValue* cond = el_lowerer_lower_expr(lw, while_stmt->cond);
+    ElMirValue* cond = el_lower_expr(lw, while_stmt->cond);
 
     el_mir_ibuf_push(
         &lw->ibuf,
@@ -83,7 +83,7 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = body_id;
-    el_lowerer_lower_stmt(lw, while_stmt->body);
+    el_lower_stmt(lw, while_stmt->body);
 
     if (!el_lowerer_has_terminator(lw)) {
         el_mir_ibuf_push(
@@ -99,13 +99,13 @@ void _el_lowerer_lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     lw->continue_target_id = prev_continue;
 }
 
-void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmt* assign) {
-    ElMirValue* value = el_lowerer_lower_expr(lw, assign->value);
+static void lower_assign(ElLowerer* lw, ElHirAssignStmt* assign) {
+    ElMirValue* value = el_lower_expr(lw, assign->value);
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, assign->target);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
 }
 
-void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
+static void lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, cassign->target);
     ElMirType* target_mir_type = el_tcache_get_mir(lw->tcache, cassign->target->type);
 
@@ -121,7 +121,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = rhs_id;
-            ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
+            ElMirValue* rhs = el_lower_expr(lw, cassign->value);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
@@ -130,7 +130,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = rhs_id;
-            ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
+            ElMirValue* rhs = el_lower_expr(lw, cassign->value);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
@@ -147,7 +147,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = rhs_id;
-            ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
+            ElMirValue* rhs = el_lower_expr(lw, cassign->value);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
             el_lowerer_emit_block(lw, lw->current_block_id);
@@ -162,7 +162,7 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
 
     // Lower RHS
-    ElMirValue* rhs = el_lowerer_lower_expr(lw, cassign->value);
+    ElMirValue* rhs = el_lower_expr(lw, cassign->value);
 
     // Perform op
     ElMirValue* result = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
@@ -172,10 +172,11 @@ void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) 
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, result));
 }
 
-void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
+static void lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
     ElMirValue* ret_val = ret->value != NULL
-        ? el_lowerer_lower_expr(lw, ret->value)
+        ? el_lower_expr(lw, ret->value)
         : NULL;
+
     ElMirInstr* ret_instr = el_mir_new_ret_instr(lw->arena, ret_val);
     el_mir_ibuf_push(&lw->ibuf, ret_instr);
 }
@@ -184,33 +185,34 @@ static void _lower_stmt_internal(ElLowerer* lw, ElHirStmt* hir) {
     if (el_lowerer_has_terminator(lw)) return;
 
     switch (hir->kind) {
-    case EL_HIR_STMT_EXPR: el_lowerer_lower_expr(lw, hir->as.expr); return;
+    case EL_HIR_STMT_IF:       return lower_if(lw, &hir->as.if_);
+    case EL_HIR_STMT_WHILE:    return lower_while(lw, &hir->as.while_);
+    case EL_HIR_STMT_BREAK:    return lower_break(lw, &hir->as.break_);
+    case EL_HIR_STMT_CONTINUE: return lower_continue(lw, &hir->as.continue_);
+    case EL_HIR_STMT_ASSIGN:   return lower_assign(lw, &hir->as.assign);
+    case EL_HIR_STMT_RETURN:   return lower_return(lw, &hir->as.return_);
+    case EL_HIR_STMT_CASSIGN:  return lower_cassign(lw, &hir->as.cassign);
+
     case EL_HIR_STMT_BLOCK:
         for (ElHirStmt* node = hir->as.block.stmts; node != NULL; node = node->next) {
-            el_lowerer_lower_stmt(lw, node);
+            el_lower_stmt(lw, node);
         }
         return;
 
-    case EL_HIR_STMT_ASSIGN:  return _el_lowerer_lower_assign(lw, &hir->as.assign);
-    case EL_HIR_STMT_RETURN:  return _el_lowerer_lower_return(lw, &hir->as.return_);
     case EL_HIR_STMT_DECL:
         for (ElHirDecl* d = hir->as.decl; d != NULL; d = d->next) {
-            el_lowerer_lower_local_decl(lw, d);
+            el_lower_local_decl(lw, d);
         }
         return;
 
-    case EL_HIR_STMT_COMPOUND_ASSIGN: return _el_lowerer_lower_cassign(lw, &hir->as.cassign);
-
-    case EL_HIR_STMT_IF:      return _el_lowerer_lower_if(lw, &hir->as.if_);
-    case EL_HIR_STMT_WHILE:   return _el_lowerer_lower_while(lw, &hir->as.while_);
-
-    case EL_HIR_STMT_BREAK:    return _el_lowerer_lower_break(lw, &hir->as.break_);
-    case EL_HIR_STMT_CONTINUE: return _el_lowerer_lower_continue(lw, &hir->as.continue_);
+    case EL_HIR_STMT_EXPR:
+        el_lower_expr(lw, hir->as.expr);
+        return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirStmtKind, hir->kind);
 }
 
-void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
+void el_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
     el_prof_begin_sub(lw->prof, lw->pss_stmt);
     _lower_stmt_internal(lw, hir);
     el_prof_finish_sub(lw->prof, lw->pss_stmt);

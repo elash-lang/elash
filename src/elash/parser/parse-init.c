@@ -13,7 +13,7 @@ static ElAstInit* parse_init_list(ElParser* parser, ElToken lbrace_tok) {
     usize count = 0;
 
     while (true) {
-        ElAstInit* init = el_parser_parse_init(parser);
+        ElAstInit* init = el_parse_init(parser);
         if (init == NULL) break;
 
         el_ast_init_list_append(&head, &tail, init);
@@ -41,7 +41,7 @@ static ElAstDesignator* parse_designator(ElParser* parser) {
             el_parser_advance(parser);
 
             usize index;
-            if (!_el_parser_parse_const_idx(parser, tok, &index)) {
+            if (!_el_parse_const_idx(parser, tok, &index)) {
                 return NULL;
             }
             ElSourceSpan span = el_srcspan_merge(dot_tok.span, tok.span);
@@ -57,7 +57,7 @@ static ElAstDesignator* parse_designator(ElParser* parser) {
     // but maybe expect here would be better anyway
     // who cares
     ElToken lbracket_tok = el_parser_advance(parser); // '['
-    ElAstExpr* index = el_parser_parse_expr(parser);
+    ElAstExpr* index = el_parse_expr(parser);
     ElToken rbracket_tok = el_parser_expect(parser, EL_TT_RBRACKET); // ']'
 
     ElSourceSpan span = el_srcspan_merge(lbracket_tok.span, rbracket_tok.span);
@@ -78,7 +78,7 @@ static ElAstDesigInitElem* parse_desig_init_elem(ElParser* parser) {
     }
 
     el_parser_expect(parser, EL_TT_ASSIGN);
-    ElAstInit* init = el_parser_parse_init(parser);
+    ElAstInit* init = el_parse_init(parser);
 
     ElSourceSpan start_span = head != NULL ? head->span : (init ? init->span : EL_SRCSPAN_NULL);
     ElSourceSpan end_span   = init != NULL ? init->span : (head ? head->span : EL_SRCSPAN_NULL);
@@ -123,12 +123,12 @@ static ElAstInit* _parse_init_internal(ElParser* parser) {
         return parse_init_list(parser, lbrace_tok);
     }
 
-    ElAstExpr* expr = el_parser_parse_expr(parser);
+    ElAstExpr* expr = el_parse_expr(parser);
     if (expr == NULL) return NULL;
     return el_ast_new_init_expr(parser->aarena, expr);
 }
 
-ElAstInit* el_parser_parse_init(ElParser* parser) {
+ElAstInit* el_parse_init(ElParser* parser) {
     el_prof_begin_sub(parser->prof, parser->pss_init);
     ElAstInit* result = _parse_init_internal(parser);
     el_prof_finish_sub(parser->prof, parser->pss_init);

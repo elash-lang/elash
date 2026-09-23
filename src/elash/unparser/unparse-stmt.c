@@ -47,7 +47,7 @@ bool el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
         if (!el_unparser_unparse_init(unpar, stmt->as.assign.value))  return false;
         return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 
-    case EL_AST_STMT_COMPOUND_ASSIGN:
+    case EL_AST_STMT_CASSIGN:
         if (!el_unparser_unparse_expr(unpar, stmt->as.cassign.target))          return false;
         if (!el_unparser_push_punct(unpar, cassign_token(stmt->as.cassign.op))) return false;
         if (!el_unparser_unparse_init(unpar, stmt->as.cassign.value))           return false;

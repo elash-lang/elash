@@ -3,7 +3,7 @@
 #include <elash/ast/tree/module.h>
 #include <elash/diag/engine.h>
 
-ElAstModule* el_parser_parse_module(ElParser* parser) {
+ElAstModule* el_parse_module(ElParser* parser) {
     ElSourceSpan module_span = EL_SRCSPAN_NULL;
     bool first = true;
 
@@ -14,7 +14,7 @@ ElAstModule* el_parser_parse_module(ElParser* parser) {
     ElAstModule* module = el_ast_new_module(parser->aarena, module_span);
 
     while (parser->current.type != EL_TT_EOF) {
-        ElAstDecl* node = el_parser_parse_decl(parser);
+        ElAstDecl* node = el_parse_decl(parser);
         if (node == NULL) {
             continue;
         }

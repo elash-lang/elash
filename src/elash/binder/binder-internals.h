@@ -4,20 +4,20 @@
 #include <elash/diag/engine.h>   // IWYU pragma: export
 #include <elash/util/int128.h>   // IWYU pragma: export
 
-ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in);
-ElHirToE* _el_binder_bind_unresolved(ElBinder* binder, ElAstToE* in, ElAstUnr* unr);
+ElHirBlockStmt _el_bind_block(ElBinder* binder, ElAstBlockStmt* in);
+ElHirToE* _el_bind_unresolved(ElBinder* binder, ElAstToE* in, ElAstUnr* unr);
 
 //////////// constant folding and casts //////////////
-ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirType* type, ElInt128 value);
-ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr);
+ElInt128   _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirType* type, ElInt128 value);
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr);
+ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr);
 
 ///////////////// initializers ///////////////////
-ElHirExpr* el_binder_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
-ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
+ElHirExpr* _el_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
+ElHirExpr* _el_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
 
 /////////////////// helpers //////////////////////
 usize _el_binder_find_field(ElStringView name, const ElHirStructType* type, bool* found);
@@ -49,8 +49,8 @@ bool _el_binder_ensure_complete(ElBinder* binder, ElSourceSpan span, ElHirType* 
 ////////////// builtins //////////////
 typedef ElHirExpr* BuiltinHandler(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call);
 
-BuiltinHandler _el_binder_bind_len_call;
-BuiltinHandler _el_binder_bind_mkslice_call;
+BuiltinHandler _el_bind_len_call;
+BuiltinHandler _el_bind_mkslice_call;
 
-BuiltinHandler _el_binder_bind_sizeof;
-BuiltinHandler _el_binder_bind_alignof;
+BuiltinHandler _el_bind_sizeof;
+BuiltinHandler _el_bind_alignof;

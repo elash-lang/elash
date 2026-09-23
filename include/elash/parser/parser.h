@@ -58,10 +58,10 @@ bool    el_parser_check(ElParser* parser, ElTokenType type);
 ElToken el_parser_peek(ElParser* parser);
 ElToken el_parser_peek_at(ElParser* parser, usize n);
 
-ElAstToE*      el_parser_parse_toe(ElParser* parser);
-ElAstToI*      el_parser_parse_toi(ElParser* parser);
-ElAstDecl*     el_parser_parse_decl(ElParser* parser);
-ElAstInit*     el_parser_parse_init(ElParser* parser);
-ElAstExpr*     el_parser_parse_expr(ElParser* parser);
-ElAstStmt*     el_parser_parse_stmt(ElParser* parser);
-ElAstModule*   el_parser_parse_module(ElParser* parser);
+ElAstToE*      el_parse_toe(ElParser* parser);
+ElAstToI*      el_parse_toi(ElParser* parser);
+ElAstDecl*     el_parse_decl(ElParser* parser);
+ElAstInit*     el_parse_init(ElParser* parser);
+ElAstExpr*     el_parse_expr(ElParser* parser);
+ElAstStmt*     el_parse_stmt(ElParser* parser);
+ElAstModule*   el_parse_module(ElParser* parser);

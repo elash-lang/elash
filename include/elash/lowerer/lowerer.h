@@ -65,11 +65,11 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id);
 
 ElMirValue*  el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir);
 
-void         el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl);
-void         el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl);
-ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
-void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir);
-ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
+void         el_lower_global_decl(ElLowerer* lw, ElHirDecl* decl);
+void         el_lower_local_decl(ElLowerer* lw, ElHirDecl* decl);
+ElMirValue*  el_lower_expr(ElLowerer* lw, ElHirExpr* hir);
+void         el_lower_stmt(ElLowerer* lw, ElHirStmt* hir);
+ElMirModule* el_lower_module(ElLowerer* lw, ElHirModule* hir);
 
 ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type);
 

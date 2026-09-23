@@ -3,7 +3,7 @@
 #include <elash/util/dynarena.h>
 #include <elash/util/assert.h>
 
-ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
+ElMirConstant* _el_lower_const(ElLowerer* lw, ElHirExpr* expr) {
     EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "expression must be a constant or aggregate literal");
     ElHirType* type = el_hir_type_unwrap_distinct(expr->type);
 
@@ -23,7 +23,7 @@ ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
         mirconst->as.agg.elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirConstant*, arrlit->count);
 
         for (usize i = 0; i < arrlit->count; ++i) {
-            mirconst->as.agg.elements[i] = _el_lowerer_lower_const(lw, arrlit->values[i]);
+            mirconst->as.agg.elements[i] = _el_lower_const(lw, arrlit->values[i]);
         }
     }
 

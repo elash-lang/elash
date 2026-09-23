@@ -105,7 +105,7 @@ static ElHirExpr* validate(
 
         InitBucket* b = &buckets[i];
         if (b->direct != NULL) {
-            values[i] = el_binder_bind_init(binder, b->direct, elem_type, scls);
+            values[i] = el_bind_init(binder, b->direct, elem_type, scls);
             if (values[i] == NULL) return NULL;
         } else if (b->sub_head != NULL) {
             values[i] = bind_designated_elems(binder, in, elem_type, b->sub_head, scls);
@@ -222,6 +222,6 @@ static ElHirExpr* bind_designated_elems(
     return el_hir_new_some_opt_intr(binder->arena, in->span, opt_wrapper, result);
 }
 
-ElHirExpr* el_binder_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
+ElHirExpr* _el_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
     return bind_designated_elems(binder, in, expected_type, in->desig.head, scls);
 }

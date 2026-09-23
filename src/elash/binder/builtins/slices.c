@@ -10,7 +10,7 @@ static ElHirExpr* len_from_array_type(ElBinder* binder, ElSourceSpan span, ElHir
     );
 }
 
-ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
+ElHirExpr* _el_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     if (!_el_binder_ensure_params(binder, in, 1, EL_SV("len")))
         return NULL;
 
@@ -52,7 +52,7 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
     );
 }
 
-ElHirExpr* _el_binder_bind_mkslice_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
+ElHirExpr* _el_bind_mkslice_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     if (!_el_binder_ensure_params(binder, in, 2, EL_SV("mkslice")))
         return NULL;
 

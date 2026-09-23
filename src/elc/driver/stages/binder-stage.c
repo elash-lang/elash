@@ -16,7 +16,7 @@ bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
         .prof   = ctx->prof,
     );
 
-    ElHirModule* mod = el_binder_bind_module(&binder, input->as.ast);
+    ElHirModule* mod = el_bind_module(&binder, input->as.ast);
 
     el_binder_free(&binder);
     if (el_diag_engine_has_errors(ctx->diag))

@@ -112,14 +112,14 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
             }
 
             if (left_type->kind == EL_HIR_TYPE_RWSLICE) {
-                ptr = el_lowerer_lower_expr(lw, hir->as.binary.left);
+                ptr = el_lower_expr(lw, hir->as.binary.left);
             } else if (left_type->kind == EL_HIR_TYPE_SLICE) {
-                ElMirValue* slice = el_lowerer_lower_expr(lw, hir->as.binary.left);
+                ElMirValue* slice = el_lower_expr(lw, hir->as.binary.left);
                 ptr = _el_lowerer_extract_tuple_field(lw, slice, 0);
             } else {
                  ptr = el_lowerer_get_lvalue(lw, hir->as.binary.left);
             }
-            ElMirValue* index = el_lowerer_lower_expr(lw, hir->as.binary.right);
+            ElMirValue* index = el_lower_expr(lw, hir->as.binary.right);
 
             ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
             ElMirType* result_ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
@@ -132,7 +132,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_UNARY:
         if (hir->as.unary.op == EL_UNARY_OP_DEREF) {
             // from what i understand, lvalue of *p is effectively the value p
-            return el_lowerer_lower_expr(lw, hir->as.unary.operand);
+            return el_lower_expr(lw, hir->as.unary.operand);
         }
         if (hir->as.unary.op == EL_UNARY_OP_OPT_UNWRAP) {
             return _el_lowerer_get_opt_lvalue(lw, hir->as.unary.operand);
@@ -142,11 +142,11 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_AGGINIT: {
         ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
         if (hir->as.agginit.scls == EL_STORAGECLS_STATIC) {
-            return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
+            return _el_lowerer_new_anon_global(lw, mir_type, _el_lower_const(lw, hir));
         }
 
         ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);
-        _el_lowerer_lower_agginit(lw, ptr, &hir->as.agginit);
+        _el_lower_agginit(lw, ptr, &hir->as.agginit);
         return ptr;
     }
 

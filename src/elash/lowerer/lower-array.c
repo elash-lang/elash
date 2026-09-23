@@ -6,7 +6,7 @@
 #include <elash/mir/instr.h>
 #include <elash/mir/type.h>
 
-void _el_lowerer_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agginit) {
+void _el_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agginit) {
     EL_ASSERT(ptr->type->kind == EL_MIR_TYPE_PTR, "expected pointer for agginit target");
     ElMirType* target_type = ptr->type->as.ptr.base;
 
@@ -26,9 +26,9 @@ void _el_lowerer_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agg
         }
 
         if (agginit->values[i]->kind == EL_HIR_EXPR_AGGINIT) {
-            _el_lowerer_lower_agginit(lw, elem_ptr, &agginit->values[i]->as.agginit);
+            _el_lower_agginit(lw, elem_ptr, &agginit->values[i]->as.agginit);
         } else {
-            ElMirValue* val = el_lowerer_lower_expr(lw, agginit->values[i]);
+            ElMirValue* val = el_lower_expr(lw, agginit->values[i]);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, elem_ptr, val));
         }
     }

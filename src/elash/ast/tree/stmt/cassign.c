@@ -5,7 +5,7 @@ ElAstStmt* el_ast_new_compound_assign_stmt(
     ElBinOp op, ElAstExpr* target, ElAstInit* value
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmt, {
-        .type = EL_AST_STMT_COMPOUND_ASSIGN,
+        .type = EL_AST_STMT_CASSIGN,
         .span = span,
         .next = NULL,
         .as.cassign = {

@@ -7,7 +7,7 @@
 #include <elash/hir/type.h>
 
 static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
-    ElHirType* base = el_binder_bind_type(binder, array->base);
+    ElHirType* base = el_bind_type(binder, array->base);
     if (!_el_binder_ensure_complete(binder, array->base->span, base))
         return NULL;
 
@@ -47,7 +47,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
     for (ElAstDecl* field = struct_->fields; field != NULL; field = field->next) {
         switch (field->type) {
         case EL_AST_DECL_VAR_DEF: {
-            ElHirType* type = el_binder_bind_type(binder, field->as.var_def.type);
+            ElHirType* type = el_bind_type(binder, field->as.var_def.type);
             for (ElAstDeclarator* d = field->as.var_def.declarators; d != NULL; d = d->next) {
                 if (!_el_binder_ensure_complete(binder, field->span, type))
                     type = binder->builtins->type_void;
@@ -66,7 +66,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
             );
 
             // just for better error reporting
-            ElHirType* type = el_binder_bind_type(binder, field->as.var_decl.type);
+            ElHirType* type = el_bind_type(binder, field->as.var_decl.type);
             for (ElAstDeclarator* d = field->as.var_decl.declarators; d != NULL; d = d->next) {
                 fields[i++] = (ElHirStructField) {
                     .name = d->name->name,
@@ -96,7 +96,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
 
         case EL_AST_DECL_ALIAS:
         case EL_AST_DECL_TYPEDEF:
-            el_binder_bind_decl(binder, field);
+            el_bind_decl(binder, field);
             break;
         }
     }
@@ -112,7 +112,7 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
 
     usize i = 0;
     for (ElAstType* type = tuple->head; type != NULL; ++i, type = type->next) {
-        elements[i] = el_binder_bind_type(binder, type);
+        elements[i] = el_bind_type(binder, type);
         if (!_el_binder_ensure_complete(binder, type->span, elements[i])) {
             // again, for better error reporting
             elements[i] = binder->builtins->type_void;
@@ -125,17 +125,17 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
 static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
     switch (in->kind) {
     case EL_AST_TYPE_REF: {
-        ElHirType* base = el_binder_bind_type(binder ,in->as.ref.base);
+        ElHirType* base = el_bind_type(binder ,in->as.ref.base);
         if (base == NULL) return NULL;
         return el_hir_new_ref_type(binder->arena, base);
     }
     case EL_AST_TYPE_OPT: {
-        ElHirType* base = el_binder_bind_type(binder ,in->as.ref.base);
+        ElHirType* base = el_bind_type(binder ,in->as.ref.base);
         if (base == NULL) return NULL;
         return el_hir_new_opt_type(binder->arena, base);
     }
     case EL_AST_TYPE_SLICE: {
-        ElHirType* base = el_binder_bind_type(binder, in->as.slice.base);
+        ElHirType* base = el_bind_type(binder, in->as.slice.base);
         if (base == NULL) return NULL;
         return (in->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->arena, base);
     }
@@ -165,7 +165,7 @@ static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
 }
 
 
-ElHirType* el_binder_bind_type(ElBinder* binder, ElAstType* in) {
+ElHirType* el_bind_type(ElBinder* binder, ElAstType* in) {
     EL_ASSERT(in != NULL, "should not be NULL");
     el_prof_begin_sub(binder->prof, binder->pss_type);
     ElHirType* result = _bind_type_internal(binder, in);

@@ -110,7 +110,7 @@ usize _el_binder_find_field(ElStringView name, const ElHirStructType* type, bool
 }
 
 bool _el_binder_eval_const_index(ElBinder* binder, ElAstExpr* expr, usize* out_idx) {
-    ElHirExpr* bound = el_binder_bind_expr(binder, expr);
+    ElHirExpr* bound = el_bind_expr(binder, expr);
     if (bound == NULL) return false;
 
     ElInt128 val;

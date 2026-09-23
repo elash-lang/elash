@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
     ElParser parser;
     el_parser_init(&parser, el_pp_as_token_stream(&pp), &diag, &arena, &arena, NULL);
-    ElAstModule* orig = el_parser_parse_module(&parser);
+    ElAstModule* orig = el_parse_module(&parser);
     el_parser_destroy(&parser);
 
     ElUnparser unparser;
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     el_unparser_unparse_module(&unparser, orig);
 
     el_parser_init(&parser, el_tkbuf_as_stream(&stream, &toks), &diag, &arena, &arena, NULL);
-    ElAstModule* repro = el_parser_parse_module(&parser);
+    ElAstModule* repro = el_parse_module(&parser);
     el_parser_destroy(&parser);
 
     // this is ignored anyway if the test passes,

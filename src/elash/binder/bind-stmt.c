@@ -17,12 +17,12 @@ bool _el_binder_is_lvalue(ElHirExpr* expr) {
         || (expr->kind == EL_HIR_EXPR_TMEMBER);
 }
 
-ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
+ElHirBlockStmt _el_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
     ElHirStmt* head = NULL;
     ElHirStmt* tail = NULL;
 
     for (ElAstStmt* curr = in->stmts; curr != NULL; curr = curr->next) {
-        ElHirStmt* binded = el_binder_bind_stmt(binder, curr);
+        ElHirStmt* binded = el_bind_stmt(binder, curr);
         if (binded != NULL) {
             el_hir_stmt_list_append(&head, &tail, binded);
         }
@@ -34,7 +34,7 @@ ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
 static ElHirStmt* bind_return(ElBinder* binder, ElAstStmt* in) {
     ElHirExpr* val = NULL;
     if (in->as.return_.value != NULL) {
-        val = el_binder_bind_init(
+        val = el_bind_init(
             binder, in->as.return_.value,
             binder->current_func->as.func.type->as.func.ret_type,
             EL_STORAGECLS_LOCAL
@@ -85,13 +85,13 @@ skip:
     )                                                        \
 
 static ElHirStmt* bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignStmt* assign) {
-    ElHirExpr* target = el_binder_bind_expr(binder, assign->target);
+    ElHirExpr* target = el_bind_expr(binder, assign->target);
     if (!_el_binder_is_lvalue(target)) {
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
     }
 
-    ElHirExpr* value = el_binder_bind_init(binder, assign->value, target->type, EL_STORAGECLS_LOCAL);
+    ElHirExpr* value = el_bind_init(binder, assign->value, target->type, EL_STORAGECLS_LOCAL);
     if (value == NULL) return NULL;
 
     return el_hir_new_assign_stmt(
@@ -101,13 +101,13 @@ static ElHirStmt* bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignStmt* 
 }
 
 static ElHirStmt* bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAstCompoundAssignStmt* cassign) {
-    ElHirExpr* target = el_binder_bind_expr(binder, cassign->target);
+    ElHirExpr* target = el_bind_expr(binder, cassign->target);
     if (!_el_binder_is_lvalue(target)) {
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
     }
 
-    ElHirExpr* value = el_binder_bind_init(binder, cassign->value, target->type, EL_STORAGECLS_LOCAL);
+    ElHirExpr* value = el_bind_init(binder, cassign->value, target->type, EL_STORAGECLS_LOCAL);
     if (value == NULL) return NULL;
 
     return el_hir_new_compound_assign_stmt(
@@ -122,22 +122,22 @@ static ElHirStmt* bind_if(ElBinder* binder, ElAstStmt* in, ElAstIfStmt* if_) {
 
     ElHirStmt* init_stmt = NULL;
     if (has_init) {
-        init_stmt = el_binder_bind_stmt(binder, if_->init);
+        init_stmt = el_bind_stmt(binder, if_->init);
         if (init_stmt == NULL) goto e1;
     }
 
-    ElHirExpr* cond = el_binder_bind_expr(binder, if_->cond);
+    ElHirExpr* cond = el_bind_expr(binder, if_->cond);
     if (cond == NULL) goto e1;
 
     cond = _el_binder_implicit_cast(binder, if_->cond->span, cond, binder->builtins->type_bool);
     if (cond == NULL) goto e1;
 
-    ElHirStmt* then = el_binder_bind_stmt(binder, if_->then);
+    ElHirStmt* then = el_bind_stmt(binder, if_->then);
     if (then == NULL) goto e1;
 
     ElHirStmt* else_ = NULL;
     if (if_->else_ != NULL) {
-        else_ = el_binder_bind_stmt(binder, if_->else_);
+        else_ = el_bind_stmt(binder, if_->else_);
         if (else_ == NULL) goto e1;
     }
 
@@ -169,18 +169,18 @@ static ElHirStmt* bind_while(ElBinder* binder, ElAstStmt* in, ElAstWhileStmt* wh
 
     ElHirStmt* init_stmt = NULL;
     if (has_init) {
-        init_stmt = el_binder_bind_stmt(binder, while_->init);
+        init_stmt = el_bind_stmt(binder, while_->init);
         if (init_stmt == NULL) goto e1;
     }
 
     binder->loop_depth++;
-    ElHirExpr* cond = el_binder_bind_expr(binder, while_->cond);
+    ElHirExpr* cond = el_bind_expr(binder, while_->cond);
     if (cond == NULL) goto e2;
 
     cond = _el_binder_implicit_cast(binder, while_->cond->span, cond, binder->builtins->type_bool);
     if (cond == NULL) goto e2;
 
-    ElHirStmt* body = el_binder_bind_stmt(binder, while_->body);
+    ElHirStmt* body = el_bind_stmt(binder, while_->body);
     if (body == NULL) goto e2;
 
     binder->loop_depth--;
@@ -202,7 +202,7 @@ e1:
 }
 
 static ElHirStmt* bind_expr_stmt(ElBinder* binder, ElAstStmt* in) {
-    ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
+    ElHirExpr* expr = el_bind_expr(binder, in->as.expr);
     if (expr == NULL) return NULL;
 
     expr = _el_binder_apply_default_type(binder, expr);
@@ -235,12 +235,12 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
         _el_binder_push_scope(binder);
-        ElHirBlockStmt block = _el_binder_bind_block(binder, &in->as.block);
+        ElHirBlockStmt block = _el_bind_block(binder, &in->as.block);
         _el_binder_pop_scope(binder);
         return el_hir_new_block_stmt(binder->arena, in->span, block.stmts);
     }
     case EL_AST_STMT_DECL: {
-        ElHirDecl* decl = el_binder_bind_decl(binder, in->as.decl);
+        ElHirDecl* decl = el_bind_decl(binder, in->as.decl);
         if (decl == NULL) return NULL;
         return el_hir_new_decl_stmt(binder->arena, in->span, decl);
     }
@@ -272,13 +272,13 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
 
     case EL_AST_STMT_ASSIGN:
         return bind_assign(binder, in, &in->as.assign);
-    case EL_AST_STMT_COMPOUND_ASSIGN:
+    case EL_AST_STMT_CASSIGN:
         return bind_compound_assign(binder, in, &in->as.cassign);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);
 }
 
-ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
+ElHirStmt* el_bind_stmt(ElBinder* binder, ElAstStmt* in) {
     EL_ASSERT(in != NULL, "should not be NULL");
     el_prof_begin_sub(binder->prof, binder->pss_stmt);
     ElHirStmt* result = _bind_stmt_internal(binder, in);

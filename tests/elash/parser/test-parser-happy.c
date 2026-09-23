@@ -6,7 +6,7 @@ TestSuite(el_parser_happy, .init = init, .fini = fini);
 Test(el_parser_happy, parse_expr) {
     ElDiagEngine diag;
     ElParser parser = p("1 + 2 / 30 - ('X' + \"Hello\")", &diag);
-    ElAstExpr* expr = el_parser_parse_expr(&parser);
+    ElAstExpr* expr = el_parse_expr(&parser);
 
     cr_assert_eq(diag.summary.total_errors, 0);
 
@@ -44,7 +44,7 @@ Test(el_parser_happy, parse_expr) {
 Test(el_parser_happy, parse_stmt_println) {
     ElDiagEngine diag;
     ElParser parser = p("println(\"Hello, world!\");", &diag);
-    ElAstStmt* stmt = el_parser_parse_stmt(&parser);
+    ElAstStmt* stmt = el_parse_stmt(&parser);
     cr_assert_eq(diag.summary.total_errors, 0);
 
     cr_assert_not_null(stmt);
@@ -75,11 +75,11 @@ Test(el_parser_happy, parse_stmt_println) {
 Test(el_parser_happy, parse_stmt_aug_assign) {
     ElDiagEngine diag;
     ElParser parser = p("x += 10;", &diag);
-    ElAstStmt* stmt = el_parser_parse_stmt(&parser);
+    ElAstStmt* stmt = el_parse_stmt(&parser);
     cr_assert_eq(diag.summary.total_errors, 0);
 
     cr_assert_not_null(stmt);
-    cr_assert_eq(stmt->type, EL_AST_STMT_COMPOUND_ASSIGN);
+    cr_assert_eq(stmt->type, EL_AST_STMT_CASSIGN);
 
     // target: x
     cr_assert_not_null(stmt->as.cassign.target);
@@ -100,7 +100,7 @@ Test(el_parser_happy, parse_stmt_aug_assign) {
 Test(el_parser_happy, parse_decl_func) {
     ElDiagEngine diag;
     ElParser parser = p("int foo(int x);", &diag);
-    ElAstDecl* decl = el_parser_parse_decl(&parser);
+    ElAstDecl* decl = el_parse_decl(&parser);
     cr_assert_eq(diag.summary.total_errors, 0);
 
     cr_assert_not_null(decl);

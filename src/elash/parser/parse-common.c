@@ -2,7 +2,7 @@
 
 #include <elash/ast/tree/common/ident.h>
 
-ElAstIdent* _el_parser_parse_ident(ElParser* parser) {
+ElAstIdent* _el_parse_ident(ElParser* parser) {
     if (!el_parser_check(parser, EL_TT_IDENT)) {
         el_parser_expect(parser, EL_TT_IDENT);
         return NULL;

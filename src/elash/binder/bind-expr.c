@@ -43,9 +43,7 @@ static bool types_opt_base_match(const ElHirType* opt, const ElHirType* other) {
         && el_hir_type_eql(base->as.ref.base, other->as.ref.base);
 }
 
-static bool bind_opt_side(
-    ElBinder* binder, ElSourceSpan span, ElHirExpr* opt, ElHirExpr** other
-) {
+static bool bind_opt_side(ElBinder* binder, ElSourceSpan span, ElHirExpr* opt, ElHirExpr** other) {
     if (opt->type == NULL)                  return false;
     if (opt->type->kind != EL_HIR_TYPE_OPT) return false;
 
@@ -74,9 +72,7 @@ static bool bind_opt_side(
     return el_hir_type_eql(base->as.ref.base, (*other)->type->as.ref.base);
 }
 
-static ElHirExpr* bind_optional_eql(
-    ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr* left, ElHirExpr* right
-) {
+static ElHirExpr* bind_optional_eql(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr* left, ElHirExpr* right) {
     // untyped null -> null as T?
     if (is_null_lit(left) && right->type != NULL && right->type->kind == EL_HIR_TYPE_OPT) {
         left = _el_binder_implicit_cast(binder, bin->left->span, left, right->type);
@@ -107,9 +103,7 @@ static ElHirExpr* bind_optional_eql(
     return NULL;
 }
 
-static ElHirExpr* bind_optional_bin_op(
-    ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr* left, ElHirExpr* right
-) {
+static ElHirExpr* bind_optional_bin_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr* left, ElHirExpr* right) {
     if (left->type == NULL || left->type->kind != EL_HIR_TYPE_OPT) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
@@ -189,9 +183,9 @@ static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* b
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): AGAIN, clang-tidy doesn't understand macros
-ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
-    ElHirExpr* left  = el_binder_bind_expr(binder, bin->left);
-    ElHirExpr* right = el_binder_bind_expr(binder, bin->right);
+static ElHirExpr* bind_bin(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
+    ElHirExpr* left  = el_bind_expr(binder, bin->left);
+    ElHirExpr* right = el_bind_expr(binder, bin->right);
     if (left == NULL || right == NULL) return NULL;
 
     if (el_bin_op_is_optional(bin->op))
@@ -242,8 +236,8 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* unary) {
-    ElHirExpr* operand = el_binder_bind_expr(binder, unary->operand);
+static ElHirExpr* bind_unary(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* unary) {
+    ElHirExpr* operand = el_bind_expr(binder, unary->operand);
     if (operand == NULL) return NULL;
 
     ElHirType* type = operand->type;
@@ -310,7 +304,7 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
     return el_hir_new_unary_expr(binder->arena, in->span, type, unary->op, operand);
 }
 
-ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral* lit) {
+static ElHirExpr* bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral* lit) {
     switch (lit->kind) {
     case EL_AST_LIT_INT:
         return el_hir_new_int_lit(binder->arena, in->span, lit->of.int_);
@@ -328,7 +322,7 @@ ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral
     EL_UNREACHABLE_ENUM_VAL(ElAstLiteralKind, lit->kind);
 }
 
-ElHirExpr* _el_binder_bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* ident) {
+static ElHirExpr* bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* ident) {
     ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, ident->name);
     if (sym == NULL) {
         el_diag_report(
@@ -357,12 +351,12 @@ ElHirExpr* _el_binder_bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* id
     return NULL;
 }
 
-ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
-    ElHirExpr* callee = el_binder_bind_expr(binder, call->callee);
+static ElHirExpr* bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
+    ElHirExpr* callee = el_bind_expr(binder, call->callee);
     if (!callee) return NULL;
 
     if (callee->kind == EL_HIR_EXPR_SYMBOL && callee->as.symbol->kind == EL_SYM_BUILTIN) {
-        return el_binder_bind_builtin_call(binder, in, call, callee->as.symbol);
+        return el_bind_builtin_call(binder, in, call, callee->as.symbol);
     }
 
     if (callee->type == NULL || callee->type->kind != EL_HIR_TYPE_FUNC)
@@ -384,7 +378,7 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
     ElHirExpr** args = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExpr*, call->arg_count);
     usize i = 0;
     for (ElAstToI* curr = call->args; curr != NULL; curr = curr->next) {
-        ElHirToE* toe = el_binder_bind_toi(binder, curr, func->params[i], EL_STORAGECLS_LOCAL);
+        ElHirToE* toe = el_bind_toi(binder, curr, func->params[i], EL_STORAGECLS_LOCAL);
         if (toe == NULL) return NULL;
         if (toe->is_type) {
             el_diag_report(
@@ -405,9 +399,9 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
     return el_hir_new_call_expr(binder->arena, in->span, func->ret_type, callee, args, call->arg_count);
 }
 
-ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* cast) {
-    ElHirExpr* expr = el_binder_bind_expr(binder, cast->expr);
-    ElHirType* type = el_binder_bind_type(binder, cast->type);
+static ElHirExpr* bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* cast) {
+    ElHirExpr* expr = el_bind_expr(binder, cast->expr);
+    ElHirType* type = el_bind_type(binder, cast->type);
 
     if (expr == NULL || type == NULL) return NULL;
     if (!_el_binder_ensure_complete(binder, cast->type->span, type))
@@ -433,16 +427,16 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     }
 }
 
-ElHirExpr* el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
+static ElHirExpr* bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
     (void) in;
-    ElHirType* type = el_binder_bind_type(binder, tinit->type);
+    ElHirType* type = el_bind_type(binder, tinit->type);
     if (type == NULL) return NULL;
 
-    return el_binder_bind_init(binder, tinit->init, type, tinit->scls);
+    return el_bind_init(binder, tinit->init, type, tinit->scls);
 }
 
-ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
-    ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
+static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
+    ElHirExpr* expr = el_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
     ElHirType* type = expr->type;
@@ -507,9 +501,9 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
     );
 }
 
-ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr* tmember) {
+static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr* tmember) {
     (void) in;
-    ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
+    ElHirExpr* expr = el_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 
     ElHirType* type = expr->type;
@@ -576,26 +570,26 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
     );
 }
 
-ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
+ElHirExpr* _el_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     switch (in->type) {
-    case EL_AST_EXPR_BINARY:    return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
-    case EL_AST_EXPR_UNARY:     return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
-    case EL_AST_EXPR_LITERAL:   return _el_binder_bind_literal(binder, in, &in->as.literal);
-    case EL_AST_EXPR_IDENT:     return _el_binder_bind_ident(binder, in, &in->as.ident);
-    case EL_AST_EXPR_CALL:      return _el_binder_bind_call(binder, in, &in->as.call);
-    case EL_AST_EXPR_CAST:      return _el_binder_bind_cast(binder, in, &in->as.cast);
-    case EL_AST_EXPR_TYPEDINIT: return el_binder_bind_typedinit(binder, in, &in->as.typedinit);
-    case EL_AST_EXPR_MEMBER:    return _el_binder_bind_member_expr(binder, in, &in->as.member);
-    case EL_AST_EXPR_TMEMBER:   return _el_binder_bind_tmember_expr(binder, in, &in->as.tmember);
+    case EL_AST_EXPR_BINARY:    return bind_bin(binder, in, &in->as.binary);
+    case EL_AST_EXPR_UNARY:     return bind_unary(binder, in, &in->as.unary);
+    case EL_AST_EXPR_LITERAL:   return bind_literal(binder, in, &in->as.literal);
+    case EL_AST_EXPR_IDENT:     return bind_ident(binder, in, &in->as.ident);
+    case EL_AST_EXPR_CALL:      return bind_call(binder, in, &in->as.call);
+    case EL_AST_EXPR_CAST:      return bind_cast(binder, in, &in->as.cast);
+    case EL_AST_EXPR_TYPEDINIT: return bind_typedinit(binder, in, &in->as.typedinit);
+    case EL_AST_EXPR_MEMBER:    return bind_member(binder, in, &in->as.member);
+    case EL_AST_EXPR_TMEMBER:   return bind_tmember(binder, in, &in->as.tmember);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }
 
-ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
+ElHirExpr* el_bind_expr(ElBinder* binder, ElAstExpr* in) {
     EL_ASSERT(in != NULL, "should not be NULL");
     el_prof_begin_sub(binder->prof, binder->pss_expr);
 
-    ElHirExpr* expr = _el_binder_bind_expr_impl(binder, in);
+    ElHirExpr* expr = _el_bind_expr_impl(binder, in);
     if (expr == NULL) {
         el_prof_finish_sub(binder->prof, binder->pss_expr);
         return NULL;

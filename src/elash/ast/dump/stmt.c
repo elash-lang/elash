@@ -82,7 +82,7 @@ void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
         fputs("value:\n", out);
         el_ast_dump_init(node->as.assign.value, indent + 2, out);
         break;
-    case EL_AST_STMT_COMPOUND_ASSIGN:
+    case EL_AST_STMT_CASSIGN:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "CompoundAssignStmt:\n");
         el_ast_dump_print_indent(indent + 1, out);

@@ -125,7 +125,7 @@ void el_parser_destroy(ElParser* parser) {
     el_tkque_destroy(&parser->lookahead);
 }
 
-bool _el_parser_parse_const_idx(ElParser* parser, ElToken tok, usize* out) {
+bool _el_parse_const_idx(ElParser* parser, ElToken tok, usize* out) {
     ElInt128 val = el_parse_int_lit(parser->diag, tok);
 
     if (el_i128_gt(val, EL_INT128(SIZE_MAX))) {

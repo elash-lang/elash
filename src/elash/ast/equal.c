@@ -199,7 +199,7 @@ bool el_ast_equal_stmt(const ElAstStmt* a, const ElAstStmt* b) {
         }
         return sa == sb;
     }
-    case EL_AST_STMT_COMPOUND_ASSIGN:
+    case EL_AST_STMT_CASSIGN:
         return a->as.cassign.op == b->as.cassign.op &&
                el_ast_equal_expr(a->as.cassign.target, b->as.cassign.target) &&
                el_ast_equal_init(a->as.cassign.value, b->as.cassign.value);
