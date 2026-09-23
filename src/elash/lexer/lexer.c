@@ -425,22 +425,31 @@ ElLexerStatus el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 };
                 return ret_token_with_lexeme(lexer, EL_TT_LINE_COMMENT, lexeme, out);
             }
-            if (peek(lexer) == '*') {
+            if (peek(lexer) == '[') {
                 next(lexer);
                 usize content_start_offset = lexer->current_loc.offset;
 
                 bool terminated = false;
                 usize content_end_offset = lexer->current_loc.offset;
+                usize depth = 1;
 
                 while (peek(lexer) != '\0') {
-                    if (peek(lexer) == '*' && peek_next(lexer) == '/') {
+                    if (peek(lexer) == '/' && peek_next(lexer) == '[') {
+                        next(lexer);
+                        next(lexer);
+                        depth++;
+                    } else if (peek(lexer) == ']' && peek_next(lexer) == '/') {
                         content_end_offset = lexer->current_loc.offset;
                         next(lexer);
                         next(lexer);
-                        terminated = true;
-                        break;
+                        depth--;
+                        if (depth == 0) {
+                            terminated = true;
+                            break;
+                        }
+                    } else {
+                        next(lexer);
                     }
-                    next(lexer);
                 }
 
                 if (lexer->flags & EL_LF_SKIP_COMMENTS) {

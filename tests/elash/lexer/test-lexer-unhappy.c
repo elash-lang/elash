@@ -37,5 +37,5 @@ Test(el_lexer_unhappy, unterminated_char) {
 }
 
 Test(el_lexer_unhappy, unterminated_comment) {
-    assert_lexer_error("/* comment", EL_LEXERR_UNTERM_COMMENT);
+    assert_lexer_error("/[ comment", EL_LEXERR_UNTERM_COMMENT);
 }

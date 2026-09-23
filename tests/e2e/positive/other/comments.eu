@@ -1,0 +1,24 @@
+// this should be ignored
+/[ this should be ignored ]/
+
+int main() {
+    int x = 10;
+    // x = 50;
+    if (x != 10)
+        return 1;
+
+    /[
+        multi line comment
+        /[
+            nested multi line comments
+        ]/
+
+        // should be ignored too
+        x = 999;
+    // ]/
+
+    if (x != 10)
+        return 2;
+
+    return /[ 37... or maybe, let's just return ]/ 0;
+}

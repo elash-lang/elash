@@ -170,7 +170,7 @@ Test(el_lexer_happy, delimiters) {
 
 Test(el_lexer_happy, comments_skipped) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block\ncomment */ baz"), EL_SV("test.eu"));
+    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /[ block\ncomment /[ nested ]/ ]/ baz"), EL_SV("test.eu"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE | EL_LF_SKIP_COMMENTS);
@@ -185,7 +185,7 @@ Test(el_lexer_happy, comments_skipped) {
 
 Test(el_lexer_happy, comments_kept) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block comment */ baz"), EL_SV("test.eu"));
+    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /[ block\ncomment /[ nested ]/ ]/ baz"), EL_SV("test.eu"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
@@ -193,7 +193,7 @@ Test(el_lexer_happy, comments_kept) {
     assert_token(&lexer, EL_TT_IDENT, "foo");
     assert_token(&lexer, EL_TT_LINE_COMMENT, " line comment");
     assert_token(&lexer, EL_TT_IDENT, "bar");
-    assert_token(&lexer, EL_TT_BLOCK_COMMENT, " block comment ");
+    assert_token(&lexer, EL_TT_BLOCK_COMMENT, " block\ncomment /[ nested ]/ ");
     assert_token(&lexer, EL_TT_IDENT, "baz");
     assert_token(&lexer, EL_TT_EOF, "");
 
