@@ -348,22 +348,9 @@ static ElMirValue* _lower_expr_internal(ElLowerer* lw, ElHirExpr* hir) {
         ElHirType* type = el_hir_type_unwrap_distinct(hir->type);
 
         ElMirType* mir_type = el_tcache_get_mir(lw->tcache, type);
-        ElMirConstant mir_const;
+        ElMirConstant* mir_const = _el_lowerer_lower_const(lw, hir);
 
-        EL_ASSERT(type->kind == EL_HIR_TYPE_PRIM, "constant of non-primitive type");
-        if (type->as.prim.kind == EL_PRIMTYPE_INT) {
-            mir_const.kind    = EL_MIR_CONST_INT;
-            mir_const.as.int_ = hir->as.constant.as.int_;
-        } else if (type->as.prim.kind == EL_PRIMTYPE_BOOL) {
-            mir_const.kind    = EL_MIR_CONST_INT;
-            mir_const.as.int_ = EL_INT128(hir->as.constant.as.bool_ ? 1 : 0);
-        } else if (type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-            mir_const.kind      = EL_MIR_CONST_FLOAT;
-            mir_const.as.float_ = hir->as.constant.as.float_;
-        } else {
-            EL_UNREACHABLE("invalid hir constant");
-        }
-        return el_mir_new_const(lw->arena, mir_type, mir_const);
+        return el_mir_new_const(lw->arena, mir_type, *mir_const);
     }
     case EL_HIR_EXPR_LITERAL:
         EL_UNREACHABLE("untyped literal in lowerer");
