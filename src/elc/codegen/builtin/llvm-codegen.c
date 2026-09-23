@@ -16,8 +16,20 @@
 #include <stdlib.h>
 
 #ifdef alloca
-#undef alloca
+#   undef alloca
 #endif
+
+#define SET_INIT(IS_DEF, GLOB, VAL, SYM)                                              \
+    if (IS_DEF) {                                                                     \
+        if ((VAL)->as.global.init != NULL) {                                          \
+            LLVMSetInitializer(                                                       \
+                (GLOB),                                                               \
+                map_constant(ctx, (SYM)->as.var.type, (VAL)->as.global.init) \
+            );                                                                        \
+        } else {                                                                      \
+            LLVMSetInitializer(glob, LLVMConstNull(type));                            \
+        }                                                                             \
+    }
 
 typedef ElcLLVMBackendFuncCtx FunctionContext;
 typedef ElcLLVMBackendCtx     Context;
@@ -32,7 +44,7 @@ static LLVMTypeRef map_type(Context* ctx, const ElMirType* type) {
     return (LLVMTypeRef)el_tcache_get_bst_from_mir(ctx->tcache, (ElMirType*)type);
 }
 
-LLVMTypeRef elc_llvm_map_type(Context* ctx, const ElMirType* type) {
+static LLVMTypeRef _map_type_impl(Context* ctx, const ElMirType* type) {
     switch (type->kind) {
     case EL_MIR_TYPE_VOID:
         return LLVMVoidTypeInContext(ctx->context);
@@ -80,7 +92,14 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, const ElMirType* type) {
     EL_UNREACHABLE_ENUM_VAL(ElMirTypeKind, type->kind);
 }
 
-LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant* constant) {
+LLVMTypeRef elc_llvm_map_type(ElcLLVMBackendCtx* ctx, const ElMirType* type) {
+    el_prof_begin_sub(ctx->prof, ctx->pss_types);
+    LLVMTypeRef result = _map_type_impl(ctx, type);
+    el_prof_finish_sub(ctx->prof, ctx->pss_types);
+    return result;
+}
+
+static LLVMValueRef _map_constant_impl(Context* ctx, ElMirType* type, ElMirConstant* constant) {
     switch (constant->kind) {
     case EL_MIR_CONST_INT: {
         uint64_t words[2] = { el_i128_lo(constant->as.int_), el_i128_hi(constant->as.int_) };
@@ -90,12 +109,12 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
         return LLVMConstReal(map_type(ctx, type), constant->as.float_);
     case EL_MIR_CONST_STRING:
         return LLVMConstStringInContext(ctx->context, constant->as.str.val.data, (unsigned)constant->as.str.val.len, true);
-    case EL_MIR_CONST_AGG: {
+    case EL_MIR_CONST_AGG:
         if (type->kind == EL_MIR_TYPE_ARRAY) {
             LLVMTypeRef element_llvm_type = map_type(ctx, type->as.array.base);
             LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
             for (usize i = 0; i < constant->as.agg.count; ++i) {
-                elements[i] = elc_llvm_map_constant(ctx, type->as.array.base, constant->as.agg.elements[i]);
+                elements[i] = _map_constant_impl(ctx, type->as.array.base, constant->as.agg.elements[i]);
             }
             LLVMValueRef res = LLVMConstArray(element_llvm_type, elements, (unsigned)constant->as.agg.count);
             free(elements);
@@ -103,7 +122,7 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
         } else if (type->kind == EL_MIR_TYPE_TUPLE) {
             LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
             for (usize i = 0; i < constant->as.agg.count; ++i) {
-                elements[i] = elc_llvm_map_constant(ctx, type->as.tuple.items[i], constant->as.agg.elements[i]);
+                elements[i] = _map_constant_impl(ctx, type->as.tuple.items[i], constant->as.agg.elements[i]);
             }
             LLVMValueRef res = LLVMConstNamedStruct(map_type(ctx, type), elements, (unsigned)constant->as.agg.count);
             free(elements);
@@ -111,33 +130,15 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
         }
         EL_UNREACHABLE("invalid aggregate type for constant lowering");
     }
-    }
-    EL_UNREACHABLE("unhandled constant kind in codegen");
+
+    EL_UNREACHABLE_ENUM_VAL(ElMirConstKind, constant->kind);
 }
 
-#define SET_INIT(IS_DEF, GLOB, VAL, SYM)                                              \
-    if (IS_DEF) {                                                                     \
-        if ((VAL)->as.global.init != NULL) {                                          \
-            LLVMSetInitializer(                                                       \
-                (GLOB),                                                               \
-                elc_llvm_map_constant(ctx, (SYM)->as.var.type, (VAL)->as.global.init) \
-            );                                                                        \
-        } else {                                                                      \
-            LLVMSetInitializer(glob, LLVMConstNull(type));                            \
-        }                                                                             \
-    }
-static LLVMValueRef map_const_value(Context* ctx, ElMirValue* value) {
-    LLVMTypeRef type = map_type(ctx, value->type);
-
-    if (value->type->kind == EL_MIR_TYPE_INT) {
-        uint64_t words[2] = { el_i128_lo(value->as.constant.as.int_), el_i128_hi(value->as.constant.as.int_) };
-        return LLVMConstIntOfArbitraryPrecision(type, 2, words);
-    }
-    if (value->type->kind == EL_MIR_TYPE_FLOAT) {
-        return LLVMConstReal(type, value->as.constant.as.float_);
-    }
-
-    EL_UNREACHABLE("unhandled constant type in codegen");
+static LLVMValueRef map_constant(Context* ctx, ElMirType* type, ElMirConstant* constant) {
+    el_prof_begin_sub(ctx->prof, ctx->pss_const);
+    LLVMValueRef result = _map_constant_impl(ctx, type, constant);
+    el_prof_finish_sub(ctx->prof, ctx->pss_const);
+    return result;
 }
 
 static LLVMValueRef map_anonymous_global(Context* ctx, ElMirValue* value, ElMirSymbol* sym) {
@@ -182,7 +183,7 @@ static LLVMValueRef map_named_global(Context* ctx, ElMirValue* value, ElMirSymbo
 LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
     switch (value->kind) {
     case EL_MIR_VAL_CONST:
-        return map_const_value(ctx, value);
+        return map_constant(ctx, value->type, &value->as.constant);
     case EL_MIR_VAL_ARG:
         return LLVMGetParam(func->llvm_fn, value->as.arg.idx);
     case EL_MIR_VAL_REG:
@@ -463,7 +464,7 @@ void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr
     }
 }
 
-void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+void compile_instr_impl(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     switch (instr->kind) {
     case EL_MIR_INSTR_RET: {
         LLVMValueRef val = NULL;
@@ -505,17 +506,20 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         LLVMBuildStore(ctx->builder, val, ptr);
         return;
     }
+
     case EL_MIR_INSTR_GEP:
         elc_llvm_compile_gep_instr(ctx, func, instr);
         return;
     case EL_MIR_INSTR_GFP:
         elc_llvm_compile_gfp_instr(ctx, func, instr);
         return;
+
     case EL_MIR_INSTR_INTCAST:
     case EL_MIR_INSTR_FPCAST:
     case EL_MIR_INSTR_BITCAST:
         elc_llvm_compile_cast_instr(ctx, func, instr);
         return;
+
     case EL_MIR_INSTR_BIN:
         elc_llvm_compile_bin_instr(ctx, func, instr);
         return;
@@ -527,6 +531,12 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElMirInstrKind, instr->kind);
+}
+
+void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
+    el_prof_begin_sub(ctx->prof, ctx->pss_instr);
+    compile_instr_impl(ctx, func, instr);
+    el_prof_finish_sub(ctx->prof, ctx->pss_instr);
 }
 
 void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_func) {
@@ -562,6 +572,12 @@ ElcCodegenResult elc_llvm_compile(
     ElcLirHandle* output
 ) {
     Context* ctx = self->ctx;
+
+    if (ctx->prof != NULL) {
+        ctx->pss_types = el_prof_new_sub(ctx->prof, EL_SV("Mapping types"));
+        ctx->pss_instr = el_prof_new_sub(ctx->prof, EL_SV("Mapping instructions"));
+        ctx->pss_const = el_prof_new_sub(ctx->prof, EL_SV("Mapping constants"));
+    }
 
     ctx->current_mod = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
     elc_llvm_setup_module_layout(ctx->current_mod, ctx->target.data, ctx->target.triple);

@@ -170,7 +170,7 @@ static void init_backend(ElcDriver* driver) {
     // TODO: multi backend compiler
 
     ElcCodegenBackend* backend = EL_DYNARENA_NEW(&driver->arena, ElcCodegenBackend);
-    *backend = elc_make_llvm_codegen(&driver->arena, &driver->pctx.tcache);
+    *backend = elc_make_llvm_codegen(&driver->arena, &driver->pctx.tcache, driver->pctx.prof);
     driver->pctx.backend = backend;
 
     ElBSQuery* query = EL_DYNARENA_NEW(&driver->arena, ElBSQuery);

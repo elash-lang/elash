@@ -27,7 +27,7 @@ void el_lowerer_init(
     lw->bsquery = bsquery;
 
     lw->builtins = builtins;
-    lw->prof    = prof;
+    lw->prof     = prof;
 
     if (prof != NULL) {
         lw->pss_expr = el_prof_new_sub(prof, EL_SV("Lowering expressions"));

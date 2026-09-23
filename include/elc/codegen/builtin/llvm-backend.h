@@ -3,6 +3,7 @@
 #include <elc/codegen/backend.h>
 #include <elash/util/dynarena.h>
 #include <elash/sema/tcache.h>
+#include <elash/prof/prof.h>
 
 #include <llvm-c/Core.h>
 
@@ -25,8 +26,15 @@ typedef struct ElcLLVMTargetData {
 typedef struct ElcLLVMBackendCtx {
     LLVMContextRef context;
     LLVMBuilderRef builder;
-    ElTypeCache*   tcache;
-    ElDynArena*    arena;
+
+    ElTypeCache* tcache;
+    ElDynArena*  arena;
+    ElProfState* prof;
+
+    ElProfSubstage
+        *pss_types,
+        *pss_instr,
+        *pss_const;
 
     bool cached_query;
     ElBSQuery query;
@@ -49,7 +57,7 @@ ElcBackendCompileFn elc_llvm_compile;
 ElcBackendQueryFn   elc_llvm_query;
 
 ElcLirHandle elc_llvm_make_lir_handle(ElcLLVMLir* data);
-ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache);
+ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache, ElProfState* prof);
 
 LLVMTypeRef elc_llvm_map_type(ElcLLVMBackendCtx* ctx, const ElMirType* type);
 void elc_llvm_setup_module_layout(LLVMModuleRef module, LLVMTargetDataRef target_data, const char* triple);

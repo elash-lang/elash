@@ -164,7 +164,7 @@ void elc_llvm_optimize(ElcCodegenBackend* self, ElcLirHandle* lir, ElcOptLevel l
     LLVMDisposePassBuilderOptions(pbo);
 }
 
-ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) {
+ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache, ElProfState* prof) {
     LLVMInitializeNativeTarget();
     LLVMInitializeNativeAsmPrinter();
 
@@ -179,8 +179,9 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) 
 
     ctx->target.data    = LLVMCreateTargetDataLayout(ctx->target.machine);
 
-    ctx->arena  = arena;
     ctx->tcache = tcache;
+    ctx->arena  = arena;
+    ctx->prof   = prof;
 
     ctx->globals = NULL;
     ctx->globals_count = 0;
