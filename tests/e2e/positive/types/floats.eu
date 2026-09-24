@@ -54,15 +54,13 @@ int main() {
 
     ++f;
     if (f != 2.0) return 70;
-    f++;
-    if (f != 3.0) return 71;
     --f;
-    if (f != 2.0) return 72;
-    f--;
-    if (f != 1.0) return 73;
+    if (f != 1.0) return 71;
 
     if (f++ != 1.0) return 74;
     if (++f != 3.0) return 75;
+    if (f-- != 3.0) return 76;
+    if (--f != 1.0) return 77;
 
     // comparisons
     if (!(2.0 == 2.0)) return 80;

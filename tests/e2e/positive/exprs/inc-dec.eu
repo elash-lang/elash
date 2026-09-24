@@ -1,11 +1,11 @@
 int main() {
     int x = 0;
-    x++;
+    ++x;
 
     int i = 0;
     while (i < 10) {
-        x--;
-        i++;
+        --x;
+        ++i;
     }
 
     int n = x++;

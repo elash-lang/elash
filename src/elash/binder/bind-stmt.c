@@ -223,8 +223,14 @@ static ElHirStmt* bind_expr_stmt(ElBinder* binder, ElAstStmt* in) {
     case REDUNDANCY_PARTIAL:
         el_diag_report(
             binder->diag, EL_DIAG_WARN, "sema.ignored",
-            in->span, "result of operation is unused"
+            in->span, "result of operation is unused",
         );
+        if (expr->kind == EL_HIR_EXPR_UNARY && el_unary_op_is_incdec(expr->as.unary.op)) {
+            el_diag_help(
+                binder->diag, "use prefix ${op} when the value is unused",
+                EL_DIAG_STRING("op", expr->as.unary.op == EL_UNARY_OP_POST_INC ? EL_SV("incrementation") : EL_SV("decrementation"))
+            );
+        }
         break;
     }
 

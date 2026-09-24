@@ -8,7 +8,7 @@ uint sumTree(Node node) {
     usize i = 0;
     while (i < len(node.children)) {
         total = total + sumTree(node.children[i]);
-        i++;
+        ++i;
     }
     return total;
 }
@@ -21,7 +21,7 @@ uint treeDepth(Node node) {
         if (d > maxChildDepth) {
             maxChildDepth = d;
         }
-        i++;
+        ++i;
     }
     return maxChildDepth + 1;
 }

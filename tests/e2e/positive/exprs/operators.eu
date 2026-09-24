@@ -68,7 +68,8 @@ int main() {
     if (post != 10 || a != 11) return 60;
     int pre = ++a;
     if (pre != 12 || a != 12) return 61;
-    a--;
+
+    --a;
     if (a != 11) return 62;
     int post2 = a--;
     if (post2 != 11 || a != 10) return 63;

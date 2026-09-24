@@ -31,5 +31,15 @@ static inline bool el_unary_op_is_incdec(ElUnaryOp op) {
         && op <= EL_UNARY_OP_POST_DEC;
 }
 
+static inline bool el_unary_op_is_pre_incdec(ElUnaryOp op) {
+    return op == EL_UNARY_OP_PRE_INC
+        || op == EL_UNARY_OP_PRE_DEC;
+}
+
+static inline bool el_unary_op_is_post_incdec(ElUnaryOp op) {
+    return op == EL_UNARY_OP_POST_INC
+        || op == EL_UNARY_OP_POST_DEC;
+}
+
 ElStringView el_unary_op_format(ElUnaryOp type);
 ElStringView el_unary_op_to_string(ElUnaryOp type);

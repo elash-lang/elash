@@ -76,8 +76,11 @@ Redundancy _el_binder_redundancy_if_ignored(ElBinder* binder, ElHirExpr* expr) {
     case EL_HIR_EXPR_BINARY:
         return rcombine2(binder, expr->as.binary.left, expr->as.binary.right);
     case EL_HIR_EXPR_UNARY:
-        if (el_unary_op_is_incdec(expr->as.unary.op))
+        if (el_unary_op_is_pre_incdec(expr->as.unary.op))
             return REDUNDANCY_NONE;
+        else if (el_unary_op_is_post_incdec(expr->as.unary.op))
+            return REDUNDANCY_PARTIAL;
+
         return rcombine1(binder, expr->as.unary.operand);
 
     case EL_HIR_EXPR_CAST:
