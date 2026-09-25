@@ -19,17 +19,27 @@
 #   undef alloca
 #endif
 
-#define SET_INIT(IS_DEF, GLOB, VAL, SYM)                                              \
-    if (IS_DEF) {                                                                     \
-        if ((VAL)->as.global.init != NULL) {                                          \
-            LLVMSetInitializer(                                                       \
-                (GLOB),                                                               \
+#define SET_INIT(IS_DEF, GLOB, VAL, SYM)                                     \
+    if (IS_DEF) {                                                            \
+        if ((VAL)->as.global.init != NULL) {                                 \
+            LLVMSetInitializer(                                              \
+                (GLOB),                                                      \
                 map_constant(ctx, (SYM)->as.var.type, (VAL)->as.global.init) \
-            );                                                                        \
-        } else {                                                                      \
-            LLVMSetInitializer(glob, LLVMConstNull(type));                            \
-        }                                                                             \
+            );                                                               \
+        } else {                                                             \
+            LLVMSetInitializer(glob, LLVMConstNull(type));                   \
+        }                                                                    \
     }
+
+static void set_global_const_attrs(LLVMValueRef glob, ElMirValue* val) {
+    if (val->as.global.is_constant) {
+        LLVMSetGlobalConstant(glob, true);
+        if (el_sv_is_null(val->as.global.sym->name)) {
+            LLVMSetLinkage(glob, LLVMPrivateLinkage);
+            LLVMSetUnnamedAddress(glob, LLVMGlobalUnnamedAddr);
+        }
+    }
+}
 
 typedef ElcLLVMBackendFuncCtx FunctionContext;
 typedef ElcLLVMBackendCtx     Context;
@@ -152,6 +162,7 @@ static LLVMValueRef map_anonymous_global(Context* ctx, ElMirValue* value, ElMirS
     LLVMValueRef glob = LLVMAddGlobal(ctx->current_mod, type, "");
 
     SET_INIT(value->as.global.is_definition, glob, value, sym);
+    set_global_const_attrs(glob, value);
     ctx->globals[sym->id] = glob;
     return glob;
 }
@@ -177,6 +188,7 @@ static LLVMValueRef map_named_global(Context* ctx, ElMirValue* value, ElMirSymbo
     LLVMTypeRef type = map_type(ctx, sym->as.var.type);
     glob = LLVMAddGlobal(ctx->current_mod, type, name);
     SET_INIT(value->as.global.is_definition, glob, value, sym);
+    set_global_const_attrs(glob, value);
     return glob;
 }
 

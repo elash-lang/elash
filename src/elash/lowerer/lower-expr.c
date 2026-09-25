@@ -53,42 +53,14 @@ static ElMirValue* lower_cast(ElLowerer* lw, ElHirExpr* hir) {
 }
 
 ElMirValue* el_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* hir_type) {
-    ElMirType* type = el_tcache_get_mir(lw->tcache, hir_type);
-    if (lw->symbol_map != NULL && lw->symbol_map[sym->id] != NULL) {
-        ElMirValue* val = lw->symbol_map[sym->id];
-        if (sym->kind == EL_SYM_VAR) {
-            ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, val));
-            return reg;
-        }
-        return val;
-    }
-
-    switch (sym->kind) {
-    case EL_SYM_VAR: {
-        ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
-        ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL, false); // idk what to put here
-        if (lw->symbol_map != NULL) lw->symbol_map[sym->id] = glob;
-
+    ElMirValue* val = _el_lowerer_get_symbol_lvalue(lw, sym, hir_type);
+    if (sym->kind == EL_SYM_VAR) {
+        ElMirType* type = el_tcache_get_mir(lw->tcache, hir_type);
         ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, glob));
+        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, val));
         return reg;
     }
-    case EL_SYM_FUNC: {
-        ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        ElMirValue* glob = el_mir_new_global(lw->arena, type, mir_sym, NULL, sym->as.func.is_defined);
-        if (lw->symbol_map != NULL) lw->symbol_map[sym->id] = glob;
-        return glob;
-    }
-    case EL_SYM_BUILTIN:
-        EL_UNREACHABLE("builtin functions cannot be used as values");
-        return NULL;
-    case EL_SYM_TYPE:
-        EL_UNREACHABLE("Type symbol in expression context (this should be caught during semantic analysis)");
-        break;
-    }
-    EL_UNREACHABLE_ENUM_VAL(ElHirSymbolKind, sym->kind);
+    return val;
 }
 
 static bool _el_lowerer_is_incdec(ElUnaryOp op) {
@@ -247,7 +219,7 @@ static ElMirValue* lower_agginit(ElLowerer* lw, ElHirExpr* hir) {
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
 
     if (hir->as.agginit.scls == EL_STORAGECLS_STATIC) {
-        return _el_lowerer_new_anon_global(lw, mir_type, _el_lower_const(lw, hir));
+        return _el_lowerer_new_anon_global(lw, mir_type, _el_lower_const(lw, hir), /*is_constant=*/false);
     }
 
     ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);
@@ -297,7 +269,7 @@ static ElMirValue* lower_strconst(ElLowerer* lw, ElHirExpr* hir) {
 
     ElMirValue* ptr;
     if (strconst->scls == EL_STORAGECLS_STATIC) {
-        ptr = _el_lowerer_new_anon_global(lw, mir_type, mirconst);
+        ptr = _el_lowerer_new_anon_global(lw, mir_type, mirconst, /*is_constant=*/true);
     } else {
         ptr = _el_lowerer_create_alloca(lw, mir_type);
         ElMirValue* const_val = el_mir_new_const(lw->arena, mir_type, *mirconst);

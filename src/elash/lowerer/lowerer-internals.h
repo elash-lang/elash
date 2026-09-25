@@ -10,17 +10,18 @@ enum {
     OPT_FIELD_VALUE     = 1,
 };
 
+/////////////////// tuples ///////////////////
 ElMirValue*    _el_lowerer_extract_tuple_field(ElLowerer* lw, ElMirValue* tuple, usize index);
 ElMirValue*    _el_lowerer_get_tuple_field_ptr(ElLowerer* lw, ElMirValue* tuple_ptr, usize index);
 ElMirValue*    _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirValue** fields);
-ElMirConstant* _el_lower_const(ElLowerer* lw, ElHirExpr* expr);
-ElMirValue*    _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMirConstant* init);
-ElMirValue*    _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type);
-void           _el_lowerer_copy_str_to_ptr(ElLowerer* lw, ElMirValue* ptr, ElMirStrConst str);
-void           _el_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agginit);
 
-usize _el_lowerer_sizeof(ElLowerer* lw, ElMirType* type);
-usize _el_lowerer_alignof(ElLowerer* lw, ElMirType* type);
+ElMirConstant* _el_lower_const(ElLowerer* lw, ElHirExpr* expr);
+
+////////////////// globals ////////////////////
+ElMirValue*    _el_lowerer_get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* type);
+ElMirValue*    _el_lowerer_new_anon_global(
+    ElLowerer* lw, ElMirType* type, ElMirConstant* init, bool is_constant
+);
 
 //////////////////// optionals /////////////////////
 bool        _el_hir_type_opt_is_ref(const ElHirType* type);
@@ -36,6 +37,13 @@ ElMirValue* _el_lower_opt_base_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* 
 ElMirValue* _el_lower_opt_opt_cmp(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin);
 
 ///////////////// helpers /////////////////////
+ElMirValue*    _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type);
+void           _el_lowerer_copy_str_to_ptr(ElLowerer* lw, ElMirValue* ptr, ElMirStrConst str);
+void           _el_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agginit);
+
+usize _el_lowerer_sizeof(ElLowerer* lw, ElMirType* type);
+usize _el_lowerer_alignof(ElLowerer* lw, ElMirType* type);
+
 static inline ElMirValue* emit_bin(ElLowerer* lw, ElBinOp op, ElMirValue* lhs, ElMirValue* rhs) {
     ElMirValue* res =el_mir_new_reg(lw->arena, lw->tcache->bool_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, res, op, lhs, rhs));
