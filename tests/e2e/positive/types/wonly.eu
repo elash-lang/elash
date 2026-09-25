@@ -1,0 +1,13 @@
+void modify(wonly int& ref) {
+    ref^ = 47;
+}
+
+int main() {
+    int x = 0;
+    modify(&x);
+
+    if (x != 47)
+        return 1;
+
+    return 0;
+}

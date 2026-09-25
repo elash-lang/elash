@@ -1,0 +1,22 @@
+int main() {
+    const uint n = 10;
+    if (n != 10)
+        return 1;
+
+    const uint& ref = &n;
+    if (ref^ != 10)
+        return 2;
+
+    uint m = 20;
+    ref = &m;
+
+    if (ref^ != 20)
+        return 3;
+
+    m = 99;
+    if (ref^ != 99)
+        return 4;
+
+    const int exitcode = 0;
+    return exitcode;
+}

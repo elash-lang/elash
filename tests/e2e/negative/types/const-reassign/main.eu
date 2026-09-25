@@ -1,0 +1,13 @@
+int main() {
+    const uint foo = 10;
+    foo = 20;
+
+    const uint& ref = &foo;
+    ref^ = 30;
+
+    const uint& const ref2 = &ref^;
+    ref2^ = 40;
+    ref2  = &foo;
+
+    return 0;
+}
