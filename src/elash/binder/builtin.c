@@ -1,8 +1,8 @@
 #include <elash/binder/builtin.h>
 
 void el_binder_init_builtins(ElBinderBuiltins* builtins, ElDynArena* arena) {
-    builtins->type_void = el_hir_new_prim_type(arena, EL_PRIMTYPE_VOID);
-    builtins->type_bool = el_hir_new_prim_type(arena, EL_PRIMTYPE_BOOL);
+    builtins->type_void = el_hir_new_prim_type(arena, EL_HIR_PRIMTYPE_VOID);
+    builtins->type_bool = el_hir_new_prim_type(arena, EL_HIR_PRIMTYPE_BOOL);
 
 #define INIT_INT_PAIR(SNAME, UNAME, WIDTH) \
     builtins->type_##SNAME = el_hir_new_int_type(arena, WIDTH, /*is_signed=*/true); \

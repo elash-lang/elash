@@ -25,11 +25,11 @@ ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
     switch (type->kind) {
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
-        case EL_PRIMTYPE_VOID:
+        case EL_HIR_PRIMTYPE_VOID:
             return el_mir_new_void_type(tcache->arena);
-        case EL_PRIMTYPE_BOOL:
+        case EL_HIR_PRIMTYPE_BOOL:
             return el_mir_new_int_type(tcache->arena, 1, false);
-        case EL_PRIMTYPE_INT: {
+        case EL_HIR_PRIMTYPE_INT: {
             uint32_t width = 0;
             // TODO: actually map native and efficient ints to correct width
             // NOLINTBEGIN(readability-magic-numbers)
@@ -45,7 +45,7 @@ ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
             // NOLINTEND(readability-magic-numbers)
             return el_mir_new_int_type(tcache->arena, width, type->as.prim.as.integral.is_signed);
         }
-        case EL_PRIMTYPE_FLOAT: {
+        case EL_HIR_PRIMTYPE_FLOAT: {
             uint32_t width = 0;
             // TODO: actually map efficient floats to correct width
             // NOLINTBEGIN(readability-magic-numbers)

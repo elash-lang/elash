@@ -82,44 +82,44 @@ ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHir
         return NULL;
 
     switch (to_shape->as.prim.kind) {
-    case EL_PRIMTYPE_INT:
+    case EL_HIR_PRIMTYPE_INT:
         switch (from_shape->as.prim.kind) {
-        case EL_PRIMTYPE_INT: {
+        case EL_HIR_PRIMTYPE_INT: {
             ElInt128 wrapped = _el_binder_wrap_typed_int(binder, span, to_shape, expr->as.constant.as.int_);
             return el_hir_new_int_constant(binder->arena, span, to_orig, wrapped);
         }
-        case EL_PRIMTYPE_FLOAT:
+        case EL_HIR_PRIMTYPE_FLOAT:
             return el_hir_new_int_constant(
                 binder->arena, span, to_orig,
                 _el_binder_wrap_typed_int(binder, span, to_shape, EL_INT128((int64_t)expr->as.constant.as.float_))
             );
-        case EL_PRIMTYPE_BOOL:
-        case EL_PRIMTYPE_VOID:
+        case EL_HIR_PRIMTYPE_BOOL:
+        case EL_HIR_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from_shape->as.prim.kind);
-    case EL_PRIMTYPE_BOOL:
+    case EL_HIR_PRIMTYPE_BOOL:
         switch (from_shape->as.prim.kind) {
-        case EL_PRIMTYPE_BOOL:
+        case EL_HIR_PRIMTYPE_BOOL:
             return el_hir_new_bool_constant(binder->arena, span, to_orig, expr->as.constant.as.bool_);
-        case EL_PRIMTYPE_FLOAT:
-        case EL_PRIMTYPE_INT:
-        case EL_PRIMTYPE_VOID:
+        case EL_HIR_PRIMTYPE_FLOAT:
+        case EL_HIR_PRIMTYPE_INT:
+        case EL_HIR_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from_shape->as.prim.kind);
-    case EL_PRIMTYPE_FLOAT:
+    case EL_HIR_PRIMTYPE_FLOAT:
         switch (from_shape->as.prim.kind) {
-        case EL_PRIMTYPE_INT:
+        case EL_HIR_PRIMTYPE_INT:
             return el_hir_new_float_constant(binder->arena, span, to_orig, (double)el_i128_lo(expr->as.constant.as.int_));
-        case EL_PRIMTYPE_FLOAT:
+        case EL_HIR_PRIMTYPE_FLOAT:
             return el_hir_new_float_constant(binder->arena, span, to_orig, expr->as.constant.as.float_);
-        case EL_PRIMTYPE_BOOL:
-        case EL_PRIMTYPE_VOID:
+        case EL_HIR_PRIMTYPE_BOOL:
+        case EL_HIR_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from_shape->as.prim.kind);
-    case EL_PRIMTYPE_VOID:
+    case EL_HIR_PRIMTYPE_VOID:
         EL_UNREACHABLE("invalid cast");
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, to_shape->as.prim.kind);
@@ -160,9 +160,9 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     }
 
     if (from_c->kind == EL_HIR_TYPE_PRIM && to_c->kind == EL_HIR_TYPE_PRIM) {
-        bool is_int_conv = from_c->as.prim.kind == EL_PRIMTYPE_INT && to_c->as.prim.kind == EL_PRIMTYPE_INT;
-        bool is_float_conv = (from_c->as.prim.kind == EL_PRIMTYPE_FLOAT || from_c->as.prim.kind == EL_PRIMTYPE_INT)
-                            && (to_c->as.prim.kind == EL_PRIMTYPE_FLOAT || to_c->as.prim.kind == EL_PRIMTYPE_INT);
+        bool is_int_conv = from_c->as.prim.kind == EL_HIR_PRIMTYPE_INT && to_c->as.prim.kind == EL_HIR_PRIMTYPE_INT;
+        bool is_float_conv = (from_c->as.prim.kind == EL_HIR_PRIMTYPE_FLOAT || from_c->as.prim.kind == EL_HIR_PRIMTYPE_INT)
+                            && (to_c->as.prim.kind == EL_HIR_PRIMTYPE_FLOAT || to_c->as.prim.kind == EL_HIR_PRIMTYPE_INT);
         if (is_int_conv || is_float_conv) {
             return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
         }
@@ -240,7 +240,7 @@ static ElHirExpr* implicit_cast_slice(ElBinder* binder, ElHirExpr* expr, ElHirTy
 }
 
 static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirType* to, ElHirType* from_c, ElHirType* to_c) {
-    if (from_c->as.prim.kind == EL_PRIMTYPE_INT && to_c->as.prim.kind == EL_PRIMTYPE_INT) {
+    if (from_c->as.prim.kind == EL_HIR_PRIMTYPE_INT && to_c->as.prim.kind == EL_HIR_PRIMTYPE_INT) {
         // the type of these expressions is an anonymous union
         // and using auto/typeof requires C23 which is not widely
         // supported so let's stick to_c #define
@@ -255,7 +255,7 @@ static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirTyp
         if (is_valid) {
             return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
         }
-    } else if (from_c->as.prim.kind == EL_PRIMTYPE_FLOAT && to_c->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+    } else if (from_c->as.prim.kind == EL_HIR_PRIMTYPE_FLOAT && to_c->as.prim.kind == EL_HIR_PRIMTYPE_FLOAT) {
         // same reason as before, don't blame me plz
         #define from_c_fptype (&from_c->as.prim.as.fp)
         #define to_fptype   (&to_c->as.prim.as.fp)
@@ -500,28 +500,28 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         ElHirPrimType* prim = &to_c->as.prim;
         switch (lit->kind) {
         case EL_HIR_LITERAL_INT:
-            if (prim->kind == EL_PRIMTYPE_INT) {
+            if (prim->kind == EL_HIR_PRIMTYPE_INT) {
                 ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to_c, lit->of.int_);
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
-            } else if (prim->kind == EL_PRIMTYPE_FLOAT) {
+            } else if (prim->kind == EL_HIR_PRIMTYPE_FLOAT) {
                 return el_hir_new_float_constant(binder->arena, expr->span, to, (double)el_i128_lo(lit->of.int_));
             }
             break;
         case EL_HIR_LITERAL_CHAR:
-            if (prim->kind == EL_PRIMTYPE_INT) {
+            if (prim->kind == EL_HIR_PRIMTYPE_INT) {
                 ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to_c, EL_INT128((int64_t)lit->of.char_));
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }
             break;
         case EL_HIR_LITERAL_BOOL:
-            if (prim->kind == EL_PRIMTYPE_BOOL) {
+            if (prim->kind == EL_HIR_PRIMTYPE_BOOL) {
                 return el_hir_new_bool_constant(binder->arena, expr->span, to, lit->of.bool_);
             }
             break;
         case EL_HIR_LITERAL_FLOAT:
-            if (prim->kind == EL_PRIMTYPE_FLOAT) {
+            if (prim->kind == EL_HIR_PRIMTYPE_FLOAT) {
                 return el_hir_new_float_constant(binder->arena, expr->span, to, lit->of.float_);
-            } else if (prim->kind == EL_PRIMTYPE_INT) {
+            } else if (prim->kind == EL_HIR_PRIMTYPE_INT) {
                 ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to_c, EL_INT128((int64_t)lit->of.float_));
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }

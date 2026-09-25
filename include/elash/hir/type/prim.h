@@ -24,16 +24,16 @@ typedef enum ElHirFpWidth {
 } ElHirFpWidth;
 
 typedef enum ElHirPrimTypeKind {
-    EL_PRIMTYPE_VOID,
-    EL_PRIMTYPE_INT,
-    EL_PRIMTYPE_BOOL,
-    EL_PRIMTYPE_FLOAT,
+    EL_HIR_PRIMTYPE_VOID,
+    EL_HIR_PRIMTYPE_INT,
+    EL_HIR_PRIMTYPE_BOOL,
+    EL_HIR_PRIMTYPE_FLOAT,
 } ElHirPrimTypeKind;
 
 typedef struct ElHirPrimType {
     ElHirPrimTypeKind kind;
     union {
-        struct { // for EL_PRIMTYPE_INT
+        struct { // for EL_HIR_PRIMTYPE_INT
             ElHirIntWidth width;
             bool is_signed;
         } integral;

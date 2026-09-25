@@ -48,10 +48,10 @@ struct ElHirType {
     } as;
 };
 
-void el_format_type_internal(const ElHirType* type, void (*write)(const char*, void*), void* ctx);
+void el_hir_format_type_impl(const ElHirType* type, void (*write)(const char*, void*), void* ctx);
 
 void el_hir_dump_type(const ElHirType* type, FILE* out);
-void el_format_type(const ElHirType* type, ElStringBuf* sb);
+void el_hir_format_type(const ElHirType* type, ElStringBuf* sb);
 
 bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs);
 bool el_hir_type_eql_unqual(const ElHirType* lhs, const ElHirType* rhs);

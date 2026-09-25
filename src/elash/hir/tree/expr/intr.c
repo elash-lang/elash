@@ -9,7 +9,7 @@
 #define ASSERT_USIZE(USIZE_TYPE)                                            \
     EL_ASSERT(                                                              \
         (USIZE_TYPE)->kind == EL_HIR_TYPE_PRIM                              \
-        && (USIZE_TYPE)->as.prim.kind == EL_PRIMTYPE_INT                    \
+        && (USIZE_TYPE)->as.prim.kind == EL_HIR_PRIMTYPE_INT                    \
         && (USIZE_TYPE)->as.prim.as.integral.width == EL_HIR_IWIDTH_NATIVE, \
         "(USIZE_TYPE) param must be instance of usize type"                 \
     );

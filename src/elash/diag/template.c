@@ -11,7 +11,7 @@ static bool _el_diag_render_meta_value(const ElDiagMetaEntry* entry, ElStringBuf
     case EL_DIAG_META_STR:
         return el_strbuf_append(out, entry->as.string);
     case EL_DIAG_META_TYPE:
-        el_format_type(entry->as.type, out);
+        el_hir_format_type(entry->as.type, out);
         return true;
     case EL_DIAG_META_TOK:
         return el_strbuf_append(out,

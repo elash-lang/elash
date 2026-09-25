@@ -26,7 +26,7 @@ static ElUint128 int_bit_mask(unsigned bits) {
 }
 
 ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirType* type, ElInt128 value) {
-    EL_ASSERT(type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_INT, "expected integral type");
+    EL_ASSERT(type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_HIR_PRIMTYPE_INT, "expected integral type");
 
     const ElHirPrimType* prim = &type->as.prim;
     unsigned bits = prim_int_bits(prim);
@@ -73,35 +73,35 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
 #define UNTYPED_BOOL_RET(type, val, span)  el_hir_new_bool_lit(binder->arena, span, val)
 #define UNTYPED_FLOAT_RET(type, val, span) el_hir_new_float_lit(binder->arena, span, val)
 
-#define ARITH_BW_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                              \
-    case EL_BIN_OP_ADD:    return RET_MACRO(type, el_i128_add((a), (b)), span);                    \
-    case EL_BIN_OP_SUB:    return RET_MACRO(type, el_i128_sub((a), (b)), span);                    \
-    case EL_BIN_OP_MUL:    return RET_MACRO(type, el_i128_mul((a), (b)), span);                    \
-    case EL_BIN_OP_DIV:                                                                            \
-        if (el_i128_eq((b), EL_INT128(0))) {                                                            \
-            el_diag_report(binder->diag, EL_DIAG_ERROR, "sema.div-by-zero", span,                       \
-                "division by zero in constant expression");                                             \
-            return NULL;                                                                                \
-        }                                                                                               \
-        return RET_MACRO(type, el_i128_div((a), (b)), span);                                            \
-    case EL_BIN_OP_MOD:                                                                            \
-        if (el_i128_eq((b), EL_INT128(0))) {                                                            \
-            el_diag_report(binder->diag, EL_DIAG_ERROR, "sema.div-by-zero", span,                       \
-                "division by zero in constant expression");                                             \
-            return NULL;                                                                                \
-        }                                                                                               \
-        return RET_MACRO(type, el_i128_mod((a), (b)), span);                                            \
-    case EL_BIN_OP_BW_AND: return RET_MACRO(type, el_i128_and((a), (b)), span);                    \
-    case EL_BIN_OP_BW_OR:  return RET_MACRO(type, el_i128_or((a), (b)), span);                     \
-    case EL_BIN_OP_BW_XOR: return RET_MACRO(type, el_i128_xor((a), (b)), span);                    \
-    case EL_BIN_OP_BW_IMP: return RET_MACRO(type, el_i128_or(el_i128_not((a)), (b)), span);        \
+#define ARITH_BW_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                                           \
+    case EL_BIN_OP_ADD:    return RET_MACRO(type, el_i128_add((a), (b)), span);                                      \
+    case EL_BIN_OP_SUB:    return RET_MACRO(type, el_i128_sub((a), (b)), span);                                      \
+    case EL_BIN_OP_MUL:    return RET_MACRO(type, el_i128_mul((a), (b)), span);                                      \
+    case EL_BIN_OP_DIV:                                                                                              \
+        if (el_i128_eq((b), EL_INT128(0))) {                                                                         \
+            el_diag_report(binder->diag, EL_DIAG_ERROR, "sema.div-by-zero", span,                                    \
+                "division by zero in constant expression");                                                          \
+            return NULL;                                                                                             \
+        }                                                                                                            \
+        return RET_MACRO(type, el_i128_div((a), (b)), span);                                                         \
+    case EL_BIN_OP_MOD:                                                                                              \
+        if (el_i128_eq((b), EL_INT128(0))) {                                                                         \
+            el_diag_report(binder->diag, EL_DIAG_ERROR, "sema.div-by-zero", span,                                    \
+                "division by zero in constant expression");                                                          \
+            return NULL;                                                                                             \
+        }                                                                                                            \
+        return RET_MACRO(type, el_i128_mod((a), (b)), span);                                                         \
+    case EL_BIN_OP_BW_AND: return RET_MACRO(type, el_i128_and((a), (b)), span);                                      \
+    case EL_BIN_OP_BW_OR:  return RET_MACRO(type, el_i128_or((a), (b)), span);                                       \
+    case EL_BIN_OP_BW_XOR: return RET_MACRO(type, el_i128_xor((a), (b)), span);                                      \
+    case EL_BIN_OP_BW_IMP: return RET_MACRO(type, el_i128_or(el_i128_not((a)), (b)), span);                          \
     case EL_BIN_OP_SHL:    return RET_MACRO(type, el_i128_shl((a), (int)el_u128_lo(el_i128_bitcast_u128(b))), span); \
     case EL_BIN_OP_SHR:    return RET_MACRO(type, el_i128_shr((a), (int)el_u128_lo(el_i128_bitcast_u128(b))), span);
 
-#define ARITH_FLOAT_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                       \
-    case EL_BIN_OP_ADD:    return RET_MACRO(type, (a) + (b), span);                            \
-    case EL_BIN_OP_SUB:    return RET_MACRO(type, (a) - (b), span);                            \
-    case EL_BIN_OP_MUL:    return RET_MACRO(type, (a) * (b), span);                            \
+#define ARITH_FLOAT_BIN_OP_CASES(a, b, RET_MACRO, type, span)       \
+    case EL_BIN_OP_ADD:    return RET_MACRO(type, (a) + (b), span); \
+    case EL_BIN_OP_SUB:    return RET_MACRO(type, (a) - (b), span); \
+    case EL_BIN_OP_MUL:    return RET_MACRO(type, (a) * (b), span); \
     case EL_BIN_OP_DIV:    return RET_MACRO(type, (a) / (b), span);
 
 #define COMP_INT_BIN_OP_CASES(a, b, RET_BOOL, type, span)                  \
@@ -112,7 +112,7 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
     case EL_BIN_OP_GT:  return RET_BOOL(type, el_i128_gt((a), (b)), span); \
     case EL_BIN_OP_GTE: return RET_BOOL(type, el_i128_ge((a), (b)), span);
 
-#define COMP_BIN_OP_CASES(a, b, RET_BOOL, type, span)                 \
+#define COMP_BIN_OP_CASES(a, b, RET_BOOL, type, span)            \
     case EL_BIN_OP_EQ:  return RET_BOOL(type, (a) == (b), span); \
     case EL_BIN_OP_NEQ: return RET_BOOL(type, (a) != (b), span); \
     case EL_BIN_OP_LT:  return RET_BOOL(type, (a) < (b), span);  \
@@ -120,51 +120,51 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
     case EL_BIN_OP_GT:  return RET_BOOL(type, (a) > (b), span);  \
     case EL_BIN_OP_GTE: return RET_BOOL(type, (a) >= (b), span);
 
-#define BOOL_BIN_OP_CASES(a, b, RET_BOOL, type, span)                 \
+#define BOOL_BIN_OP_CASES(a, b, RET_BOOL, type, span)            \
     case EL_BIN_OP_EQ:  return RET_BOOL(type, (a) == (b), span); \
     case EL_BIN_OP_NEQ: return RET_BOOL(type, (a) != (b), span); \
     case EL_BIN_OP_AND: return RET_BOOL(type, (a) && (b), span); \
     case EL_BIN_OP_OR:  return RET_BOOL(type, (a) || (b), span); \
     case EL_BIN_OP_IMP: return RET_BOOL(type, !(a) || (b), span);
 
-#define UNARY_INT_OP_CASES(a, RET_MACRO, type, span)                       \
-    case EL_UNARY_OP_POS:    return RET_MACRO(type, (a), span);        \
+#define UNARY_INT_OP_CASES(a, RET_MACRO, type, span)                         \
+    case EL_UNARY_OP_POS:    return RET_MACRO(type, (a), span);              \
     case EL_UNARY_OP_NEG:    return RET_MACRO(type, el_i128_neg((a)), span); \
     case EL_UNARY_OP_BW_NOT: return RET_MACRO(type, el_i128_not((a)), span);
 
-#define UNARY_FLOAT_OP_CASES(a, RET_MACRO, type, span)                \
+#define UNARY_FLOAT_OP_CASES(a, RET_MACRO, type, span)           \
     case EL_UNARY_OP_POS:    return RET_MACRO(type, +(a), span); \
     case EL_UNARY_OP_NEG:    return RET_MACRO(type, -(a), span);
 
 #define UNARY_BOOL_OP_CASES(a, RET_BOOL, type, span) \
-    if (op == EL_UNARY_OP_NOT) {                \
+    if (op == EL_UNARY_OP_NOT) {                     \
         return RET_BOOL(type, !(a), span);           \
     }
 
-#define FOLD_BINARY(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)         \
-    case EL_PRIMTYPE_##KIND: {                                       \
-        T a = lhs->as.constant.as.MEMBER;                            \
-        T b = rhs->as.constant.as.MEMBER;                            \
-        switch (op) {                                                \
-        ARITH_BW_BIN_OP_CASES(a, b, TYPED_RET, lhs->type, lhs->span) \
-        COMP_INT_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)   \
-        default: return NULL;                                        \
-        }                                                            \
+#define FOLD_BINARY(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)           \
+    case EL_HIR_PRIMTYPE_##KIND: {                                     \
+        T a = lhs->as.constant.as.MEMBER;                              \
+        T b = rhs->as.constant.as.MEMBER;                              \
+        switch (op) {                                                  \
+        ARITH_BW_BIN_OP_CASES(a, b, TYPED_RET, lhs->type, lhs->span)   \
+        COMP_INT_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span) \
+        default: return NULL;                                          \
+        }                                                              \
     }
 
-#define FOLD_BINARY_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)         \
-    case EL_PRIMTYPE_##KIND: {                                             \
-        T a = lhs->as.constant.as.MEMBER;                                  \
-        T b = rhs->as.constant.as.MEMBER;                                  \
-        switch (op) {                                                      \
-        ARITH_FLOAT_BIN_OP_CASES(a, b, TYPED_RET, lhs->type, lhs->span)    \
-        COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)         \
-        default: return NULL;                                              \
-        }                                                                  \
+#define FOLD_BINARY_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)      \
+    case EL_HIR_PRIMTYPE_##KIND: {                                      \
+        T a = lhs->as.constant.as.MEMBER;                               \
+        T b = rhs->as.constant.as.MEMBER;                               \
+        switch (op) {                                                   \
+        ARITH_FLOAT_BIN_OP_CASES(a, b, TYPED_RET, lhs->type, lhs->span) \
+        COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)      \
+        default: return NULL;                                           \
+        }                                                               \
     }
 
 #define FOLD_UNARY(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)            \
-    case EL_PRIMTYPE_##KIND: {                                         \
+    case EL_HIR_PRIMTYPE_##KIND: {                                     \
         T a = operand->as.constant.as.MEMBER;                          \
         switch (op) {                                                  \
         UNARY_INT_OP_CASES(a, TYPED_RET, operand->type, operand->span) \
@@ -172,30 +172,30 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
         }                                                              \
     }
 
-#define FOLD_UNARY_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)      \
-    case EL_PRIMTYPE_##KIND: {                                         \
-        T a = operand->as.constant.as.MEMBER;                          \
-        switch (op) {                                                  \
+#define FOLD_UNARY_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)        \
+    case EL_HIR_PRIMTYPE_##KIND: {                                       \
+        T a = operand->as.constant.as.MEMBER;                            \
+        switch (op) {                                                    \
         UNARY_FLOAT_OP_CASES(a, TYPED_RET, operand->type, operand->span) \
-        default: return NULL;                                          \
-        }                                                              \
+        default: return NULL;                                            \
+        }                                                                \
     }
 
 #define FOLD_BINARY_UNTYPED(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)        \
     if (lkind == EL_HIR_LITERAL_##KIND && rkind == EL_HIR_LITERAL_##KIND) { \
-        T a = lhs->as.literal.of.MEMBER;                                \
-        T b = rhs->as.literal.of.MEMBER;                                \
+        T a = lhs->as.literal.of.MEMBER;                                    \
+        T b = rhs->as.literal.of.MEMBER;                                    \
         switch (op) {                                                       \
         ARITH_BW_BIN_OP_CASES(a, b, UNTYPED_RET, NULL, lhs->span)           \
-        COMP_INT_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)          \
+        COMP_INT_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)      \
         default: return NULL;                                               \
         }                                                                   \
     }
 
 #define FOLD_BINARY_UNTYPED_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)  \
     if (lkind == EL_HIR_LITERAL_##KIND && rkind == EL_HIR_LITERAL_##KIND) { \
-        T a = lhs->as.literal.of.MEMBER;                                \
-        T b = rhs->as.literal.of.MEMBER;                                \
+        T a = lhs->as.literal.of.MEMBER;                                    \
+        T b = rhs->as.literal.of.MEMBER;                                    \
         switch (op) {                                                       \
         ARITH_FLOAT_BIN_OP_CASES(a, b, UNTYPED_RET, NULL, lhs->span)        \
         COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)          \
@@ -205,7 +205,7 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
 
 #define FOLD_UNARY_UNTYPED(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET) \
     if (kind == EL_HIR_LITERAL_##KIND) {                            \
-        T a = operand->as.literal.of.MEMBER;                    \
+        T a = operand->as.literal.of.MEMBER;                        \
         switch (op) {                                               \
         UNARY_INT_OP_CASES(a, UNTYPED_RET, NULL, operand->span)     \
         default: return NULL;                                       \
@@ -214,7 +214,7 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
 
 #define FOLD_UNARY_UNTYPED_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET) \
     if (kind == EL_HIR_LITERAL_##KIND) {                                  \
-        T a = operand->as.literal.of.MEMBER;                          \
+        T a = operand->as.literal.of.MEMBER;                              \
         switch (op) {                                                     \
         UNARY_FLOAT_OP_CASES(a, UNTYPED_RET, NULL, operand->span)         \
         default: return NULL;                                             \
@@ -233,7 +233,7 @@ static ElHirExpr* apply_binary_operator(ElBinder* binder, ElHirExpr* lhs, ElBinO
     switch (lhs->type->as.prim.kind) {
         EL_FOR_EACH_INTEGRAL_TYPE(FOLD_BINARY);
         EL_FOR_EACH_FLOAT_TYPE(FOLD_BINARY_FLOAT);
-        case EL_PRIMTYPE_BOOL: {
+        case EL_HIR_PRIMTYPE_BOOL: {
             bool a = lhs->as.constant.as.bool_;
             bool b = rhs->as.constant.as.bool_;
             switch (op) {
@@ -250,7 +250,7 @@ static ElHirExpr* apply_unary_operator(ElBinder* binder, ElUnaryOp op, ElHirExpr
     switch (operand->type->as.prim.kind) {
     EL_FOR_EACH_INTEGRAL_TYPE(FOLD_UNARY);
     EL_FOR_EACH_FLOAT_TYPE(FOLD_UNARY_FLOAT);
-    case EL_PRIMTYPE_BOOL: {
+    case EL_HIR_PRIMTYPE_BOOL: {
         bool a = operand->as.constant.as.bool_;
         UNARY_BOOL_OP_CASES(a, TYPED_BOOL_RET, binder->builtins->type_bool, operand->span);
         return NULL;

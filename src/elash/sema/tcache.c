@@ -20,7 +20,7 @@ void el_tcache_init(ElTypeCache* cache, ElDynArena* arena, ElBSQuery* query) {
     cache->query = query;
 
     cache->usize_type = el_tcache_get_mir(cache, el_hir_new_int_type(arena, EL_HIR_IWIDTH_NATIVE, false));
-    cache->bool_type  = el_tcache_get_mir(cache, el_hir_new_prim_type(arena, EL_PRIMTYPE_BOOL));
+    cache->bool_type  = el_tcache_get_mir(cache, el_hir_new_prim_type(arena, EL_HIR_PRIMTYPE_BOOL));
 }
 
 void el_tcache_free(ElTypeCache* cache) {

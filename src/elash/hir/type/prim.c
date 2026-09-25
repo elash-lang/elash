@@ -5,7 +5,7 @@ ElHirType* el_hir_new_int_type(ElDynArena* arena, ElHirIntWidth width, bool is_s
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirType, {
         .kind = EL_HIR_TYPE_PRIM,
         .as.prim = {
-            .kind = EL_PRIMTYPE_INT,
+            .kind = EL_HIR_PRIMTYPE_INT,
             .as.integral = {
                 width, is_signed,
             },
@@ -17,7 +17,7 @@ ElHirType* el_hir_new_float_type(ElDynArena* arena, ElHirFpWidth width) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirType, {
         .kind = EL_HIR_TYPE_PRIM,
         .as.prim = {
-            .kind = EL_PRIMTYPE_FLOAT,
+            .kind = EL_HIR_PRIMTYPE_FLOAT,
             .as.fp = { width },
         },
     });

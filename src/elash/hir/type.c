@@ -12,10 +12,10 @@ static void strbuf_wrapper(const char* pointer_to_const_char, void* pointer_to_v
 }
 
 void el_hir_dump_type(const ElHirType* type, FILE* out) {
-    el_format_type_internal(type, stdio_wrapper, out);
+    el_hir_format_type_impl(type, stdio_wrapper, out);
 }
-void el_format_type(const ElHirType* type, ElStringBuf* sb) {
-    el_format_type_internal(type, strbuf_wrapper, sb);
+void el_hir_format_type(const ElHirType* type, ElStringBuf* sb) {
+    el_hir_format_type_impl(type, strbuf_wrapper, sb);
 }
 
 static inline void writeint(usize tuff, void (*write)(const char*, void*), void* ctx) {
@@ -34,17 +34,17 @@ static void format_mut(ElMutabilitySpec mut, void (*write)(const char*, void*), 
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
-void el_format_type_internal(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
+void el_hir_format_type_impl(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
     switch (type->kind) {
     case EL_HIR_TYPE_QUAL:
         format_mut(type->as.qual.mut, write, ctx);
-        el_format_type_internal(type->as.qual.base, write, ctx);
+        el_hir_format_type_impl(type->as.qual.base, write, ctx);
         return;
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
-        case EL_PRIMTYPE_VOID: write("void", ctx); return;
-        case EL_PRIMTYPE_BOOL: write("bool", ctx); return;
-        case EL_PRIMTYPE_INT:
+        case EL_HIR_PRIMTYPE_VOID: write("void", ctx); return;
+        case EL_HIR_PRIMTYPE_BOOL: write("bool", ctx); return;
+        case EL_HIR_PRIMTYPE_INT:
             write((const char* const [][2]) {
                 [EL_HIR_IWIDTH_NATIVE]    = { "usize",   "isize"  },
                 [EL_HIR_IWIDTH_EFFICIENT] = { "uint",    "int"    },
@@ -55,7 +55,7 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
                 [EL_HIR_IWIDTH_128]       = { "uint128", "int128" },
             }[type->as.prim.as.integral.width][type->as.prim.as.integral.is_signed], ctx);
             return;
-        case EL_PRIMTYPE_FLOAT:
+        case EL_HIR_PRIMTYPE_FLOAT:
             write((const char* const[]) {
                 [EL_HIR_FPWIDTH_EFFICIENT] = "float",
                 [EL_HIR_FPWIDTH_16]        = "float16",
@@ -67,11 +67,11 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
     case EL_HIR_TYPE_REF:
-        el_format_type_internal(type->as.ref.base, write, ctx);
+        el_hir_format_type_impl(type->as.ref.base, write, ctx);
         write("&", ctx);
         return;
     case EL_HIR_TYPE_OPT:
-        el_format_type_internal(type->as.opt.base, write, ctx);
+        el_hir_format_type_impl(type->as.opt.base, write, ctx);
         write("?", ctx);
         return;
     case EL_HIR_TYPE_DISTINCT: {
@@ -84,24 +84,24 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
         return;
     }
     case EL_HIR_TYPE_ARRAY:
-        el_format_type_internal(type->as.array.base, write, ctx);
+        el_hir_format_type_impl(type->as.array.base, write, ctx);
         write("[", ctx);
         writeint(type->as.array.size, write, ctx);
         write("]", ctx);
         return;
     case EL_HIR_TYPE_SLICE:
-        el_format_type_internal(type->as.slice.base, write, ctx);
+        el_hir_format_type_impl(type->as.slice.base, write, ctx);
         write("[]", ctx);
         return;
     case EL_HIR_TYPE_RWSLICE:
-        el_format_type_internal(type->as.rwslice.base, write, ctx);
+        el_hir_format_type_impl(type->as.rwslice.base, write, ctx);
         write("[&]", ctx);
         return;
     case EL_HIR_TYPE_FUNC:
-        el_format_type_internal(type->as.func.ret_type, write, ctx);
+        el_hir_format_type_impl(type->as.func.ret_type, write, ctx);
         write("(", ctx);
         for (usize i = 0; i < type->as.func.param_count; i++) {
-            el_format_type_internal(type->as.func.params[i], write, ctx);
+            el_hir_format_type_impl(type->as.func.params[i], write, ctx);
             if (i + 1 < type->as.func.param_count) write(", ", ctx);
         }
         write(")", ctx);
@@ -117,7 +117,7 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
                 write(buf, ctx);
             }
             write(": ", ctx);
-            el_format_type_internal(type->as.struct_.fields[i].type, write, ctx);
+            el_hir_format_type_impl(type->as.struct_.fields[i].type, write, ctx);
             if (i + 1 < type->as.struct_.count) write(", ", ctx);
         }
         write("}", ctx);
@@ -125,7 +125,7 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
     case EL_HIR_TYPE_TUPLE:
         write("(", ctx);
         for (usize i = 0; i < type->as.tuple.count; i++) {
-            el_format_type_internal(type->as.tuple.elements[i], write, ctx);
+            el_hir_format_type_impl(type->as.tuple.elements[i], write, ctx);
             if (i + 1 < type->as.tuple.count) write(", ", ctx);
         }
         write(")", ctx);
@@ -160,13 +160,13 @@ static bool el_hir_type_eql_impl(const ElHirType* lhs, const ElHirType* rhs, boo
     case EL_HIR_TYPE_PRIM:
         if (lhs->as.prim.kind != rhs->as.prim.kind) return false;
         switch (lhs->as.prim.kind) {
-        case EL_PRIMTYPE_INT:
+        case EL_HIR_PRIMTYPE_INT:
             return lhs->as.prim.as.integral.width == rhs->as.prim.as.integral.width
                 && lhs->as.prim.as.integral.is_signed == rhs->as.prim.as.integral.is_signed;
-        case EL_PRIMTYPE_FLOAT:
+        case EL_HIR_PRIMTYPE_FLOAT:
             return lhs->as.prim.as.fp.width == rhs->as.prim.as.fp.width;
-        case EL_PRIMTYPE_VOID:
-        case EL_PRIMTYPE_BOOL:
+        case EL_HIR_PRIMTYPE_VOID:
+        case EL_HIR_PRIMTYPE_BOOL:
             return true;
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, lhs->as.prim.kind);
@@ -231,10 +231,10 @@ uhash el_hir_type_hash(const ElHirType* type) {
         break;
     case EL_HIR_TYPE_PRIM:
         hash = el_hash_mix(hash, (uhash)type->as.prim.kind);
-        if (type->as.prim.kind == EL_PRIMTYPE_INT) {
+        if (type->as.prim.kind == EL_HIR_PRIMTYPE_INT) {
             hash = el_hash_mix(hash, (uhash)type->as.prim.as.integral.width);
             hash = el_hash_mix(hash, (uhash)type->as.prim.as.integral.is_signed);
-        } else if (type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+        } else if (type->as.prim.kind == EL_HIR_PRIMTYPE_FLOAT) {
             hash = el_hash_mix(hash, (uhash)type->as.prim.as.fp.width);
         }
         break;
@@ -348,5 +348,5 @@ bool el_hir_type_is_incomplete(const ElHirType* type) {
     type = el_hir_type_unwrap((ElHirType*)type);
     return type->kind == EL_HIR_TYPE_DISTINCT
         || type->kind == EL_HIR_TYPE_FUNC
-        || (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID);
+        || (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_HIR_PRIMTYPE_VOID);
 }
