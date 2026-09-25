@@ -123,6 +123,9 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
 }
 
 static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
+    if (in->mut != EL_MUTSPEC_DEFAULT)
+        EL_UNREACHABLE("mutability specifiers unimplemented");
+
     switch (in->kind) {
     case EL_AST_TYPE_REF: {
         ElHirType* base = el_bind_type(binder ,in->as.ref.base);

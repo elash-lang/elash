@@ -45,27 +45,31 @@ static ElAstIdent* gen_ident(ElDynArena* arena) {
     return el_ast_new_ident_raw(arena, NSPAN, el_dynarena_clone_sv(arena, el_sv_from_cstr(buf)));
 }
 
+static ElMutabilitySpec gen_mut() {
+    return rand() % 3;
+}
+
 static ElAstType* gen_type(ElDynArena* arena, int depth) {
-    if (depth <= 0) return el_ast_new_type_name(arena, NSPAN, gen_ident(arena));
+    if (depth <= 0) return el_ast_new_type_name(arena, NSPAN, gen_mut(), gen_ident(arena));
     switch (rand() % 6) {
     case 0: {
         usize count = (rand() % 3) + 1;
         ElAstDecl* fields = NULL;
         ElAstDecl* tail = NULL;
         for (usize i = 0; i < count; i++) el_ast_append_decl(&fields, &tail, gen_decl(arena, nd(depth)));
-        return el_ast_new_type_struct(arena, NSPAN, fields, count);
+        return el_ast_new_type_struct(arena, NSPAN, gen_mut(), fields, count);
     }
     case 1: {
         usize count = (rand() % 3) + 1;
         ElAstType* head = NULL;
         ElAstType* tail = NULL;
         for (usize i = 0; i < count; i++) el_ast_type_list_append(&head, &tail, gen_type(arena, nd(depth)));
-        return el_ast_new_type_tuple(arena, NSPAN, head, count);
+        return el_ast_new_type_tuple(arena, NSPAN, gen_mut(), head, count);
     }
-    case 2: return el_ast_new_type_name(arena, NSPAN, gen_ident(arena));
-    case 3: return el_ast_new_type_ref(arena, NSPAN, gen_type(arena, nd(depth)));
-    case 4: return el_ast_new_type_array(arena, NSPAN, gen_type(arena, nd(depth)), gen_expr(arena, nd(depth)));
-    case 5: return el_ast_new_type_slice(arena, NSPAN, gen_type(arena, nd(depth)), rand() % 2 == 0);
+    case 2: return el_ast_new_type_name(arena, NSPAN, gen_mut(), gen_ident(arena));
+    case 3: return el_ast_new_type_ref(arena, NSPAN, gen_mut(), gen_type(arena, nd(depth)));
+    case 4: return el_ast_new_type_array(arena, NSPAN, gen_mut(), gen_type(arena, nd(depth)), gen_expr(arena, nd(depth)));
+    case 5: return el_ast_new_type_slice(arena, NSPAN, gen_mut(), gen_type(arena, nd(depth)), rand() % 2 == 0);
     }
     EL_UNREACHABLE("shouldn't get here");
 }

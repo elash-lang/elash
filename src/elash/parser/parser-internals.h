@@ -1,5 +1,6 @@
 #pragma once
 #include <elash/parser/parser.h> // IWYU pragma: export
+#include <elash/util/assert.h>   // IWYU pragma: export
 
 #include <elash/ast/tree/toe.h>
 #include <elash/ast/tree/unr.h>
@@ -42,4 +43,15 @@ typedef struct ElParseAmbig {
 
 bool         _el_parser_is_complex_expr(ElParser* parser);
 ElParseAmbig _el_parse_ambig(ElParser* parser);
-ElAstToE* _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node);
+ElAstToE*    _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node);
+
+/////////////// mutability specifiers ////////////////
+static inline bool is_mut_spec_token(ElTokenType type) {
+    return type == EL_TT_KW_CONST || type == EL_TT_KW_WONLY;
+}
+
+static inline ElMutabilitySpec mut_spec_from_token(ElTokenType type) {
+    if (type == EL_TT_KW_CONST) return EL_MUTSPEC_CONST;
+    if (type == EL_TT_KW_WONLY) return EL_MUTSPEC_WONLY;
+    EL_UNREACHABLE("invalid argument passed");
+}

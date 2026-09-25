@@ -127,7 +127,7 @@ static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig ba
 
     if (base.kind == EL_PARSE_AMBIG_TYPE) {
         ElAstType* type = el_ast_new_type_array(
-            parser->aarena, combined_span, base.as.type, index_expr
+            parser->aarena, combined_span, EL_MUTSPEC_DEFAULT, base.as.type, index_expr
         );
         return ambig_type(type);
     }
@@ -141,8 +141,12 @@ static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig ba
 
 static ElParseAmbig parse_ambig_suffixes(ElParser* parser, ElParseAmbig node) {
     while (true) {
-        // slices and refs and optional types
-        if (el_parser_check(parser, EL_TT_BITWISE_AND) || el_parser_check(parser, EL_TT_OPT)) {
+        // slices and refs and optional types, or mutability specifiers
+        if (el_parser_check(parser, EL_TT_BITWISE_AND)
+         || el_parser_check(parser, EL_TT_OPT)
+         || el_parser_check(parser, EL_TT_KW_CONST)
+         || el_parser_check(parser, EL_TT_KW_WONLY)
+        ) {
             return force_type_with_suffixes(parser, node);
         }
         if (el_parser_check(parser, EL_TT_LBRACKET) && is_slice_brackets(parser)) {
@@ -249,6 +253,14 @@ ElParseAmbig _el_parse_ambig(ElParser* parser) {
             return (ElParseAmbig) { .kind = EL_PARSE_AMBIG_EXPR, .as.expr = NULL };
         }
         return ambig_expr(expr);
+    }
+
+    if (el_parser_check(parser, EL_TT_KW_CONST) || el_parser_check(parser, EL_TT_KW_WONLY)) {
+        ElAstType* type = _el_parse_type(parser);
+        if (type == NULL) {
+            return (ElParseAmbig){ .kind = EL_PARSE_AMBIG_EXPR, .as.expr = NULL };
+        }
+        return ambig_type(type);
     }
 
     if (el_parser_check(parser, EL_TT_KW_STRUCT)) {

@@ -1,8 +1,19 @@
 #include <elash/unparser/unparser.h>
 #include <elash/util/assert.h>
 
+static bool unparse_mut_spec(ElUnparser* unpar, ElMutabilitySpec mut) {
+    switch (mut) {
+    case EL_MUTSPEC_DEFAULT: return true;
+    case EL_MUTSPEC_CONST:   return el_unparser_push_kw(unpar, EL_TT_KW_CONST);
+    case EL_MUTSPEC_WONLY:   return el_unparser_push_kw(unpar, EL_TT_KW_WONLY);
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElMutabilitySpec, mut);
+}
+
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): it is readable.
 bool _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
+    if (!unparse_mut_spec(unpar, type->mut)) return false;
+
     switch (type->kind) {
     case EL_AST_TYPE_NAME:
         return _el_unparser_unparse_ident(unpar, type->as.name);
@@ -85,6 +96,7 @@ static bool unparse_type_suffixes(ElUnparser* unpar, ElAstType* type) {
         default:
             EL_UNREACHABLE("not a type suffix");
         }
+        if (!unparse_mut_spec(unpar, suf->mut)) return false;
     }
 
     return true; // return true
