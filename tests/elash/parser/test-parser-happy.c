@@ -127,3 +127,40 @@ Test(el_parser_happy, parse_decl_func) {
     cr_assert(el_sv_eql(param->type->as.name->name, EL_SV("int")));
 }
 
+Test(el_parser_happy, parse_alias_array_mut_suffixes) {
+    ElDiagEngine diag;
+    ElParser parser = p("alias A = int[3]const & wonly;", &diag);
+    ElAstDecl* decl = el_parse_decl(&parser);
+    cr_assert_eq(diag.summary.total_errors, 0);
+
+    cr_assert_not_null(decl);
+    cr_assert_eq(decl->type, EL_AST_DECL_ALIAS);
+    cr_assert_eq(decl->as.alias.target.kind, EL_AST_TOE_TYPE);
+
+    ElAstType* ref = decl->as.alias.target.as.type;
+    cr_assert_not_null(ref);
+    cr_assert_eq(ref->kind, EL_AST_TYPE_REF);
+    cr_assert_eq(ref->mut, EL_MUTSPEC_WONLY);
+
+    ElAstType* arr = ref->as.ref.base;
+    cr_assert_not_null(arr);
+    cr_assert_eq(arr->kind, EL_AST_TYPE_ARRAY);
+    cr_assert_eq(arr->mut, EL_MUTSPEC_CONST);
+}
+
+Test(el_parser_happy, parse_alias_ref_mut_suffix) {
+    ElDiagEngine diag;
+    ElParser parser = p("alias A = int& wonly;", &diag);
+    ElAstDecl* decl = el_parse_decl(&parser);
+    cr_assert_eq(diag.summary.total_errors, 0);
+
+    cr_assert_not_null(decl);
+    cr_assert_eq(decl->type, EL_AST_DECL_ALIAS);
+    cr_assert_eq(decl->as.alias.target.kind, EL_AST_TOE_TYPE);
+
+    ElAstType* ref = decl->as.alias.target.as.type;
+    cr_assert_not_null(ref);
+    cr_assert_eq(ref->kind, EL_AST_TYPE_REF);
+    cr_assert_eq(ref->mut, EL_MUTSPEC_WONLY);
+}
+

@@ -17,6 +17,8 @@ ElAstStmt*  _el_parse_block(ElParser* parser, ElToken lbrace_tok);
 ElAstIdent* _el_parse_ident(ElParser* parser);
 ElAstType*  _el_parse_type(ElParser* parser);
 ElAstType*  _el_parse_type_suffixes(ElParser* parser, ElAstType* type);
+/// Apply trailing mutability on `type`, then parse `&` / `?` / `[...]` suffixes.
+ElAstType*  _el_parse_type_mut_and_suffixes(ElParser* parser, ElAstType* type);
 
 ElAstExpr* _el_parse_primary(ElParser* parser);
 ElAstExpr* _el_parse_postfix(ElParser* parser);

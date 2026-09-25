@@ -106,7 +106,7 @@ static ElParseAmbig force_type_with_suffixes(ElParser* parser, ElParseAmbig node
     }
     if (type == NULL) return node;
 
-    type = _el_parse_type_suffixes(parser, type);
+    type = _el_parse_type_mut_and_suffixes(parser, type);
     if (type == NULL) return node;
     return ambig_type(type);
 }
@@ -190,7 +190,8 @@ static bool is_binary_op_or_cast(ElParser* parser, usize idx) {
         return true;
     case EL_TT_BITWISE_AND: {
         ElToken next = el_parser_peek_at(parser, idx + 1);
-        if (next.type == EL_TT_LBRACKET || next.type == EL_TT_BITWISE_AND || next.type == EL_TT_OPT) {
+        if (next.type == EL_TT_LBRACKET || next.type == EL_TT_BITWISE_AND || next.type == EL_TT_OPT || is_mut_spec_token(next.type)
+        ) {
             return false;
         }
 

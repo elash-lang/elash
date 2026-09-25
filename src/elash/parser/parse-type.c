@@ -155,9 +155,12 @@ ElAstType* _el_parse_type(ElParser* parser) {
         type = el_ast_new_type_name(parser->aarena, span, prefix_mut, name);
     }
 
-    type->mut = parse_mut_spec(parser, type->mut, &type->span);
-
-    ElAstType* result = _el_parse_type_suffixes(parser, type);
+    ElAstType* result = _el_parse_type_mut_and_suffixes(parser, type);
     el_prof_finish_sub(parser->prof, parser->pss_type);
     return result;
+}
+
+ElAstType* _el_parse_type_mut_and_suffixes(ElParser* parser, ElAstType* type) {
+    type->mut = parse_mut_spec(parser, type->mut, &type->span);
+    return _el_parse_type_suffixes(parser, type);
 }
