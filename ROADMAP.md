@@ -17,8 +17,8 @@
 - [ ] ~~Enum types~~ *(moved to 0.3.0)*
 - [ ] ~~Union types~~ *(moved to 0.3.0)*
 - [x] Optional types
-- [ ] Read-only types
-- [ ] Write-only types
+- [x] Read-only types
+- [x] Write-only types
 
 ### Expressions
 - [x] Bitcast operator (`bitcast`)
