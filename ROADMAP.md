@@ -98,8 +98,8 @@
 - [x] Source doc docs
 
 ### The Language
-- [ ] Setup initial language documentation site
-- [ ] Document elash basics
+- [ ] ~~Setup initial language documentation site~~ *(moved to 0.3.0 or later)*
+- [ ] ~~Document elash basics~~ *(moved to 0.3.0 or later)*
 
 ## Stability & Hardening
 - [x] Support multiple source files in e2e cases
@@ -112,7 +112,7 @@
 - [x] Fuzz tests
 
 ## Benchmarking & Profiling
-- [ ] End-to-end benchmark suite
+- [ ] ~~End-to-end benchmark suite~~ *(moved to 0.3.0)*
 - [x] Timers for individual pipeline stages
 - [x] Add `--time-report[=file]` flag to enable timers and display results
 - [x] Support human readable and machine readable (`jsonl`) output format via
