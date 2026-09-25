@@ -7,6 +7,7 @@ bool el_ast_equal_type(const ElAstType* a, const ElAstType* b) {
     if (a == b) return true;
     if (!a || !b) return false;
     if (a->kind != b->kind) return false;
+    if (a->mut != b->mut) return false;
 
     switch (a->kind) {
     case EL_AST_TYPE_STRUCT: {

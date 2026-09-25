@@ -47,6 +47,26 @@ bool _el_binder_ensure_complete(ElBinder* binder, ElSourceSpan span, ElHirType* 
     return true;
 }
 
+bool _el_binder_ensure_readable(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr) {
+    if (expr == NULL || expr->type == NULL) return true;
+    if (el_hir_type_mut(expr->type) != EL_MUTSPEC_WONLY) return true;
+    return el_diag_report(
+        binder->diag, EL_DIAG_ERROR, "sema.write-only",
+        span, "cannot read from write-only value of type '${type}'",
+        EL_DIAG_TYPE("type", expr->type),
+    );
+}
+
+bool _el_binder_ensure_writable(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr) {
+    if (expr == NULL || expr->type == NULL) return true;
+    if (el_hir_type_mut(expr->type) != EL_MUTSPEC_CONST) return true;
+    return el_diag_report(
+        binder->diag, EL_DIAG_ERROR, "sema.immutable",
+        span, "cannot modify immutable value of type '${type}'",
+        EL_DIAG_TYPE("type", expr->type),
+    );
+}
+
 // short circuit-like optimization
 static inline Redundancy rcombine1(ElBinder* binder, ElHirExpr* expr) {
     if (_el_binder_redundancy_if_ignored(binder, expr) == REDUNDANCY_FULL) {

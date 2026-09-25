@@ -1,5 +1,6 @@
 #pragma once
 #include <elash/parser/parser.h> // IWYU pragma: export
+#include <elash/util/assert.h>   // IWYU pragma: export
 
 #include <elash/ast/tree/toe.h>
 #include <elash/ast/tree/unr.h>
@@ -16,6 +17,8 @@ ElAstStmt*  _el_parse_block(ElParser* parser, ElToken lbrace_tok);
 ElAstIdent* _el_parse_ident(ElParser* parser);
 ElAstType*  _el_parse_type(ElParser* parser);
 ElAstType*  _el_parse_type_suffixes(ElParser* parser, ElAstType* type);
+/// Apply trailing mutability on `type`, then parse `&` / `?` / `[...]` suffixes.
+ElAstType*  _el_parse_type_mut_and_suffixes(ElParser* parser, ElAstType* type);
 
 ElAstExpr* _el_parse_primary(ElParser* parser);
 ElAstExpr* _el_parse_postfix(ElParser* parser);
@@ -42,4 +45,15 @@ typedef struct ElParseAmbig {
 
 bool         _el_parser_is_complex_expr(ElParser* parser);
 ElParseAmbig _el_parse_ambig(ElParser* parser);
-ElAstToE* _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node);
+ElAstToE*    _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node);
+
+/////////////// mutability specifiers ////////////////
+static inline bool is_mut_spec_token(ElTokenType type) {
+    return type == EL_TT_KW_CONST || type == EL_TT_KW_WONLY;
+}
+
+static inline ElMutabilitySpec mut_spec_from_token(ElTokenType type) {
+    if (type == EL_TT_KW_CONST) return EL_MUTSPEC_CONST;
+    if (type == EL_TT_KW_WONLY) return EL_MUTSPEC_WONLY;
+    EL_UNREACHABLE("invalid argument passed");
+}

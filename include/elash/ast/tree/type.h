@@ -3,6 +3,7 @@
 #include <elash/defs/sv.h>
 #include <elash/source/span.h>
 #include <elash/util/dynarena.h>
+#include <elash/sema/mutability.h>
 
 #include "common/ident.h"
 
@@ -28,7 +29,9 @@ typedef enum ElAstTypeKind {
 
 struct ElAstType {
     ElAstTypeKind kind;
-    ElSourceSpan span;
+    ElSourceSpan  span;
+
+    ElMutabilitySpec mut;
     union {
         ElAstIdent*     name;
         ElAstRefType    ref;
@@ -38,8 +41,9 @@ struct ElAstType {
         ElAstStructType struct_;
         ElAstTupleType  tuple;
     } as;
+
     ElAstType* next;
 };
 
-ElAstType* el_ast_new_type_name(ElDynArena* arena, ElSourceSpan span, ElAstIdent* name);
+ElAstType* el_ast_new_type_name(ElDynArena* arena, ElSourceSpan span, ElMutabilitySpec mut, ElAstIdent* name);
 void el_ast_type_list_append(ElAstType** head, ElAstType** tail, ElAstType* type);

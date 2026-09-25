@@ -1,0 +1,7 @@
+int main() {
+    char c = 'X';
+    wonly char& ref = &c;
+
+    char c2 = ref^;
+    return 0;
+}

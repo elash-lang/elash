@@ -2,7 +2,7 @@
 
 static ElHirExpr* len_from_array_type(ElBinder* binder, ElSourceSpan span, ElHirType* type) {
     if (type == NULL) return NULL;
-    type = el_hir_type_unwrap_distinct(type);
+    type = el_hir_type_unwrap(type);
     if (type->kind != EL_HIR_TYPE_ARRAY) return NULL;
 
     return el_hir_new_int_constant(
@@ -34,7 +34,7 @@ ElHirExpr* _el_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* cal
     if (earg == NULL) return NULL;
     earg = _el_binder_apply_default_type(binder, earg);
 
-    ElHirType* type = el_hir_type_unwrap_distinct(earg->type);
+    ElHirType* type = el_hir_type_unwrap(earg->type);
 
     if (type->kind == EL_HIR_TYPE_ARRAY) {
         return el_hir_new_int_constant(
@@ -75,7 +75,8 @@ ElHirExpr* _el_bind_mkslice_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr*
 
     ElHirExpr* raw = raw_toe->as.expr;
     if (raw == NULL) return NULL;
-    if (raw->type->kind != EL_HIR_TYPE_RWSLICE) {
+    ElHirType* raw_ty = el_hir_type_canonical(raw->type);
+    if (raw_ty == NULL || raw_ty->kind != EL_HIR_TYPE_RWSLICE) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
             raw_arg->span, "first argument to 'mkslice' must be a raw slice"

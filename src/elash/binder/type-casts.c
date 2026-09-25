@@ -6,11 +6,22 @@
 #include <elash/util/todo.h>
 
 #include <elash/hir/type/ref.h>
+#include <elash/hir/type/raw-slice.h>
 #include <elash/hir/tree/expr.h>
 #include <elash/hir/tree/expr/intr.h>
 
 // to reduce boilerplate.
 #define type_eql el_hir_type_eql
+#define type_eql_unqual el_hir_type_eql_unqual
+#define mut_compatible el_hir_type_mut_compatible
+#define type_compatible el_hir_type_compatible
+
+#define HANDLE(CASTED, BAD) \
+    if (CASTED != NULL) {   \
+        return CASTED;      \
+    } else if (BAD) {       \
+        return NULL;        \
+    }
 
 static inline bool is_fixed_width(ElHirIntWidth width) {
     return width != EL_HIR_IWIDTH_NATIVE && width != EL_HIR_IWIDTH_EFFICIENT;
@@ -20,8 +31,36 @@ static inline bool is_fixed_fp_width(ElHirFpWidth width) {
 }
 
 static inline bool is_distinct_conv(ElHirType* from, ElHirType* to) {
-    return (from->kind == EL_HIR_TYPE_DISTINCT && el_hir_type_eql(from->as.distinct.orig, to)) ||
-            (to->kind == EL_HIR_TYPE_DISTINCT && el_hir_type_eql(to->as.distinct.orig, from));
+    from = el_hir_type_canonical(from);
+    to = el_hir_type_canonical(to);
+    return (from->kind == EL_HIR_TYPE_DISTINCT && type_eql(from->as.distinct.orig, to)) ||
+            (to->kind == EL_HIR_TYPE_DISTINCT && type_eql(to->as.distinct.orig, from));
+}
+
+// types that point to some data
+static bool is_view_type(const ElHirType* type) {
+    type = el_hir_type_canonical((ElHirType*)type);
+    return type != NULL
+        && (type->kind == EL_HIR_TYPE_REF
+         || type->kind == EL_HIR_TYPE_SLICE
+         || type->kind == EL_HIR_TYPE_RWSLICE);
+}
+
+static ElHirExpr* cast_quals_only(ElBinder* binder, ElHirExpr* expr, ElHirType* from, ElHirType* to) {
+    if (is_view_type(from) || is_view_type(to)) {
+        if (!type_compatible(from, to))
+            return NULL;
+    } else if (!type_eql_unqual(from, to)) {
+        return NULL;
+    }
+
+    // const T[10] -> T[10] is ok because it copies the underlying data anyway
+    return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
+}
+
+static ElHirType* string_lit_type(ElBinder* binder, usize len) {
+    ElHirType* elem = el_hir_type_qualify(binder->arena, binder->builtins->type_char, EL_MUTSPEC_CONST);
+    return el_hir_new_array_type(binder->arena, elem, len);
 }
 
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
@@ -34,64 +73,63 @@ ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHir
 
     EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST, "eval const cast requires a constant operand");
 
-    ElHirType* to = to_orig;
-    if (to->kind == EL_HIR_TYPE_DISTINCT)
-        to = el_hir_type_unwrap_distinct(to);
-
+    ElHirType* to_shape = el_hir_type_unwrap(to_orig);
     ElHirType* from = expr->type;
     if (from == NULL) return NULL;
-    if (from->kind == EL_HIR_TYPE_DISTINCT)
-        from = el_hir_type_unwrap_distinct(from);
+    ElHirType* from_shape = el_hir_type_unwrap(from);
 
-    if (to->kind != EL_HIR_TYPE_PRIM || from->kind != EL_HIR_TYPE_PRIM)
+    if (to_shape->kind != EL_HIR_TYPE_PRIM || from_shape->kind != EL_HIR_TYPE_PRIM)
         return NULL;
 
-    switch (to->as.prim.kind) {
+    switch (to_shape->as.prim.kind) {
     case EL_PRIMTYPE_INT:
-        switch (from->as.prim.kind) {
+        switch (from_shape->as.prim.kind) {
         case EL_PRIMTYPE_INT: {
-            ElInt128 wrapped = _el_binder_wrap_typed_int(binder, span, to, expr->as.constant.as.int_);
-            return el_hir_new_int_constant(binder->arena, span, to, wrapped);
+            ElInt128 wrapped = _el_binder_wrap_typed_int(binder, span, to_shape, expr->as.constant.as.int_);
+            return el_hir_new_int_constant(binder->arena, span, to_orig, wrapped);
         }
         case EL_PRIMTYPE_FLOAT:
             return el_hir_new_int_constant(
-                binder->arena, span, to,
-                _el_binder_wrap_typed_int(binder, span, to, EL_INT128((int64_t)expr->as.constant.as.float_))
+                binder->arena, span, to_orig,
+                _el_binder_wrap_typed_int(binder, span, to_shape, EL_INT128((int64_t)expr->as.constant.as.float_))
             );
         case EL_PRIMTYPE_BOOL:
         case EL_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
         }
-        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from->as.prim.kind);
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from_shape->as.prim.kind);
     case EL_PRIMTYPE_BOOL:
-        switch (from->as.prim.kind) {
+        switch (from_shape->as.prim.kind) {
         case EL_PRIMTYPE_BOOL:
-            return el_hir_new_bool_constant(binder->arena, span, to, expr->as.constant.as.bool_);
+            return el_hir_new_bool_constant(binder->arena, span, to_orig, expr->as.constant.as.bool_);
         case EL_PRIMTYPE_FLOAT:
         case EL_PRIMTYPE_INT:
         case EL_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
         }
-        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from->as.prim.kind);
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from_shape->as.prim.kind);
     case EL_PRIMTYPE_FLOAT:
-        switch (from->as.prim.kind) {
+        switch (from_shape->as.prim.kind) {
         case EL_PRIMTYPE_INT:
-            return el_hir_new_float_constant(binder->arena, span, to, (double)el_i128_lo(expr->as.constant.as.int_));
+            return el_hir_new_float_constant(binder->arena, span, to_orig, (double)el_i128_lo(expr->as.constant.as.int_));
         case EL_PRIMTYPE_FLOAT:
-            return el_hir_new_float_constant(binder->arena, span, to, expr->as.constant.as.float_);
+            return el_hir_new_float_constant(binder->arena, span, to_orig, expr->as.constant.as.float_);
         case EL_PRIMTYPE_BOOL:
         case EL_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
         }
-        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from->as.prim.kind);
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from_shape->as.prim.kind);
     case EL_PRIMTYPE_VOID:
         EL_UNREACHABLE("invalid cast");
     }
-    EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, to->as.prim.kind);
+    EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, to_shape->as.prim.kind);
 }
 
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     EL_ASSERT(expr != NULL, "shouldn't be null here");
+
+    if (!_el_binder_ensure_readable(binder, span, expr))
+        return NULL;
 
     ElHirType* from = expr->type;
     if (from == NULL)
@@ -99,23 +137,32 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
     if (type_eql(from, to)) return expr;
 
-    if (to->kind == EL_HIR_TYPE_DISTINCT) {
-        if (!_el_binder_ensure_complete(binder, span, to))
+    ElHirExpr* quals = cast_quals_only(binder, expr, from, to);
+    if (quals != NULL) return quals;
+
+    ElHirType* to_c = el_hir_type_canonical(to);
+    ElHirType* from_c = el_hir_type_canonical(from);
+
+    if (to_c->kind == EL_HIR_TYPE_DISTINCT) {
+        if (!_el_binder_ensure_complete(binder, span, to_c))
             return NULL;
-        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.distinct.orig);
+
+        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to_c->as.distinct.orig);
         if (casted != NULL) return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);
     }
-    if (from->kind == EL_HIR_TYPE_DISTINCT) {
-        if (!_el_binder_ensure_complete(binder, span, from))
+
+    if (from_c->kind == EL_HIR_TYPE_DISTINCT) {
+        if (!_el_binder_ensure_complete(binder, span, from_c))
             return NULL;
-        expr = el_hir_new_semcast_expr(binder->arena, expr->span, from->as.distinct.orig, expr);
+        expr = el_hir_new_semcast_expr(binder->arena, expr->span, from_c->as.distinct.orig, expr);
         from = expr->type;
+        from_c = el_hir_type_canonical(from);
     }
 
-    if (from->kind == EL_HIR_TYPE_PRIM && to->kind == EL_HIR_TYPE_PRIM) {
-        bool is_int_conv = from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT;
-        bool is_float_conv = (from->as.prim.kind == EL_PRIMTYPE_FLOAT || from->as.prim.kind == EL_PRIMTYPE_INT)
-                            && (to->as.prim.kind == EL_PRIMTYPE_FLOAT || to->as.prim.kind == EL_PRIMTYPE_INT);
+    if (from_c->kind == EL_HIR_TYPE_PRIM && to_c->kind == EL_HIR_TYPE_PRIM) {
+        bool is_int_conv = from_c->as.prim.kind == EL_PRIMTYPE_INT && to_c->as.prim.kind == EL_PRIMTYPE_INT;
+        bool is_float_conv = (from_c->as.prim.kind == EL_PRIMTYPE_FLOAT || from_c->as.prim.kind == EL_PRIMTYPE_INT)
+                            && (to_c->as.prim.kind == EL_PRIMTYPE_FLOAT || to_c->as.prim.kind == EL_PRIMTYPE_INT);
         if (is_int_conv || is_float_conv) {
             return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
         }
@@ -124,32 +171,44 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     return _el_binder_implicit_cast(binder, span, expr, to);
 }
 
-static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to, bool* bad) {
-    ElHirType* from = expr->type;
+static ElHirExpr* implicit_cast_array(
+    ElBinder* binder, ElSourceSpan span, ElHirExpr* expr,
+    ElHirType* from, ElHirType* to, ElHirType* from_c, ElHirType* to_c,
+    bool* bad
+) {
+    ElHirType* from_elem = from_c->as.array.base;
 
-    *bad = false;
-    if (to->kind == EL_HIR_TYPE_SLICE) {
-        return el_hir_new_make_slice_intr(
-            binder->arena,
-            expr->span,
-            _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->arena, from->as.array.base)),
-            el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, EL_INT128((int64_t)from->as.array.size))
-        );
-    } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
-        if (type_eql(to->as.rwslice.base, from->as.array.base)) {
-            // &(expr)[0] as T[&]
-            ElHirType* base_type = from->as.array.base;
-            return el_hir_new_bitcast_expr(binder->arena, expr->span, to,
-                el_hir_new_unary_expr(
-                    binder->arena, expr->span,
-                    el_hir_new_ref_type(binder->arena, base_type),
-                    EL_UNARY_OP_ADDROF,
-                    el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_BIN_OP_INDEX,
-                        expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, EL_INT128(0))
-            )));
+    if (to_c->kind == EL_HIR_TYPE_SLICE) {
+        ElHirType* to_elem = to_c->as.slice.base;
+        if (!type_compatible(from_elem, to_elem)) {
+            return NULL;
         }
-    } else if (to->kind == EL_HIR_TYPE_REF) {
-        // let's give the user some nice error message in this case
+
+        // intr 'make-slice' (expr as T[&], len(expr))
+        return el_hir_new_make_slice_intr(
+            binder->arena, expr->span,
+            _el_binder_implicit_cast(binder, span, expr,
+                el_hir_new_raw_slice_type(binder->arena, to_elem)),
+                el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL,
+                    binder->builtins->type_usize, EL_INT128((int64_t)from_c->as.array.size))
+        );
+    } else if (to_c->kind == EL_HIR_TYPE_RWSLICE) {
+        ElHirType* to_elem = to_c->as.rwslice.base;
+        if (!type_compatible(from_elem, to_elem)) {
+            return NULL;
+        }
+
+        // &(expr)[0] as T[&]
+        return el_hir_new_bitcast_expr(binder->arena, expr->span, to,
+            el_hir_new_unary_expr(
+                binder->arena, expr->span,
+                el_hir_new_ref_type(binder->arena, from_elem),
+                EL_UNARY_OP_ADDROF,
+                el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, from_elem, EL_BIN_OP_INDEX,
+                    expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, EL_INT128(0))))
+        );
+    } else if (to_c->kind == EL_HIR_TYPE_REF) {
+        *bad = true;
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
             "invalid cast from array type '${from}' to '${to}' pointer",
@@ -157,102 +216,91 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
         );
         el_diag_help(
             binder->diag, "did you mean to use a raw slice ('${type}')?",
-            EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->arena, to->as.ref.base)),
+            EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->arena, to_c->as.ref.base)),
         );
-
-        *bad = true;
         return NULL;
-    }
-
-    return NULL;
-}
-
-static ElHirExpr* implicit_cast_slice(ElBinder* binder, ElHirExpr* expr, ElHirType* to) {
-    if (to->kind == EL_HIR_TYPE_RWSLICE) {
-        if (type_eql(expr->type->as.slice.base, to->as.rwslice.base)) {
-            return el_hir_new_slice_data_intr(
-                binder->arena, expr->span,
-                to, expr
-            );
+    } else if (to_c->kind == EL_HIR_TYPE_ARRAY) {
+        if (from_c->as.array.size == to_c->as.array.size && type_eql_unqual(from_elem, to_c->as.array.base)) {
+            return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
         }
     }
 
     return NULL;
 }
 
-static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirType* to) {
-    ElHirType* from = expr->type;
+static ElHirExpr* implicit_cast_slice(ElBinder* binder, ElHirExpr* expr, ElHirType* to, ElHirType* from_c, ElHirType* to_c) {
+    if (to_c->kind == EL_HIR_TYPE_RWSLICE && type_compatible(from_c->as.slice.base, to_c->as.rwslice.base)) {
+        return el_hir_new_slice_data_intr(
+            binder->arena, expr->span,
+            to, expr
+        );
+    }
 
-    if (from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT) {
+    return NULL;
+}
+
+static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirType* to, ElHirType* from_c, ElHirType* to_c) {
+    if (from_c->as.prim.kind == EL_PRIMTYPE_INT && to_c->as.prim.kind == EL_PRIMTYPE_INT) {
         // the type of these expressions is an anonymous union
         // and using auto/typeof requires C23 which is not widely
-        // supported so let's stick to #define
-        #define from_itype (&from->as.prim.as.integral)
-        #define to_itype   (&to->as.prim.as.integral)
-        bool is_valid = from_itype->is_signed == to_itype->is_signed
-                    && (from_itype->width     == to_itype->width
-                    || (is_fixed_width(from_itype->width) && is_fixed_width(to_itype->width)
-                    &&  from_itype->width     <= to_itype->width));
-        if (is_valid) return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
-    } else if (from->as.prim.kind == EL_PRIMTYPE_FLOAT && to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+        // supported so let's stick to_c #define
+        #define from_c_itype (&from_c->as.prim.as.integral)
+        #define to_itype   (&to_c->as.prim.as.integral)
+
+        bool is_valid = from_c_itype->is_signed == to_itype->is_signed
+                    && (from_c_itype->width     == to_itype->width
+                    || (is_fixed_width(from_c_itype->width) && is_fixed_width(to_itype->width)
+                    &&  from_c_itype->width     <= to_itype->width));
+
+        if (is_valid) {
+            return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
+        }
+    } else if (from_c->as.prim.kind == EL_PRIMTYPE_FLOAT && to_c->as.prim.kind == EL_PRIMTYPE_FLOAT) {
         // same reason as before, don't blame me plz
-        #define from_fptype (&from->as.prim.as.fp)
-        #define to_fptype   (&to->as.prim.as.fp)
-        bool is_valid = from_fptype->width == to_fptype->width
-                    || (is_fixed_fp_width(from_fptype->width) && is_fixed_fp_width(to_fptype->width)
-                    &&  from_fptype->width < to_fptype->width);
-        if (is_valid) return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
+        #define from_c_fptype (&from_c->as.prim.as.fp)
+        #define to_fptype   (&to_c->as.prim.as.fp)
+
+        bool is_valid = from_c_fptype->width == to_fptype->width
+                    || (is_fixed_fp_width(from_c_fptype->width) && is_fixed_fp_width(to_fptype->width)
+                    &&  from_c_fptype->width < to_fptype->width);
+
+        if (is_valid) {
+            return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
+        }
     }
 
     return NULL;
 }
 
-ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
-    ElHirType* from = expr->type;
-    if (from == NULL) {
-        if (to->kind == EL_HIR_TYPE_OPT) {
-            if (expr->kind == EL_HIR_EXPR_LITERAL && expr->as.literal.kind == EL_HIR_LITERAL_NULL) {
-                return el_hir_new_null_opt_intr(binder->arena, span, to);
-            }
-            ElHirExpr* base = _cast_untyped(binder, span, expr, to->as.opt.base);
-            if (base == NULL) return NULL;
-            return el_hir_new_some_opt_intr(binder->arena, span, to, base);
-        }
-        return _cast_untyped(binder, span, expr, to);
-    }
-
-    if (type_eql(from, to)) return expr;
-
-    if (to->kind == EL_HIR_TYPE_OPT) {
-        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.opt.base);
+static ElHirExpr* implicit_cast_impl(
+    ElBinder* binder, ElSourceSpan span, ElHirExpr* expr,
+    ElHirType* from, ElHirType* to, ElHirType* from_c, ElHirType* to_c
+) {
+    if (to_c->kind == EL_HIR_TYPE_OPT) {
+        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to_c->as.opt.base);
         if (casted != NULL) {
             return el_hir_new_some_opt_intr(binder->arena, span, to, casted);
         }
     }
 
-    if (from->kind == EL_HIR_TYPE_ARRAY) {
-        bool bad;
-        ElHirExpr* result = implicit_cast_array(binder, span, expr, to, &bad);
-        if (result != NULL) {
-            return result;
-        } else {
-            if (bad) return NULL;
-        }
+    if (from_c->kind == EL_HIR_TYPE_ARRAY) {
+        bool bad = false;
+        ElHirExpr* casted = implicit_cast_array(binder, span, expr, from, to, from_c, to_c, &bad);
+        HANDLE(casted, bad);
     }
 
-    if (from->kind == EL_HIR_TYPE_SLICE) {
-        ElHirExpr* result = implicit_cast_slice(binder, expr, to);
-        if (result != NULL)
-            return result;
+    if (from_c->kind == EL_HIR_TYPE_SLICE) {
+        ElHirExpr* casted = implicit_cast_slice(binder, expr, to, from_c, to_c);
+        if (casted != NULL) return casted;
     }
 
-    if (from->kind == EL_HIR_TYPE_PRIM && to->kind == EL_HIR_TYPE_PRIM) {
-        ElHirExpr* result = implicit_cast_prim(binder, expr, to);
-        if (result != NULL)
-            return result;
+    if (from_c->kind == EL_HIR_TYPE_PRIM && to_c->kind == EL_HIR_TYPE_PRIM) {
+        ElHirExpr* casted = implicit_cast_prim(binder, expr, to, from_c, to_c);
+        if (casted != NULL)
+            return casted;
     }
 
-    if (is_distinct_conv(from, to)) {
+    if (is_distinct_conv(from_c, to_c)) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
             "cannot implicitly convert from '${from}' to '${to}'",
@@ -272,6 +320,53 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     return NULL;
 }
 
+ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
+    // almost everything routes through implicit cast so placing the guard here
+    // works and (i hope so) we don't need to put it in any other places
+    // the only exception seems to be explicit cast and some binary/unary operators
+    if (!_el_binder_ensure_readable(binder, span, expr))
+        return NULL;
+
+    ElHirType* from = expr->type;
+    if (from == NULL) {
+        ElHirType* to_c = el_hir_type_canonical(to);
+
+        if (to_c->kind == EL_HIR_TYPE_OPT) {
+            if (expr->kind == EL_HIR_EXPR_LITERAL && expr->as.literal.kind == EL_HIR_LITERAL_NULL) {
+                return el_hir_new_null_opt_intr(binder->arena, span, to);
+            }
+            ElHirExpr* base = _cast_untyped(binder, span, expr, to_c->as.opt.base);
+            if (base == NULL) return NULL;
+            return el_hir_new_some_opt_intr(binder->arena, span, to, base);
+        }
+
+        return _cast_untyped(binder, span, expr, to);
+    }
+
+    if (type_eql(from, to)) return expr;
+
+    ElHirExpr* quals = cast_quals_only(binder, expr, from, to);
+    if (quals != NULL) return quals;
+
+    // View types that matched shape but failed mutability — don't fall through.
+    if ((is_view_type(from) || is_view_type(to))
+        && type_eql_unqual(from, to)
+        && !mut_compatible(from, to)) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
+            "invalid cast from '${from}' to '${to}'",
+            EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
+        );
+        return NULL;
+    }
+
+    return implicit_cast_impl(
+        binder, span, expr, from, to,
+        el_hir_type_canonical(from),
+        el_hir_type_canonical(to)
+    );
+}
+
 static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     switch (expr->kind) {
     case EL_HIR_EXPR_BINARY: {
@@ -280,21 +375,21 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
         ElHirExpr* right = _el_binder_implicit_cast(binder, bin->right->span, bin->right, to);
         if (left == NULL || right == NULL) return NULL;
 
-        ElHirType* result_ty = el_bin_op_is_comparison(bin->op)
+        ElHirType* result_type = el_bin_op_is_comparison(bin->op)
             ? binder->builtins->type_bool
             : to;
-        ElHirExpr* out = el_hir_new_bin_expr(binder->arena, expr->span, result_ty, bin->op, left, right);
+
+        ElHirExpr* out = el_hir_new_bin_expr(binder->arena, expr->span, result_type, bin->op, left, right);
         out = _el_binder_simplify_expr(binder, out);
+
         if (out != NULL && out->type != NULL && !type_eql(out->type, to))
             return _el_binder_implicit_cast(binder, span, out, to);
+
         return out;
     }
     case EL_HIR_EXPR_UNARY: {
         ElUnaryOp op = expr->as.unary.op;
-        if (op == EL_UNARY_OP_PRE_INC || op == EL_UNARY_OP_PRE_DEC
-            || op == EL_UNARY_OP_POST_INC || op == EL_UNARY_OP_POST_DEC
-            || op == EL_UNARY_OP_ADDROF || op == EL_UNARY_OP_DEREF
-            || op == EL_UNARY_OP_OPT_UNWRAP) {
+        if (el_unary_op_is_incdec(op) || op == EL_UNARY_OP_ADDROF || op == EL_UNARY_OP_DEREF || op == EL_UNARY_OP_OPT_UNWRAP) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
                 "operator cannot be used in this context"
@@ -318,13 +413,80 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
     }
 }
 
+static ElHirExpr* cast_untyped_null(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to, ElHirType* to_c, bool* bad) {
+    ElHirLiteral* lit = &expr->as.literal;
+    if (to_c->kind == EL_HIR_TYPE_OPT) {
+        return el_hir_new_null_opt_intr(binder->arena, expr->span, to);
+    } else if (to_c->kind == EL_HIR_TYPE_REF) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
+            span, "untyped ${of} literal cannot be converted to reference type '${to}'",
+            EL_DIAG_STRING("of", el_hir_literal_kind_to_string(lit->kind)),
+            EL_DIAG_TYPE("to", to),
+        );
+        el_diag_help(
+            binder->diag, "in elash, references are non-nullable by default",
+        );
+        el_diag_help(
+            binder->diag, "use '${type}?' if you need nullability",
+            EL_DIAG_TYPE("type", to),
+        );
+        return *bad = true, NULL;
+    }
+
+    return NULL;
+}
+
+static ElHirExpr* cast_untyped_string(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to, ElHirType* to_c, bool* bad) {
+    ElHirLiteral* lit = &expr->as.literal;
+    ElHirType* type_char = binder->builtins->type_char;
+
+    bool is_slice = (to_c->kind == EL_HIR_TYPE_SLICE && type_eql_unqual(to_c->as.slice.base, type_char))
+                 || (to_c->kind == EL_HIR_TYPE_RWSLICE && type_eql_unqual(to_c->as.rwslice.base, type_char));
+
+    if (to_c->kind == EL_HIR_TYPE_ARRAY && type_eql_unqual(to_c->as.array.base, type_char)) {
+        if (to_c->as.array.size == lit->of.str_.len) {
+            return el_hir_new_string_const(binder->arena, expr->span, to, lit->of.str_, EL_STORAGECLS_STATIC);
+        } else {
+            *bad = true;
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
+                span, "untyped ${of} literal cannot be converted to array type '${to}'",
+                EL_DIAG_STRING("of", el_hir_literal_kind_to_string(lit->kind)),
+                EL_DIAG_TYPE("to", to),
+            );
+            el_diag_help(
+                binder->diag, "array length mismatch: expected ${expected}, got ${got}",
+                EL_DIAG_INT("expected", lit->of.str_.len),
+                EL_DIAG_INT("got", to_c->as.array.size)
+            );
+            if (to_c->as.array.size == lit->of.str_.len + 1) {
+                el_diag_help(
+                    binder->diag, "string literals in elash are not null terminated by default",
+                );
+            }
+        }
+    } else if (is_slice) {
+        return _el_binder_implicit_cast(
+            binder, expr->span,
+            el_hir_new_string_const(binder->arena, expr->span,
+                string_lit_type(binder, lit->of.str_.len),
+                lit->of.str_, EL_STORAGECLS_STATIC),
+            to
+        );
+    }
+
+    return NULL;
+}
+
 // TODO: split this function into smaller helpers
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
-    if (to->kind == EL_HIR_TYPE_DISTINCT) {
-        if (!_el_binder_ensure_complete(binder, span, to))
+    ElHirType* to_c = el_hir_type_canonical(to);
+    if (to_c->kind == EL_HIR_TYPE_DISTINCT) {
+        if (!_el_binder_ensure_complete(binder, span, to_c))
             return NULL;
 
-        ElHirExpr* casted = _cast_untyped(binder, span, expr, to->as.distinct.orig);
+        ElHirExpr* casted = _cast_untyped(binder, span, expr, to_c->as.distinct.orig);
         if (casted == NULL) return NULL;
         return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);
     }
@@ -334,12 +496,12 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
 
     ElHirLiteral* lit = &expr->as.literal;
 
-    if (to->kind == EL_HIR_TYPE_PRIM) {
-        ElHirPrimType* prim = &to->as.prim;
+    if (to_c->kind == EL_HIR_TYPE_PRIM) {
+        ElHirPrimType* prim = &to_c->as.prim;
         switch (lit->kind) {
         case EL_HIR_LITERAL_INT:
             if (prim->kind == EL_PRIMTYPE_INT) {
-                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to, lit->of.int_);
+                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to_c, lit->of.int_);
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             } else if (prim->kind == EL_PRIMTYPE_FLOAT) {
                 return el_hir_new_float_constant(binder->arena, expr->span, to, (double)el_i128_lo(lit->of.int_));
@@ -347,7 +509,7 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
             break;
         case EL_HIR_LITERAL_CHAR:
             if (prim->kind == EL_PRIMTYPE_INT) {
-                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to, EL_INT128((int64_t)lit->of.char_));
+                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to_c, EL_INT128((int64_t)lit->of.char_));
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }
             break;
@@ -360,7 +522,7 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
             if (prim->kind == EL_PRIMTYPE_FLOAT) {
                 return el_hir_new_float_constant(binder->arena, expr->span, to, lit->of.float_);
             } else if (prim->kind == EL_PRIMTYPE_INT) {
-                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to, EL_INT128((int64_t)lit->of.float_));
+                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to_c, EL_INT128((int64_t)lit->of.float_));
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }
             break;
@@ -370,39 +532,18 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
     }
 
     if (lit->kind == EL_HIR_LITERAL_STRING) {
-        if (to->kind == EL_HIR_TYPE_ARRAY) {
-            if (el_hir_type_eql(to->as.array.base, binder->builtins->type_char) && to->as.array.size == lit->of.str_.len) {
-                return el_hir_new_string_const(binder->arena, expr->span, to, lit->of.str_, EL_STORAGECLS_STATIC);
-            }
-        } else if (to->kind == EL_HIR_TYPE_SLICE && el_hir_type_eql(to->as.slice.base, binder->builtins->type_char)) {
-            return _el_binder_implicit_cast(
-                binder, expr->span,
-                el_hir_new_string_const(binder->arena, expr->span,
-                    el_hir_new_array_type(binder->arena, binder->builtins->type_char, lit->of.str_.len),
-                    lit->of.str_, EL_STORAGECLS_STATIC),
-                to
-            );
-        }
+        bool bad = false;
+        ElHirExpr* casted = cast_untyped_string(binder, span, expr, to, to_c, &bad);
+        HANDLE(casted, bad);
     }
 
     if (lit->kind == EL_HIR_LITERAL_NULL) {
-        if (to->kind == EL_HIR_TYPE_OPT) {
-            return el_hir_new_null_opt_intr(binder->arena, expr->span, to);
-        } else if (to->kind == EL_HIR_TYPE_REF) {
-            el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
-                span, "untyped ${of} literal cannot be converted to reference type '${to}'",
-                EL_DIAG_STRING("of", el_hir_literal_kind_to_string(lit->kind)),
-                EL_DIAG_TYPE("to", to),
-            );
-            el_diag_help(
-                binder->diag, "in elash, references are non-nullable by default",
-            );
-            el_diag_help(
-                binder->diag, "use '${type}?' if you need nullability",
-                EL_DIAG_TYPE("type", to),
-            );
-            return NULL;
+        bool bad = false;
+        ElHirExpr* casted = cast_untyped_null(binder, span, expr, to, to_c, &bad);
+        if (casted == NULL) {
+            if (bad) return NULL;
+        } else {
+            return casted;
         }
     }
 
@@ -420,7 +561,7 @@ ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
         ElHirLiteral* lit = &expr->as.literal;
         switch (lit->kind) {
         case EL_HIR_LITERAL_STRING: {
-            ElHirType* type = el_hir_new_array_type(binder->arena, binder->builtins->type_char, lit->of.str_.len);
+            ElHirType* type = string_lit_type(binder, lit->of.str_.len);
             return el_hir_new_string_const(binder->arena, expr->span, type, lit->of.str_, EL_STORAGECLS_STATIC);
         }
         case EL_HIR_LITERAL_INT:

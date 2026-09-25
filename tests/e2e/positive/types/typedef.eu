@@ -1,7 +1,8 @@
 typedef MyInt as int;
 typedef MyFloat as float;
 
-typedef String as char[];
+alias ConstChar = const char;
+typedef String as ConstChar[];
 
 int main() {
     MyInt myint = 10;
@@ -19,7 +20,7 @@ int main() {
         return 2;
 
     String s = "Hello";
-    char[] sslice = s as char[];
+    const char[] sslice = s as const char[];
     if (sslice[0] != 'H' || s[1] != 'e' || sslice[2] != 'l')
         return 3;
 

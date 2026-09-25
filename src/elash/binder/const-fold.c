@@ -296,7 +296,7 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
 
     ElHirType* type = expr->type;
     if (type != NULL && type->kind == EL_HIR_TYPE_DISTINCT) {
-        type = el_hir_type_unwrap_distinct(type);
+        type = el_hir_type_unwrap(type);
     }
 
     if (type != NULL && type->kind != EL_HIR_TYPE_PRIM) return expr;

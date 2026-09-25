@@ -26,6 +26,8 @@ bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr);
 
 bool _el_binder_ensure_params(ElBinder* binder, ElAstExpr* in, usize count, ElStringView bname);
 ElHirToE* _el_binder_ensure_toe(ElBinder* binder, ElAstToI* toi, ElStringView bname);
+bool _el_binder_ensure_readable(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr);
+bool _el_binder_ensure_writable(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr);
 
 usize _el_binder_sizeof(ElBinder* binder, ElHirType* type);
 usize _el_binder_alignof(ElBinder* binder, ElHirType* type);

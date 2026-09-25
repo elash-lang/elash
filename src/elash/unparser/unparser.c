@@ -148,7 +148,7 @@ bool el_unparser_push_kw(ElUnparser* unpar, ElTokenType type) {
     case EL_TT_KW_INTERNAL:   lexeme = EL_SV("internal"); break;
     case EL_TT_KW_STATIC:     lexeme = EL_SV("static");   break;
     case EL_TT_KW_VOLATILE:   lexeme = EL_SV("volatile"); break;
-    case EL_TT_KW_CONST:      lexeme = EL_SV("ronly");    break;
+    case EL_TT_KW_CONST:      lexeme = EL_SV("const");    break;
     case EL_TT_KW_WONLY:      lexeme = EL_SV("wonly");    break;
     case EL_TT_KW_AS:         lexeme = EL_SV("as");       break;
     case EL_TT_KW_BITCAST:    lexeme = EL_SV("bitcast");  break;

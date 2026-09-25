@@ -26,9 +26,15 @@ static bool lookahead_skip_balanced(ElParser* parser, usize* idx) {
 
 static bool lookahead_skip_type_base(ElParser* parser, usize* idx) {
     ElToken tok = el_parser_peek_at(parser, *idx);
+    if (is_mut_spec_token(tok.type)) {
+        (*idx)++;
+        tok = el_parser_peek_at(parser, *idx);
+    }
 
     if (tok.type == EL_TT_IDENT) {
         (*idx)++;
+        ElToken next = el_parser_peek_at(parser, *idx);
+        if (is_mut_spec_token(next.type)) (*idx)++;
         return true;
     }
 
@@ -38,8 +44,12 @@ static bool lookahead_skip_type_base(ElParser* parser, usize* idx) {
     (*idx)++;
 
     tok = el_parser_peek_at(parser, *idx);
-    if (tok.type == EL_TT_LPAREN || tok.type == EL_TT_LBRACE)
-        return lookahead_skip_balanced(parser, idx);
+    if (tok.type == EL_TT_LPAREN || tok.type == EL_TT_LBRACE) {
+        if (!lookahead_skip_balanced(parser, idx)) return false;
+        ElToken next = el_parser_peek_at(parser, *idx);
+        if (is_mut_spec_token(next.type)) (*idx)++;
+        return true;
+    }
 
     return false;
 }
@@ -50,9 +60,13 @@ static bool lookahead_skip_type_suffixes(ElParser* parser, usize* idx) {
 
         if (tok.type == EL_TT_BITWISE_AND || tok.type == EL_TT_OPT) {
             (*idx)++;
+            ElToken next = el_parser_peek_at(parser, *idx);
+            if (is_mut_spec_token(next.type)) (*idx)++;
         } else if (tok.type == EL_TT_LBRACKET) {
             if (!lookahead_skip_balanced(parser, idx))
                 return false;
+            ElToken next = el_parser_peek_at(parser, *idx);
+            if (is_mut_spec_token(next.type)) (*idx)++;
         } else {
             break;
         }

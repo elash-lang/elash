@@ -46,10 +46,12 @@ void el_lowerer_init(
     el_mir_ibuf_init(&lw->ibuf);
 }
 
-ElMirValue* _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMirConstant* init) {
+ElMirValue* _el_lowerer_new_anon_global(
+    ElLowerer* lw, ElMirType* type, ElMirConstant* init, bool is_constant
+) {
     ElMirSymbol* sym = el_mir_new_var_symbol(lw->arena, lw->next_sym_id++, EL_SV_NULL, type);
     ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
-    return el_mir_new_global(lw->arena, ptr_type, sym, init, true);
+    return el_mir_new_global(lw->arena, ptr_type, sym, init, true, is_constant);
 }
 
 ElMirValue* _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type) {
@@ -75,16 +77,21 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
     el_mir_ibuf_clear(&lw->ibuf);
 }
 
-ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) {
-    if (sym->kind == EL_SYM_VAR) {
-        if (lw->symbol_map != NULL && lw->symbol_map[sym->id] != NULL) {
-            return lw->symbol_map[sym->id];
-        }
+ElMirValue* _el_lowerer_get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* type) {
+    if (lw->symbol_map != NULL && lw->symbol_map[sym->id] != NULL) {
+        return lw->symbol_map[sym->id];
+    }
 
+    if (sym->kind == EL_SYM_VAR) {
         ElMirType* mir_type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL, true);
+
+        ElMirValue* glob = el_mir_new_global(
+            lw->arena, ptr_type, mir_sym,
+            /*init=*/NULL, /*is_definition=*/false, /*is_constant=*/false
+        );
+
         if (lw->symbol_map != NULL) {
             lw->symbol_map[sym->id] = glob;
         }
@@ -93,7 +100,11 @@ ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) 
     if (sym->kind == EL_SYM_FUNC) {
         ElMirType* mir_type = el_tcache_get_mir(lw->tcache, type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL, sym->as.func.is_defined);
+        ElMirValue* glob = el_mir_new_global(lw->arena, mir_type, mir_sym, NULL, sym->as.func.is_defined, false);
+        if (lw->symbol_map != NULL) {
+            lw->symbol_map[sym->id] = glob;
+        }
+        return glob;
     }
     EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
 }
@@ -101,16 +112,12 @@ ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) 
 ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_SYMBOL:
-        return get_symbol_lvalue(lw, hir->as.symbol, hir->type);
+        return _el_lowerer_get_symbol_lvalue(lw, hir->as.symbol, hir->type);
 
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_BIN_OP_INDEX) {
             ElMirValue* ptr;
-            ElHirType* left_type = hir->as.binary.left->type;
-            while (left_type->kind == EL_HIR_TYPE_DISTINCT) {
-                left_type = left_type->as.distinct.orig;
-            }
-
+            ElHirType* left_type = el_hir_type_unwrap(hir->as.binary.left->type);
             if (left_type->kind == EL_HIR_TYPE_RWSLICE) {
                 ptr = el_lower_expr(lw, hir->as.binary.left);
             } else if (left_type->kind == EL_HIR_TYPE_SLICE) {
@@ -142,7 +149,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_AGGINIT: {
         ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
         if (hir->as.agginit.scls == EL_STORAGECLS_STATIC) {
-            return _el_lowerer_new_anon_global(lw, mir_type, _el_lower_const(lw, hir));
+            return _el_lowerer_new_anon_global(lw, mir_type, _el_lower_const(lw, hir), false);
         }
 
         ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);
@@ -159,7 +166,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         mirconst->as.str.val = strconst->chars;
 
         if (strconst->scls == EL_STORAGECLS_STATIC) {
-            return _el_lowerer_new_anon_global(lw, mir_type, mirconst);
+            return _el_lowerer_new_anon_global(lw, mir_type, mirconst, true);
         }
 
         ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);

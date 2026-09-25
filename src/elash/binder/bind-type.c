@@ -123,21 +123,25 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
 }
 
 static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
+    ElHirType* result;
     switch (in->kind) {
     case EL_AST_TYPE_REF: {
         ElHirType* base = el_bind_type(binder ,in->as.ref.base);
         if (base == NULL) return NULL;
-        return el_hir_new_ref_type(binder->arena, base);
+        result = el_hir_new_ref_type(binder->arena, base);
+        break;
     }
     case EL_AST_TYPE_OPT: {
         ElHirType* base = el_bind_type(binder ,in->as.ref.base);
         if (base == NULL) return NULL;
-        return el_hir_new_opt_type(binder->arena, base);
+        result = el_hir_new_opt_type(binder->arena, base);
+        break;
     }
     case EL_AST_TYPE_SLICE: {
         ElHirType* base = el_bind_type(binder, in->as.slice.base);
         if (base == NULL) return NULL;
-        return (in->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->arena, base);
+        result = (in->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->arena, base);
+        break;
     }
     case EL_AST_TYPE_NAME: {
         ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, in->as.name->name);
@@ -151,17 +155,23 @@ static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
                 EL_DIAG_STRING("name", sym->name),
             );
 
-        return sym->as.type.type;
+        result = sym->as.type.type;
+        break;
     }
     case EL_AST_TYPE_STRUCT:
-        return bind_struct_type(binder, &in->as.struct_);
+        result = bind_struct_type(binder, &in->as.struct_);
+        break;
     case EL_AST_TYPE_TUPLE:
-        return bind_tuple_type(binder, &in->as.tuple);
+        result = bind_tuple_type(binder, &in->as.tuple);
+        break;
     case EL_AST_TYPE_ARRAY:
-        return bind_array_type(binder, &in->as.array);
+        result = bind_array_type(binder, &in->as.array);
+        break;
+    default:
+        EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, in->kind);
     }
 
-    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, in->kind);
+    return el_hir_type_qualify(binder->arena, result, in->mut);
 }
 
 

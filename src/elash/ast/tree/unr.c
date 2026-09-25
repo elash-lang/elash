@@ -29,7 +29,7 @@ ElAstType* el_ast_unr_as_type(ElDynArena* arena, ElAstUnr* node) {
 
     switch (node->kind) {
     case EL_AST_UNR_IDENT:
-        return el_ast_new_type_name(arena, node->span, node->as.ident);
+        return el_ast_new_type_name(arena, node->span, EL_MUTSPEC_DEFAULT, node->as.ident);
     case EL_AST_UNR_INDEX: {
         ElAstType* base = el_ast_unr_as_type(arena, node->as.index.base);
         if (base == NULL) return NULL;
@@ -39,7 +39,7 @@ ElAstType* el_ast_unr_as_type(ElDynArena* arena, ElAstUnr* node) {
             : node->as.index.index_expr;
         if (size == NULL) return NULL;
 
-        return el_ast_new_type_array(arena, node->span, base, size);
+        return el_ast_new_type_array(arena, node->span, EL_MUTSPEC_DEFAULT, base, size);
     }
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstUnrKind, node->kind);

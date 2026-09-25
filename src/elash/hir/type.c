@@ -24,9 +24,22 @@ static inline void writeint(usize tuff, void (*write)(const char*, void*), void*
     write(tuff_buff, ctx);
 }
 
+static void format_mut(ElMutabilitySpec mut, void (*write)(const char*, void*), void* ctx) {
+    switch (mut) {
+    case EL_MUTSPEC_DEFAULT: return;
+    case EL_MUTSPEC_CONST:   write("const ", ctx); return;
+    case EL_MUTSPEC_WONLY:   write("wonly ", ctx); return;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElMutabilitySpec, mut);
+}
+
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
 void el_format_type_internal(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
     switch (type->kind) {
+    case EL_HIR_TYPE_QUAL:
+        format_mut(type->as.qual.mut, write, ctx);
+        el_format_type_internal(type->as.qual.base, write, ctx);
+        return;
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
         case EL_PRIMTYPE_VOID: write("void", ctx); return;
@@ -122,67 +135,89 @@ void el_format_type_internal(const ElHirType* type, void (*write)(const char*, v
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
-bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
+static bool el_hir_type_eql_impl(const ElHirType* lhs, const ElHirType* rhs, bool unqual) {
     if (lhs == NULL || rhs == NULL) return lhs == rhs;
-    if (lhs == rhs)                 return true;
-    if (lhs->kind != rhs->kind)     return false;
 
-    switch (rhs->kind) {
+    if (unqual) {
+        lhs = el_hir_type_canonical((ElHirType*)lhs);
+        rhs = el_hir_type_canonical((ElHirType*)rhs);
+        if (lhs == NULL || rhs == NULL) return lhs == rhs;
+    }
+
+    if (lhs == rhs)             return true;
+    if (lhs->kind != rhs->kind) return false;
+
+    switch (lhs->kind) {
+    case EL_HIR_TYPE_QUAL:
+        EL_ASSERT(!unqual, "Qual(Qual(T, ...), ...) is not allowed");
+        return lhs->as.qual.mut == rhs->as.qual.mut
+            && el_hir_type_eql_impl(lhs->as.qual.base, rhs->as.qual.base, false);
+
     case EL_HIR_TYPE_DISTINCT:
         return false; // if its the same type it should be caught by pointer
-                      // comparison like 5 lines above.
+                      // comparison 9 lines above.
+
     case EL_HIR_TYPE_PRIM:
         if (lhs->as.prim.kind != rhs->as.prim.kind) return false;
         switch (lhs->as.prim.kind) {
         case EL_PRIMTYPE_INT:
-            return lhs->as.prim.as.integral.width == rhs->as.prim.as.integral.width &&
-                   lhs->as.prim.as.integral.is_signed == rhs->as.prim.as.integral.is_signed;
+            return lhs->as.prim.as.integral.width == rhs->as.prim.as.integral.width
+                && lhs->as.prim.as.integral.is_signed == rhs->as.prim.as.integral.is_signed;
         case EL_PRIMTYPE_FLOAT:
             return lhs->as.prim.as.fp.width == rhs->as.prim.as.fp.width;
         case EL_PRIMTYPE_VOID:
         case EL_PRIMTYPE_BOOL:
             return true;
         }
-        EL_UNREACHABLE("unknown primitive type kind");
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, lhs->as.prim.kind);
+
     case EL_HIR_TYPE_REF:
-        return el_hir_type_eql(lhs->as.ref.base, rhs->as.ref.base);
+        return el_hir_type_eql_impl(lhs->as.ref.base, rhs->as.ref.base, unqual);
     case EL_HIR_TYPE_OPT:
-        return el_hir_type_eql(lhs->as.opt.base, rhs->as.opt.base);
+        return el_hir_type_eql_impl(lhs->as.opt.base, rhs->as.opt.base, unqual);
     case EL_HIR_TYPE_SLICE:
-        return el_hir_type_eql(lhs->as.slice.base, rhs->as.slice.base);
+        return el_hir_type_eql_impl(lhs->as.slice.base, rhs->as.slice.base, unqual);
     case EL_HIR_TYPE_RWSLICE:
-        return el_hir_type_eql(lhs->as.rwslice.base, rhs->as.rwslice.base);
+        return el_hir_type_eql_impl(lhs->as.rwslice.base, rhs->as.rwslice.base, unqual);
+
     case EL_HIR_TYPE_ARRAY:
-        return lhs->as.array.size == rhs->as.array.size &&
-            el_hir_type_eql(lhs->as.array.base, rhs->as.array.base);
+        return lhs->as.array.size == rhs->as.array.size
+            && el_hir_type_eql_impl(lhs->as.array.base, rhs->as.array.base, unqual);
+
     case EL_HIR_TYPE_FUNC:
-        if (lhs->as.func.param_count != rhs->as.func.param_count) {
-            return false;
-        }
-        if (!el_hir_type_eql(lhs->as.func.ret_type, rhs->as.func.ret_type)) {
-            return false;
-        }
+        if (lhs->as.func.param_count != rhs->as.func.param_count) return false;
+        if (!el_hir_type_eql_impl(lhs->as.func.ret_type, rhs->as.func.ret_type, unqual)) return false;
         for (usize i = 0; i < lhs->as.func.param_count; ++i) {
-            if (!el_hir_type_eql(lhs->as.func.params[i], rhs->as.func.params[i])) {
+            if (!el_hir_type_eql_impl(lhs->as.func.params[i], rhs->as.func.params[i], unqual)) {
                 return false;
             }
         }
         return true;
+
     case EL_HIR_TYPE_STRUCT:
         if (lhs->as.struct_.count != rhs->as.struct_.count) return false;
         for (usize i = 0; i < lhs->as.struct_.count; i++) {
             if (!el_sv_eql(lhs->as.struct_.fields[i].name, rhs->as.struct_.fields[i].name)) return false;
-            if (!el_hir_type_eql(lhs->as.struct_.fields[i].type, rhs->as.struct_.fields[i].type)) return false;
+            if (!el_hir_type_eql_impl(lhs->as.struct_.fields[i].type, rhs->as.struct_.fields[i].type, unqual)) return false;
         }
         return true;
+
     case EL_HIR_TYPE_TUPLE:
         if (lhs->as.tuple.count != rhs->as.tuple.count) return false;
         for (usize i = 0; i < lhs->as.tuple.count; i++) {
-            if (!el_hir_type_eql(lhs->as.tuple.elements[i], rhs->as.tuple.elements[i])) return false;
+            if (!el_hir_type_eql_impl(lhs->as.tuple.elements[i], rhs->as.tuple.elements[i], unqual)) return false;
         }
         return true;
     }
+
     EL_UNREACHABLE_ENUM_VAL(ElHirTypeKind, lhs->kind);
+}
+
+bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
+    return el_hir_type_eql_impl(lhs, rhs, false);
+}
+bool el_hir_type_eql_unqual(const ElHirType* lhs, const ElHirType* rhs) {
+    return el_hir_type_eql_impl(lhs, rhs, true);
 }
 
 uhash el_hir_type_hash(const ElHirType* type) {
@@ -190,6 +225,10 @@ uhash el_hir_type_hash(const ElHirType* type) {
 
     uhash hash = (uhash)type->kind;
     switch (type->kind) {
+    case EL_HIR_TYPE_QUAL:
+        hash = el_hash_mix(hash, (uhash)type->as.qual.mut);
+        hash = el_hash_mix(hash, el_hir_type_hash(type->as.qual.base));
+        break;
     case EL_HIR_TYPE_PRIM:
         hash = el_hash_mix(hash, (uhash)type->as.prim.kind);
         if (type->as.prim.kind == EL_PRIMTYPE_INT) {
@@ -240,18 +279,73 @@ uhash el_hir_type_hash(const ElHirType* type) {
     return hash;
 }
 
-ElHirType* el_hir_type_unwrap_distinct(ElHirType* type) {
-    while (type->kind == EL_HIR_TYPE_DISTINCT) {
-        if (type->as.distinct.orig == NULL) {
+ElMutabilitySpec el_hir_type_mut(const ElHirType* type) {
+    if (type != NULL && type->kind == EL_HIR_TYPE_QUAL)
+        return type->as.qual.mut;
+    return EL_MUTSPEC_DEFAULT;
+}
+
+bool el_hir_type_mut_compatible(const ElHirType* from, const ElHirType* to) {
+    ElMutabilitySpec fm = el_hir_type_mut(from);
+    ElMutabilitySpec tm = el_hir_type_mut(to);
+
+    // tm must be a subset of fm
+    if (fm == EL_MUTSPEC_WONLY && tm != EL_MUTSPEC_WONLY)
+        return false;
+    if (tm == EL_MUTSPEC_WONLY && fm != EL_MUTSPEC_WONLY && fm != EL_MUTSPEC_DEFAULT)
+        return false;
+    if (fm == EL_MUTSPEC_CONST && tm != EL_MUTSPEC_CONST)
+        return false;
+
+    from = el_hir_type_canonical((ElHirType*)from);
+    to   = el_hir_type_canonical((ElHirType*)to);
+    if (from == NULL || to == NULL || from->kind != to->kind)
+        return true;
+
+    switch (from->kind) {
+    case EL_HIR_TYPE_REF:     return el_hir_type_mut_compatible(from->as.ref.base, to->as.ref.base);
+    case EL_HIR_TYPE_OPT:     return el_hir_type_mut_compatible(from->as.opt.base, to->as.opt.base);
+    case EL_HIR_TYPE_SLICE:   return el_hir_type_mut_compatible(from->as.slice.base, to->as.slice.base);
+    case EL_HIR_TYPE_RWSLICE: return el_hir_type_mut_compatible(from->as.rwslice.base, to->as.rwslice.base);
+    case EL_HIR_TYPE_ARRAY:   return el_hir_type_mut_compatible(from->as.array.base, to->as.array.base);
+    default:                  return true;
+    }
+}
+
+bool el_hir_type_compatible(const ElHirType* from, const ElHirType* to) {
+    return el_hir_type_eql_unqual(from, to)
+        && el_hir_type_mut_compatible(from, to);
+}
+
+ElHirType* el_hir_type_qualify(ElDynArena* arena, ElHirType* type, ElMutabilitySpec mut) {
+    if (type == NULL || mut == EL_MUTSPEC_DEFAULT)
+        return type;
+    if (type->kind == EL_HIR_TYPE_QUAL && type->as.qual.mut == mut)
+        return type;
+    return el_hir_new_qual_type(arena, el_hir_type_canonical(type), mut);
+}
+
+ElHirType* el_hir_type_canonical(ElHirType* type) {
+    while (type != NULL && type->kind == EL_HIR_TYPE_QUAL)
+        type = type->as.qual.base;
+
+    return type;
+}
+
+ElHirType* el_hir_type_unwrap(ElHirType* type) {
+    type = el_hir_type_canonical(type);
+
+    while (type != NULL && type->kind == EL_HIR_TYPE_DISTINCT) {
+        if (type->as.distinct.orig == NULL)
             break;
-        }
+
         type = type->as.distinct.orig;
     }
     return type;
 }
 
 bool el_hir_type_is_incomplete(const ElHirType* type) {
-    type = el_hir_type_unwrap_distinct((ElHirType*)type);
+    type = el_hir_type_unwrap((ElHirType*)type);
     return type->kind == EL_HIR_TYPE_DISTINCT
         || type->kind == EL_HIR_TYPE_FUNC
         || (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID);

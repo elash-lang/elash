@@ -1,5 +1,6 @@
 #pragma once
 
+#include <elash/sema/mutability.h>
 #include <elash/util/dynarena.h>
 #include <elash/source/doc.h>
 
@@ -11,4 +12,4 @@ typedef struct ElAstStructType {
     usize count;
 } ElAstStructType;
 
-ElAstType* el_ast_new_type_struct(ElDynArena* arena, ElSourceSpan span, ElAstDecl* fields, usize count);
+ElAstType* el_ast_new_type_struct(ElDynArena* arena, ElSourceSpan span, ElMutabilitySpec mut, ElAstDecl* fields, usize count);

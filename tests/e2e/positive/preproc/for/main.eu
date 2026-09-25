@@ -20,10 +20,10 @@
     #error "result should be 81"
 #end
 
-int puts(char[&] c);
+int puts(const char[&] c);
 int main() {
     #for str: { "Hello", "Hey", "Hi", "Yo" }
-        #emit puts(#{str} ", world!\0" as char[&]);
+        #emit puts(#{str} ", world!\0" as const char[&]);
     #end
     return 0;
 }

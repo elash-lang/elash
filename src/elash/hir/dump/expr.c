@@ -13,6 +13,7 @@
 #include <elash/defs/sv.h>
 
 void dump_constant(ElHirExpr* node, ElHirType* type, FILE* out) {
+    type = el_hir_type_canonical(type);
     if (type->kind == EL_HIR_TYPE_PRIM) {
         switch (type->as.prim.kind) {
         case EL_PRIMTYPE_INT:   fprintf(out, "%" PRId64, (int64_t)el_i128_lo(node->as.constant.as.int_)); return;
@@ -22,7 +23,7 @@ void dump_constant(ElHirExpr* node, ElHirType* type, FILE* out) {
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
     } else if (type->kind == EL_HIR_TYPE_DISTINCT) {
-        ElHirType* orig = el_hir_type_unwrap_distinct(type);
+        ElHirType* orig = el_hir_type_unwrap(type);
         bool is_char = el_sv_eql(type->as.distinct.name, EL_SV("char"))
             && orig->kind == EL_HIR_TYPE_PRIM
             && orig->as.prim.as.integral.width == EL_HIR_IWIDTH_8

@@ -282,7 +282,7 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
         ElHirType* target = el_bind_type(binder, typedef_->target);
         if (target == NULL) return NULL;
 
-        ElHirType* incomplete = el_hir_type_unwrap_distinct(existing->as.type.type);
+        ElHirType* incomplete = el_hir_type_unwrap(existing->as.type.type);
         incomplete->as.distinct.orig = target;
         return el_hir_decl_none(binder->arena, in->span);
     }

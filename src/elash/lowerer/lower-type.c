@@ -93,16 +93,20 @@ ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
         return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.rwslice.base));
     case EL_HIR_TYPE_SLICE:
         return make_slice_type(tcache, &type->as.slice);
-    case EL_HIR_TYPE_OPT:
-        if (type->as.opt.base->kind == EL_HIR_TYPE_REF)
-            return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.opt.base->as.ref.base));
-        if (type->as.opt.base->kind == EL_HIR_TYPE_RWSLICE)
-            return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.opt.base->as.ref.base));
+    case EL_HIR_TYPE_OPT: {
+        ElHirType* base = el_hir_type_canonical(type->as.opt.base);
+        if (base->kind == EL_HIR_TYPE_REF)
+            return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, base->as.ref.base));
+        if (base->kind == EL_HIR_TYPE_RWSLICE)
+            return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, base->as.rwslice.base));
         return make_optional_type(tcache, &type->as.opt);
+    }
     case EL_HIR_TYPE_DISTINCT:
         if (type->as.distinct.orig == NULL)
             return el_mir_new_void_type(tcache->arena);
         return el_tcache_get_mir(tcache, type->as.distinct.orig);
+    case EL_HIR_TYPE_QUAL:
+        return el_tcache_get_mir(tcache, type->as.qual.base);
     }
     EL_UNREACHABLE("unknown hir type kind");
 }

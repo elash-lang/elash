@@ -109,7 +109,7 @@ Test(ast_equal, expressions) {
 }
 
 Test(ast_equal, declarations) {
-    ElAstType* type = el_ast_new_type_name(&arena, span, el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("int")));
+    ElAstType* type = el_ast_new_type_name(&arena, span, EL_MUTSPEC_DEFAULT, el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("int")));
     ElAstIdent* name = el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("x"));
 
     ElAstDeclarator d1 = { .name = name, .init = NULL, .next = NULL };
@@ -123,7 +123,7 @@ Test(ast_equal, declarations) {
     cr_assert(!el_ast_equal_decl(v1, v3));
 
     // alias
-    ElAstType* alias_type = el_ast_new_type_name(&arena, span, el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("int")));
+    ElAstType* alias_type = el_ast_new_type_name(&arena, span, EL_MUTSPEC_DEFAULT, el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("int")));
     ElAstToE alias_target = { .kind = EL_AST_TOE_TYPE, .span = span, .as.type = alias_type };
     ElAstDecl* a1 = el_ast_new_alias(&arena, span, el_sv_from_cstr("myint"), alias_target);
     ElAstDecl* a2 = el_ast_new_alias(&arena, span, el_sv_from_cstr("myint"), alias_target);

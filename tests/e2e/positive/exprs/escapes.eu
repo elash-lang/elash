@@ -20,7 +20,7 @@ int main() {
     if (c2 != 39)
         return 3;
 
-    char[] s1 = "Hello\nWorld!";
+    const char[] s1 = "Hello\nWorld!";
 
     if (len(s1) != 12)
         return 4;
@@ -31,7 +31,7 @@ int main() {
     if (s1[5] != 10)
         return 7;
 
-    char[] s2 = "\n\r\t\"\'\\";
+    const char[] s2 = "\n\r\t\"\'\\";
 
     if (len(s2) != 6)
         return 8;
