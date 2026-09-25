@@ -188,6 +188,10 @@ static ElHirExpr* bind_bin(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
     ElHirExpr* right = el_bind_expr(binder, bin->right);
     if (left == NULL || right == NULL) return NULL;
 
+    if (bin->op != EL_BIN_OP_INDEX)
+        if (!_el_binder_ensure_readable(binder, left->span, left) || !_el_binder_ensure_readable(binder, right->span, right))
+            return false;
+
     if (el_bin_op_is_optional(bin->op))
         return bind_optional_bin_op(binder, in, bin, left, right);
 
@@ -222,7 +226,7 @@ static ElHirExpr* bind_bin(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
 
-        ElHirType* type_to_check = el_hir_type_unwrap_distinct(left->type);
+        ElHirType* type_to_check = el_hir_type_unwrap(left->type);
 
         switch (type_to_check->kind) {
         case EL_HIR_TYPE_ARRAY:   type = type_to_check->as.array.base;   break;
@@ -240,6 +244,10 @@ static ElHirExpr* bind_unary(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* un
     ElHirExpr* operand = el_bind_expr(binder, unary->operand);
     if (operand == NULL) return NULL;
 
+    if (unary->op != EL_UNARY_OP_ADDROF)
+        if (!_el_binder_ensure_readable(binder, operand->span, operand))
+            return false;
+
     ElHirType* type = operand->type;
     if (unary->op == EL_UNARY_OP_NOT) {
         if (operand->type == NULL) {
@@ -253,13 +261,14 @@ static ElHirExpr* bind_unary(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* un
             );
         type = binder->builtins->type_bool;
     } else if (unary->op == EL_UNARY_OP_OPT_UNWRAP) {
-        if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
+        ElHirType* operand_ty = el_hir_type_canonical(type);
+        if (operand_ty == NULL || operand_ty->kind != EL_HIR_TYPE_OPT) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
                 unary->operand->span, "operand of optional unwrap operator must be an optional"
             );
         }
-        type = type->as.opt.base;
+        type = operand_ty->as.opt.base;
     } else if (type == NULL){
         if (unary->op == EL_UNARY_OP_DEREF)
             return el_diag_report(
@@ -290,14 +299,19 @@ static ElHirExpr* bind_unary(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* un
                     binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                     in->span, "increment/decrement requires an lvalue"
                 );
+            if (!_el_binder_ensure_writable(binder, unary->operand->span, operand))
+                return NULL;
+            if (!_el_binder_ensure_readable(binder, unary->operand->span, operand))
+                return NULL;
         } else if (unary->op == EL_UNARY_OP_DEREF) {
-            if (operand->type->kind != EL_HIR_TYPE_REF)
+            ElHirType* operand_ty = el_hir_type_canonical(operand->type);
+            if (operand_ty == NULL || operand_ty->kind != EL_HIR_TYPE_REF)
                 return el_diag_report(
                     binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
                     in->span, "cannot dereference non-pointer type ${type}",
                     EL_DIAG_STRING("type", EL_SV("TODO"))
                 );
-            type = operand->type->as.ref.base;
+            type = operand_ty->as.ref.base;
         }
     }
 
@@ -440,7 +454,7 @@ static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* 
     if (expr == NULL) return NULL;
 
     ElHirType* type = expr->type;
-    if (type != NULL) type = el_hir_type_unwrap_distinct(type);
+    if (type != NULL) type = el_hir_type_unwrap(type);
 
     if (member->is_optional) {
         if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
@@ -449,7 +463,7 @@ static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* 
                 member->expr->span, "optional member access requires an optional operand"
             );
         }
-        type = el_hir_type_unwrap_distinct(type->as.opt.base);
+        type = el_hir_type_unwrap(type->as.opt.base);
     }
 
     if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
@@ -458,7 +472,7 @@ static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* 
             member->expr->span, "member access requires a struct value"
         );
         if (type != NULL && type->kind == EL_HIR_TYPE_REF) {
-            const ElHirType* base = el_hir_type_unwrap_distinct(type->as.ref.base);
+            const ElHirType* base = el_hir_type_unwrap(type->as.ref.base);
             if (base != NULL && base->kind == EL_HIR_TYPE_STRUCT) {
                 el_diag_help(
                     binder->diag, "got reference type '${type}', did you mean to dereference it?",
@@ -507,7 +521,7 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
     if (expr == NULL) return NULL;
 
     ElHirType* type = expr->type;
-    if (type != NULL) type = el_hir_type_unwrap_distinct(type);
+    if (type != NULL) type = el_hir_type_unwrap(type);
 
     if (tmember->is_optional) {
         if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
@@ -516,7 +530,7 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
                 tmember->expr->span, "optional member access requires an optional operand"
             );
         }
-        type = el_hir_type_unwrap_distinct(type->as.opt.base);
+        type = el_hir_type_unwrap(type->as.opt.base);
     }
 
     if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
@@ -525,7 +539,7 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
             tmember->expr->span, "tuple element access requires a tuple value",
         );
         if (type != NULL && type->kind == EL_HIR_TYPE_REF) {
-            const ElHirType* base = el_hir_type_unwrap_distinct(type->as.ref.base);
+            const ElHirType* base = el_hir_type_unwrap(type->as.ref.base);
             if (base != NULL && base->kind == EL_HIR_TYPE_TUPLE) {
                 el_diag_help(
                     binder->diag, "got reference type '${type}', did you mean to dereference it?",

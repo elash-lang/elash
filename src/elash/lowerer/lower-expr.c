@@ -347,7 +347,7 @@ static ElMirValue* _lower_expr_internal(ElLowerer* lw, ElHirExpr* hir) {
         }
 
     case EL_HIR_EXPR_CONST: {
-        ElHirType* type = el_hir_type_unwrap_distinct(hir->type);
+        ElHirType* type = el_hir_type_unwrap(hir->type);
 
         ElMirType* mir_type = el_tcache_get_mir(lw->tcache, type);
         ElMirConstant* mir_const = _el_lower_const(lw, hir);

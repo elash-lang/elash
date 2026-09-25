@@ -1,7 +1,7 @@
 #include utils:strings
 
 int main() {
-    char[] str = "Hello " "world" "!\n";
+    const char[] str = "Hello " "world" "!\n";
     if (!streql(str, "Hello world!\n"))
         return 1;
 

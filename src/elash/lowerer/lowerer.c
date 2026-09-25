@@ -106,11 +106,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_BIN_OP_INDEX) {
             ElMirValue* ptr;
-            ElHirType* left_type = hir->as.binary.left->type;
-            while (left_type->kind == EL_HIR_TYPE_DISTINCT) {
-                left_type = left_type->as.distinct.orig;
-            }
-
+            ElHirType* left_type = el_hir_type_unwrap(hir->as.binary.left->type);
             if (left_type->kind == EL_HIR_TYPE_RWSLICE) {
                 ptr = el_lower_expr(lw, hir->as.binary.left);
             } else if (left_type->kind == EL_HIR_TYPE_SLICE) {

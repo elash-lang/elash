@@ -1,15 +1,28 @@
+#include utils:strings
+
+int dereference(const int& r) {
+    return r^;
+}
+
+int sumTwoFirstElements(const int[] s) {
+    return s[0] + s[1];
+}
+
+typedef Integer as int;
+
 int main() {
+    // --- scalar const ---
     const uint n = 10;
     if (n != 10)
         return 1;
 
+    //////////// references ////////////
     const uint& ref = &n;
     if (ref^ != 10)
         return 2;
 
     uint m = 20;
     ref = &m;
-
     if (ref^ != 20)
         return 3;
 
@@ -17,6 +30,82 @@ int main() {
     if (ref^ != 99)
         return 4;
 
-    const int exitcode = 0;
-    return exitcode;
+    int a = 7;
+    int& const cref = &a;
+    if (cref^ != 7)
+        return 5;
+
+    cref^ = 8;
+    if (a != 8)
+        return 6;
+
+    const int k = 42;
+    if (dereference(&k) != 42)
+        return 7;
+
+    int local = 3;
+    if (dereference(&local) != 3)
+        return 8;
+
+    ////////////// arrays ///////////////
+    const int[3] carr = { 1, 2, 3 };
+    if (carr[0] != 1 || carr[2] != 3)
+        return 9;
+
+    int[3] mutArr = carr;
+    mutArr[0] = 9;
+    if (mutArr[0] != 9 || carr[0] != 1)
+        return 10;
+
+    ////////////// slices //////////////
+    int[3] buf = { 10, 20, 30 };
+    const int[] csl = buf;
+    if (csl[1] != 20)
+        return 11;
+    if (sumTwoFirstElements(csl) != 30)
+        return 12;
+
+    const int[&] crw = buf;
+    if (crw[2] != 30)
+        return 13;
+
+    if (sumTwoFirstElements(buf) != 30)
+        return 14;
+
+    ///////// string literals //////////
+    const char[5] hello = "Hello";
+    if (!streql(hello, "Hello"))
+        return 15;
+
+    char[5] copy = hello;
+    copy[0] = 'Y';
+    if (!streql(copy, "Yello"))
+        return 16;
+
+    const char[] cs = "Hi";
+    if (!streql(cs, "Hi"))
+        return 17;
+
+    /////////// distinct types ///////////
+    const Integer integer = 100;
+    if ((integer as int) != 100)
+        return 18;
+
+    Integer mut = integer;
+
+    mut = 50;
+    if (mut != 50 || integer != 100)
+        return 19;
+
+    const Integer& mref = &integer;
+    if ((mref^ as int) != 100)
+        return 20;
+
+    int foo = 3;
+    int& fooRef = &foo;
+    const int& fooConstRef = fooRef;
+    if (fooConstRef^ != 3)
+        return 21;
+
+    return 0;
 }

@@ -5,7 +5,7 @@
 
 ElMirConstant* _el_lower_const(ElLowerer* lw, ElHirExpr* expr) {
     EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "expression must be a constant or aggregate literal");
-    ElHirType* type = el_hir_type_unwrap_distinct(expr->type);
+    ElHirType* type = el_hir_type_unwrap(expr->type);
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
     if (expr->kind == EL_HIR_EXPR_CONST) {

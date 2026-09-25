@@ -7,7 +7,7 @@
 #include <elash/hir/tree/expr/agginit.h>
 
 static ElHirExpr* bind_init_list_array(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
-    ElHirArrayType* atype = &el_hir_type_unwrap_distinct(expected_type)->as.array;
+    ElHirArrayType* atype = &el_hir_type_unwrap(expected_type)->as.array;
 
     if (in->list.count != atype->size) {
         el_diag_report(
@@ -31,7 +31,7 @@ static ElHirExpr* bind_init_list_array(ElBinder* binder, ElAstInit* in, ElHirTyp
 }
 
 static ElHirExpr* bind_init_list_struct(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
-    const ElHirStructType* stype = &el_hir_type_unwrap_distinct(expected_type)->as.struct_;
+    const ElHirStructType* stype = &el_hir_type_unwrap(expected_type)->as.struct_;
     if (in->list.count != stype->count) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.bad-init-list",
@@ -54,7 +54,7 @@ static ElHirExpr* bind_init_list_struct(ElBinder* binder, ElAstInit* in, ElHirTy
 }
 
 static ElHirExpr* bind_init_list_tuple(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
-    ElHirTupleType* ttype = &el_hir_type_unwrap_distinct(expected_type)->as.tuple;
+    ElHirTupleType* ttype = &el_hir_type_unwrap(expected_type)->as.tuple;
     if (in->list.count != ttype->count) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.bad-init-list",
@@ -77,7 +77,7 @@ static ElHirExpr* bind_init_list_tuple(ElBinder* binder, ElAstInit* in, ElHirTyp
 }
 
 ElHirExpr* _el_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
-    ElHirType* etype = el_hir_type_unwrap_distinct(expected_type);
+    ElHirType* etype = el_hir_type_unwrap(expected_type);
     switch (etype->kind) {
     case EL_HIR_TYPE_ARRAY:
         return bind_init_list_array(binder, in, expected_type, scls);

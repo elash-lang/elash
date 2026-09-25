@@ -4,7 +4,7 @@
 #include <elash/util/assert.h>
 
 #define NICE_TO_HAVE_ASSERTIONS(SLICE_TYPE) \
-    EL_ASSERT(el_hir_type_unwrap_distinct((SLICE_TYPE)->type)->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
+    EL_ASSERT(el_hir_type_unwrap((SLICE_TYPE)->type)->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
 
 #define ASSERT_USIZE(USIZE_TYPE)                                            \
     EL_ASSERT(                                                              \
@@ -42,9 +42,11 @@ ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHi
 }
 
 ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHirExpr* rwslice, ElHirExpr* len) {
+    ElHirType* rwty = el_hir_type_canonical(rwslice->type);
+    EL_ASSERT(rwty != NULL && rwty->kind == EL_HIR_TYPE_RWSLICE, "make-slice requires a raw slice");
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,
-        .type = el_hir_new_slice_type(arena, rwslice->type->as.rwslice.base),
+        .type = el_hir_new_slice_type(arena, rwty->as.rwslice.base),
         .span = span,
         .as.intr = {
             .kind = EL_HIR_INTR_MAKE_SLICE,

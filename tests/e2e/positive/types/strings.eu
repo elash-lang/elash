@@ -1,8 +1,8 @@
 #include utils:strings
 
 int main() {
-    char[] s1 = "Hello";
-    char[] s2 = "World";
+    const char[] s1 = "Hello";
+    const char[] s2 = "World";
 
     if (!streql(s1, "Hello"))
         return 1;

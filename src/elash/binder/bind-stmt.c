@@ -90,6 +90,8 @@ static ElHirStmt* bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignStmt* 
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
     }
+    if (!_el_binder_ensure_writable(binder, assign->target->span, target))
+        return NULL;
 
     ElHirExpr* value = el_bind_init(binder, assign->value, target->type, EL_STORAGECLS_LOCAL);
     if (value == NULL) return NULL;
@@ -106,6 +108,8 @@ static ElHirStmt* bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAstCom
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
         return NULL;
     }
+    if (!_el_binder_ensure_writable(binder, cassign->target->span, target))
+        return NULL;
 
     ElHirExpr* value = el_bind_init(binder, cassign->value, target->type, EL_STORAGECLS_LOCAL);
     if (value == NULL) return NULL;

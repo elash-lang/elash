@@ -12,9 +12,10 @@
 #include <elash/sema/values.h>
 
 bool _el_hir_type_opt_is_ref(const ElHirType* type) {
+    type = el_hir_type_canonical((ElHirType*)type);
     return type->kind == EL_HIR_TYPE_OPT
-        && (type->as.opt.base->kind == EL_HIR_TYPE_REF
-        ||  type->as.opt.base->kind == EL_HIR_TYPE_RWSLICE);
+        && (el_hir_type_canonical(type->as.opt.base)->kind == EL_HIR_TYPE_REF
+        ||  el_hir_type_canonical(type->as.opt.base)->kind == EL_HIR_TYPE_RWSLICE);
 }
 
 static ElMirValue* null_ptr(ElLowerer* lw, ElMirType* ptr_type) {

@@ -125,11 +125,11 @@ static ElHirExpr* bind_designated_elems(
     ElAstDesigInitElem* elems,
     ElStorageClass scls
 ) {
-    ElHirType* actual_type = el_hir_type_unwrap_distinct(expected_type);
+    ElHirType* actual_type = el_hir_type_unwrap(expected_type);
     ElHirType* opt_wrapper = NULL;
     if (actual_type->kind == EL_HIR_TYPE_OPT) {
         opt_wrapper = actual_type;
-        actual_type = el_hir_type_unwrap_distinct(actual_type->as.opt.base);
+        actual_type = el_hir_type_unwrap(actual_type->as.opt.base);
     }
     usize count = 0;
 

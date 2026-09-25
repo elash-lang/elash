@@ -3,7 +3,7 @@ int main() {
     if (len(array) != 4)
         return 1;
 
-    char[] chars = int[3] { 'X', 'Y', 'Z' };
+    char[] chars = char[3] { 'X', 'Y', 'Z' };
     if (len(chars) != 3)
         return 2;
 

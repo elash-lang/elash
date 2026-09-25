@@ -1,4 +1,4 @@
-bool streql(char[] a, char[] b) {
+bool streql(const char[] a, const char[] b) {
     if (len(a) != len(b)) return false;
 
     usize i = 0;

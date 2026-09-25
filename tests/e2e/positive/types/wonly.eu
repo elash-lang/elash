@@ -1,13 +1,48 @@
-void modify(wonly int& ref) {
+void write_ref(wonly int& ref) {
     ref^ = 47;
+}
+
+void write_via_raw(wonly int[&] p, usize i, int v) {
+    p[i] = v;
+}
+
+void fill_pair(wonly int& a, wonly int& b) {
+    a^ = 1;
+    b^ = 2;
 }
 
 int main() {
     int x = 0;
-    modify(&x);
-
+    write_ref(&x);
     if (x != 47)
         return 1;
+
+    // wonly ref from a mutable local
+    int y = 0;
+    wonly int& yr = &y;
+    yr^ = 99;
+    if (y != 99)
+        return 2;
+
+    // raw slice write-only view
+    int[3] buf = { 0, 0, 0 };
+    write_via_raw(buf, 1, 7);
+    if (buf[0] != 0 || buf[1] != 7 || buf[2] != 0)
+        return 3;
+
+    int p = 0;
+    int q = 0;
+    fill_pair(&p, &q);
+    if (p != 1 || q != 2)
+        return 4;
+
+    // wonly on the binding of a ref (rebind forbidden would be const;
+    // here wonly applies to the pointee via `wonly int&`)
+    int z = 5;
+    wonly int& zr = &z;
+    zr^ = 6;
+    if (z != 6)
+        return 5;
 
     return 0;
 }
