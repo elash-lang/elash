@@ -50,6 +50,7 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             -w "${{ github.workspace }}" \
+            -e EXTRA_CFLAGS="-DELC_SHOW_BACKTRACE=0" \
             "ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest" \
             make archive
 
