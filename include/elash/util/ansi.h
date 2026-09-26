@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <elash/util/strbuf.h>
 
 typedef enum ElAnsiColor {
     EL_ANSI_CLR_BLACK          = 30,
@@ -48,8 +49,21 @@ typedef enum ElAnsiPref {
     EL_ANSI_ENABLED,
 } ElAnsiPref;
 
-extern ElAnsiPref el_ansi_pref;
+typedef enum ElAnsiStream {
+    EL_ANSI_STREAM_UNKNOWN = 0,
+    EL_ANSI_STREAM_STDOUT,
+    EL_ANSI_STREAM_STDERR,
+} ElAnsiStream;
+
+void el_ansi_init(ElAnsiPref pref);
+
+ElAnsiStream el_ansi_stream_from_file(FILE* out);
+
 bool el_ansi_is_supported(FILE* out);
+bool el_ansi_is_stream_supported(ElAnsiStream stream);
 
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out);
 void el_ansi_reset_style(FILE* out);
+
+bool el_ansi_append_style(ElStringBuf* sb, ElAnsiStyle style, FILE* out);
+bool el_ansi_append_reset(ElStringBuf* sb, FILE* out);

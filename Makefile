@@ -18,10 +18,10 @@ LIBELC_OBJ_SHARED   := $(patsubst %.c,$(OBJ_ROOT_DIR)/shared/%.o,$(LIBELC_C_SRCS
 
 MAIN_OBJ := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(MAIN_C_SRC))
 
-# libelc and elc depend on LLVM
-$(LIBELC_OBJ_STATIC) $(LIBELC_OBJ_SHARED) $(MAIN_OBJ): CFLAGS += $(LLVM_CFLAGS)
-$(LIBELC_SHARED): LDFLAGS += $(LLVM_LDFLAGS)
-$(ELC_BIN): LDFLAGS += $(LLVM_LDFLAGS)
+# libelc and elc depend on LLVM and libbacktrace
+$(LIBELC_OBJ_STATIC) $(LIBELC_OBJ_SHARED) $(MAIN_OBJ): CFLAGS += $(LLVM_CFLAGS) $(BACKTRACE_CFLAGS)
+$(LIBELC_SHARED):                                      LDFLAGS += $(LLVM_LDFLAGS) $(BACKTRACE_LDFLAGS)
+$(ELC_BIN):                                            LDFLAGS += $(LLVM_LDFLAGS) $(BACKTRACE_LDFLAGS)
 
 DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
         $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIBELASH_C_SRCS) $(LIBELC_C_SRCS))

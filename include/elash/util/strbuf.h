@@ -33,6 +33,8 @@ bool el_strbuf_append_char(ElStringBuf* sb, char c);
 
 bool el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) EL_ATTR_PRINTF_LIKE(2, 3);
 
+#define EL_STRBUF_APPEND(sb, text) el_strbuf_append(sb, EL_SV(text))
+
 static inline bool el_strbuf_append_cstr(ElStringBuf* sb, const char* cstr) {
     return el_strbuf_append(sb, el_sv_from_cstr(cstr));
 }
