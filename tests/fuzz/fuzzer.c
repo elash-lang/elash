@@ -279,7 +279,7 @@ int main(int argc, char** argv) {
 
     ElUnparser unparser;
     el_unparser_init(&unparser, &tokens, &arena);
-    el_unparser_unparse_module(&unparser, mod);
+    el_unparse_module(&unparser, mod);
 
     ElSourceDocument doc;
     el_srcdoc_init_empty(&doc, EL_SV("<generated>"));

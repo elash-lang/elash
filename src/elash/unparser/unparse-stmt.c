@@ -25,53 +25,53 @@ static ElTokenType cassign_token(ElBinOp op) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
-void el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
+void el_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
     switch (stmt->type) {
     case EL_AST_STMT_EXPR:
-        el_unparser_unparse_expr(unpar, stmt->as.expr);
+        el_unparse_expr(unpar, stmt->as.expr);
         el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
         return;
 
     case EL_AST_STMT_RETURN:
         el_unparser_push_kw(unpar, EL_TT_KW_RETURN);
         if (stmt->as.return_.value != NULL) {
-            el_unparser_unparse_init(unpar, stmt->as.return_.value);
+            el_unparse_init(unpar, stmt->as.return_.value);
         }
         el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
         return;
 
     case EL_AST_STMT_DECL:
-        return el_unparser_unparse_decl(unpar, stmt->as.decl);
+        return el_unparse_decl(unpar, stmt->as.decl);
 
     case EL_AST_STMT_ASSIGN:
-        el_unparser_unparse_expr(unpar, stmt->as.assign.target);
+        el_unparse_expr(unpar, stmt->as.assign.target);
         el_unparser_push_punct(unpar, EL_TT_ASSIGN);
-        el_unparser_unparse_init(unpar, stmt->as.assign.value);
+        el_unparse_init(unpar, stmt->as.assign.value);
         return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 
     case EL_AST_STMT_CASSIGN:
-        el_unparser_unparse_expr(unpar, stmt->as.cassign.target);
+        el_unparse_expr(unpar, stmt->as.cassign.target);
         el_unparser_push_punct(unpar, cassign_token(stmt->as.cassign.op));
-        el_unparser_unparse_init(unpar, stmt->as.cassign.value);
+        el_unparse_init(unpar, stmt->as.cassign.value);
         el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
         return;
 
     case EL_AST_STMT_BLOCK:
-        _el_unparser_unparse_block(unpar, &stmt->as.block);
+        _el_unparse_block(unpar, &stmt->as.block);
         return;
 
     case EL_AST_STMT_IF:
         el_unparser_push_kw(unpar, EL_TT_KW_IF);
         el_unparser_push_punct(unpar, EL_TT_LPAREN);
         if (stmt->as.if_.init != NULL) {
-            el_unparser_unparse_stmt(unpar, stmt->as.if_.init);
+            el_unparse_stmt(unpar, stmt->as.if_.init);
         }
-        el_unparser_unparse_expr(unpar, stmt->as.if_.cond);
+        el_unparse_expr(unpar, stmt->as.if_.cond);
         el_unparser_push_punct(unpar, EL_TT_RPAREN);
-        el_unparser_unparse_stmt(unpar, stmt->as.if_.then);
+        el_unparse_stmt(unpar, stmt->as.if_.then);
         if (stmt->as.if_.else_ != NULL) {
             el_unparser_push_kw(unpar, EL_TT_KW_ELSE);
-            el_unparser_unparse_stmt(unpar, stmt->as.if_.else_);
+            el_unparse_stmt(unpar, stmt->as.if_.else_);
         }
         return;
 
@@ -79,12 +79,12 @@ void el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
         el_unparser_push_kw(unpar, EL_TT_KW_WHILE);
         el_unparser_push_punct(unpar, EL_TT_LPAREN);
         if (stmt->as.while_.init != NULL) {
-            el_unparser_unparse_stmt(unpar, stmt->as.while_.init);
+            el_unparse_stmt(unpar, stmt->as.while_.init);
         }
 
-        el_unparser_unparse_expr(unpar, stmt->as.while_.cond);
+        el_unparse_expr(unpar, stmt->as.while_.cond);
         el_unparser_push_punct(unpar, EL_TT_RPAREN);
-        el_unparser_unparse_stmt(unpar, stmt->as.while_.body);
+        el_unparse_stmt(unpar, stmt->as.while_.body);
         return;
 
     case EL_AST_STMT_BREAK:

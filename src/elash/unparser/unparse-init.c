@@ -16,7 +16,7 @@ static void unparse_designator(ElUnparser* unpar, ElAstDesignator* desig) {
 
     case EL_AST_DESIGNATOR_INDEX:
         el_unparser_push_punct(unpar, EL_TT_LBRACKET);
-        el_unparser_unparse_expr(unpar, desig->as.index);
+        el_unparse_expr(unpar, desig->as.index);
         el_unparser_push_punct(unpar, EL_TT_RBRACKET);
         return;
     }
@@ -28,15 +28,15 @@ static void unparse_desig_elem(ElUnparser* unpar, ElAstDesigInitElem* elem) {
         unparse_designator(unpar, d);
     }
     el_unparser_push_punct(unpar, EL_TT_ASSIGN);
-    return el_unparser_unparse_init(unpar, elem->init);
+    return el_unparse_init(unpar, elem->init);
 }
 
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy is broken
-void el_unparser_unparse_init(ElUnparser* unpar, ElAstInit* init) {
+void el_unparse_init(ElUnparser* unpar, ElAstInit* init) {
     switch (init->kind) {
     case EL_AST_INIT_EXPR:
-        el_unparser_unparse_expr(unpar, init->expr);
+        el_unparse_expr(unpar, init->expr);
         return;
 
     case EL_AST_INIT_EMPTY:
@@ -47,7 +47,7 @@ void el_unparser_unparse_init(ElUnparser* unpar, ElAstInit* init) {
     case EL_AST_INIT_LIST:
         el_unparser_push_punct(unpar, EL_TT_LBRACE);
         for (ElAstInit* elem = init->list.head; elem != NULL; elem = elem->next) {
-            el_unparser_unparse_init(unpar, elem);
+            el_unparse_init(unpar, elem);
             if (elem->next != NULL) {
                 el_unparser_push_punct(unpar, EL_TT_COMMA);
             }

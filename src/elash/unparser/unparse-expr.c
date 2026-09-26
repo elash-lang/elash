@@ -115,7 +115,7 @@ static int expr_prec(ElAstExpr* expr) {
 
 static void unparse_paren_expr(ElUnparser* unpar, ElAstExpr* expr) {
     el_unparser_push_punct(unpar, EL_TT_LPAREN);
-    el_unparser_unparse_expr(unpar, expr);
+    el_unparse_expr(unpar, expr);
     el_unparser_push_punct(unpar, EL_TT_RPAREN);
 }
 
@@ -126,7 +126,7 @@ static void unparse_child(ElUnparser* unpar, ElAstExpr* child, int parent_prec, 
     if (need_paren) {
         return unparse_paren_expr(unpar, child);
     }
-    return el_unparser_unparse_expr(unpar, child);
+    return el_unparse_expr(unpar, child);
 }
 
 #define LITERAL_BUFSIZE 2038
@@ -226,7 +226,7 @@ static void unparse_binary(ElUnparser* unpar, ElAstExpr* expr) {
     if (op == EL_BIN_OP_INDEX) {
         unparse_child(unpar, expr->as.binary.left, prec, false);
         el_unparser_push_punct(unpar, EL_TT_LBRACKET);
-        el_unparser_unparse_expr(unpar, expr->as.binary.right);
+        el_unparse_expr(unpar, expr->as.binary.right);
         return el_unparser_push_punct(unpar, EL_TT_RBRACKET);
     }
 
@@ -241,7 +241,7 @@ static void unparse_call(ElUnparser* unpar, ElAstExpr* expr) {
     el_unparser_push_punct(unpar, EL_TT_LPAREN);
 
     for (ElAstToI* arg = expr->as.call.args; arg != NULL; arg = arg->next) {
-        el_unparser_unparse_toi(unpar, arg);
+        el_unparse_toi(unpar, arg);
         if (arg->next != NULL) {
             el_unparser_push_punct(unpar, EL_TT_COMMA);
         }
@@ -254,7 +254,7 @@ static void unparse_cast(ElUnparser* unpar, ElAstExpr* expr) {
     int prec = PREC_CAST;
     unparse_child(unpar, expr->as.cast.expr, prec, false);
     el_unparser_push_kw(unpar, EL_TT_KW_AS);
-    el_unparser_unparse_type(unpar, expr->as.cast.type);
+    el_unparse_type(unpar, expr->as.cast.type);
 }
 
 static void unparse_member(ElUnparser* unpar, ElAstExpr* expr) {
@@ -279,14 +279,14 @@ static void unparse_typedinit(ElUnparser* unpar, ElAstExpr* expr) {
         el_unparser_push_kw(unpar, EL_TT_KW_STATIC);
     }
 
-    el_unparser_unparse_type(unpar, expr->as.typedinit.type);
-    return el_unparser_unparse_init(unpar, expr->as.typedinit.init);
+    el_unparse_type(unpar, expr->as.typedinit.type);
+    return el_unparse_init(unpar, expr->as.typedinit.init);
 }
 
-void el_unparser_unparse_expr(ElUnparser* unpar, ElAstExpr* expr) {
+void el_unparse_expr(ElUnparser* unpar, ElAstExpr* expr) {
     switch (expr->type) {
     case EL_AST_EXPR_LITERAL:   return unparse_literal(unpar, expr);
-    case EL_AST_EXPR_IDENT:     return _el_unparser_unparse_ident(unpar, &expr->as.ident);
+    case EL_AST_EXPR_IDENT:     return _el_unparse_ident(unpar, &expr->as.ident);
     case EL_AST_EXPR_UNARY:     return unparse_unary(unpar, expr);
     case EL_AST_EXPR_BINARY:    return unparse_binary(unpar, expr);
     case EL_AST_EXPR_CALL:      return unparse_call(unpar, expr);

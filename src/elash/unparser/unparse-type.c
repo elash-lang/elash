@@ -11,19 +11,19 @@ static void unparse_mut_spec(ElUnparser* unpar, ElMutabilitySpec mut) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): it is readable.
-void _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
+void _el_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
     unparse_mut_spec(unpar, type->mut);
 
     switch (type->kind) {
     case EL_AST_TYPE_NAME:
-        _el_unparser_unparse_ident(unpar, type->as.name);
+        _el_unparse_ident(unpar, type->as.name);
         return;
 
     case EL_AST_TYPE_STRUCT:
         el_unparser_push_kw(unpar, EL_TT_KW_STRUCT);
         el_unparser_push_punct(unpar, EL_TT_LBRACE);
         for (ElAstDecl* field = type->as.struct_.fields; field != NULL; field = field->next) {
-            el_unparser_unparse_decl(unpar, field);
+            el_unparse_decl(unpar, field);
         }
         el_unparser_push_punct(unpar, EL_TT_RBRACE);
         return;
@@ -32,7 +32,7 @@ void _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
         el_unparser_push_kw(unpar, EL_TT_KW_STRUCT);
         el_unparser_push_punct(unpar, EL_TT_LPAREN);
         for (ElAstType* elem = type->as.tuple.head; elem != NULL; elem = elem->next) {
-            el_unparser_unparse_type(unpar, elem);
+            el_unparse_type(unpar, elem);
             if (elem->next != NULL) {
                 el_unparser_push_punct(unpar, EL_TT_COMMA);
             }
@@ -52,7 +52,7 @@ void _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
 #define MAX_SUFFIXES 0b110101011
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): it is readable.
-void el_unparser_unparse_type(ElUnparser* unpar, ElAstType* type) {
+void el_unparse_type(ElUnparser* unpar, ElAstType* type) {
     ElAstType* suffixes[MAX_SUFFIXES];
     usize count = 0;
 
@@ -73,7 +73,7 @@ void el_unparser_unparse_type(ElUnparser* unpar, ElAstType* type) {
         else EL_UNREACHABLE("should not be possible");
     }
 
-    _el_unparser_unparse_type_base(unpar, type);
+    _el_unparse_type_base(unpar, type);
 
     for (usize i = count; i > 0; i--) {
         ElAstType* suf = suffixes[i - 1];
@@ -93,7 +93,7 @@ void el_unparser_unparse_type(ElUnparser* unpar, ElAstType* type) {
             break;
         case EL_AST_TYPE_ARRAY:
             el_unparser_push_punct(unpar, EL_TT_LBRACKET);
-            el_unparser_unparse_expr(unpar, suf->as.array.size);
+            el_unparse_expr(unpar, suf->as.array.size);
             el_unparser_push_punct(unpar, EL_TT_RBRACKET);
             break;
         default:
