@@ -56,9 +56,7 @@ ElMirValue* el_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* hi
     ElMirValue* val = _el_lowerer_get_symbol_lvalue(lw, sym, hir_type);
     if (sym->kind == EL_SYM_VAR) {
         ElMirType* type = el_tcache_get_mir(lw->tcache, hir_type);
-        ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, val));
-        return reg;
+        return emit_load(lw, type, val);
     }
     return val;
 }
@@ -71,8 +69,7 @@ static ElMirValue* _el_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr) {
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, expr->operand);
     ElMirType*  val_type = el_tcache_get_mir(lw->tcache, expr->operand->type);
 
-    ElMirValue* current = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current, ptr));
+    ElMirValue* current = emit_load(lw, val_type, ptr);
 
     ElMirConstant one_lit;
     if (val_type->kind == EL_MIR_TYPE_FLOAT) {
@@ -88,9 +85,9 @@ static ElMirValue* _el_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr) {
         ? EL_BIN_OP_ADD
         : EL_BIN_OP_SUB;
 
-    ElMirValue* updated = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
+    ElMirValue* updated = emit_reg(lw, val_type);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, updated, bin_op, current, one));
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, updated));
+    emit_store(lw, ptr, updated);
 
     return el_unary_op_is_post(expr->op) ? current : updated;
 }
@@ -99,9 +96,7 @@ static ElMirValue* lower_bin(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
     ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
     if (bin->op == EL_BIN_OP_INDEX) {
          ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir);
-         ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
-         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
-         return reg;
+         return emit_load(lw, mir_type, ptr);
     }
 
     if (el_bin_op_is_optional(bin->op))
@@ -124,7 +119,7 @@ static ElMirValue* lower_bin(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
 
     if (bin->op == EL_BIN_OP_AND || bin->op == EL_BIN_OP_OR || bin->op == EL_BIN_OP_IMP) {
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
-        ElMirValue* res_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
+        ElMirValue* res_ptr = emit_reg(lw, ptr_type);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, res_ptr, mir_type));
 
         ElMirValue* lhs = el_lower_expr(lw, bin->left);
@@ -132,37 +127,35 @@ static ElMirValue* lower_bin(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
         if (bin->op == EL_BIN_OP_IMP) {
             ElMirConstant true_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = EL_INT128(1) };
             ElMirValue* true_val = el_mir_new_const(lw->arena, mir_type, true_lit);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, true_val));
+            emit_store(lw, res_ptr, true_val);
         } else {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, lhs));
+            emit_store(lw, res_ptr, lhs);
         }
 
-        uint32_t rhs_id = lw->current_func->block_count++;
-        uint32_t merge_id = lw->current_func->block_count++;
+        uint32_t rhs_id = new_block_id(lw);
+        uint32_t merge_id = new_block_id(lw);
 
         if (bin->op == EL_BIN_OP_AND || bin->op == EL_BIN_OP_IMP) {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, rhs_id, merge_id));
+            emit_jmpif(lw, lhs, rhs_id, merge_id);
         } else {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, lhs, merge_id, rhs_id));
+            emit_jmpif(lw, lhs, merge_id, rhs_id);
         }
         el_lowerer_emit_block(lw, lw->current_block_id);
 
         lw->current_block_id = rhs_id;
         ElMirValue* rhs = el_lower_expr(lw, bin->right);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, rhs));
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+        emit_store(lw, res_ptr, rhs);
+        emit_jmp(lw, merge_id);
         el_lowerer_emit_block(lw, lw->current_block_id);
 
         lw->current_block_id = merge_id;
-        ElMirValue* res_val = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res_val, res_ptr));
-        return res_val;
+        return emit_load(lw, mir_type, res_ptr);
     }
 
     ElMirValue* lhs = el_lower_expr(lw, bin->left);
     ElMirValue* rhs = el_lower_expr(lw, bin->right);
 
-    ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
+    ElMirValue* reg = emit_reg(lw, mir_type);
     ElMirInstr* instr = el_mir_new_bin_instr(lw->arena, reg, bin->op, lhs, rhs);
 
     el_mir_ibuf_push(&lw->ibuf, instr);
@@ -177,9 +170,7 @@ static ElMirValue* lower_unary(ElLowerer* lw, ElHirExpr* hir, ElHirUnaryExpr* un
 
     if (unary->op == EL_UNARY_OP_DEREF) {
         ElMirValue* ptr = el_lower_expr(lw, unary->operand);
-        ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
-        return reg;
+        return emit_load(lw, mir_type, ptr);
     }
 
     if (unary->op == EL_UNARY_OP_OPT_UNWRAP) {
@@ -281,6 +272,16 @@ static ElMirValue* lower_strconst(ElLowerer* lw, ElHirExpr* hir) {
     return res;
 }
 
+static ElMirValue* lower_member_access(ElLowerer* lw, ElHirExpr* hir, ElHirExpr* base_expr, usize index) {
+    if (el_hir_expr_is_lvalue(base_expr)) {
+        ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
+        ElMirType* field_type = el_tcache_get_mir(lw->tcache, hir->type);
+        return emit_load(lw, field_type, field_ptr);
+    }
+    ElMirValue* val = el_lower_expr(lw, base_expr);
+    return _el_lowerer_extract_tuple_field(lw, val, index);
+}
+
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): it's readable.
 static ElMirValue* _lower_expr_internal(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
@@ -296,27 +297,9 @@ static ElMirValue* _lower_expr_internal(ElLowerer* lw, ElHirExpr* hir) {
         return el_lower_symbol(lw, hir->as.symbol, hir->type);
 
     case EL_HIR_EXPR_TMEMBER:
-        if (el_hir_expr_is_lvalue(hir->as.tmember.expr)) {
-            ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
-            ElMirType* field_type = el_tcache_get_mir(lw->tcache, hir->type);
-            ElMirValue* result = el_mir_new_reg(lw->arena, field_type, lw->current_func->reg_count++);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, field_ptr));
-            return result;
-        } else {
-            ElMirValue* val = el_lower_expr(lw, hir->as.tmember.expr);
-            return _el_lowerer_extract_tuple_field(lw, val, hir->as.tmember.index);
-        }
+        return lower_member_access(lw, hir, hir->as.tmember.expr, hir->as.tmember.index);
     case EL_HIR_EXPR_MEMBER:
-        if (el_hir_expr_is_lvalue(hir->as.member.expr)) {
-            ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
-            ElMirType* field_type = el_tcache_get_mir(lw->tcache, hir->type);
-            ElMirValue* result = el_mir_new_reg(lw->arena, field_type, lw->current_func->reg_count++);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, field_ptr));
-            return result;
-        } else {
-            ElMirValue* val = el_lower_expr(lw, hir->as.member.expr);
-            return _el_lowerer_extract_tuple_field(lw, val, hir->as.member.index);
-        }
+        return lower_member_access(lw, hir, hir->as.member.expr, hir->as.member.index);
 
     case EL_HIR_EXPR_CONST: {
         ElHirType* type = el_hir_type_unwrap(hir->type);

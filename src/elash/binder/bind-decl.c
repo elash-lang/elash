@@ -131,6 +131,26 @@ static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     return sym;
 }
 
+static ElHirSymbol* bind_var_declarator_sym(
+    ElBinder* binder, ElAstDeclarator* d, ElHirType* type, bool is_def
+) {
+    ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
+    if (!el_hir_scope_insert(binder->current_scope, sym)) {
+        if (is_def) {
+            REPORT_REDEFINITION(binder, d->name->span, sym->name);
+        } else {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
+                d->name->span,
+                "redeclaration of symbol '${name}'",
+                EL_DIAG_STRING("name", sym->name)
+            );
+        }
+        return NULL;
+    }
+    return sym;
+}
+
 static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var) {
     ElHirDecl* head = NULL;
     ElHirDecl* tail = NULL;
@@ -140,10 +160,8 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
         return NULL;
 
     for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
-        ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
-        if (!el_hir_scope_insert(binder->current_scope, sym)) {
-            return REPORT_REDEFINITION(binder, d->name->span, sym->name);
-        }
+        ElHirSymbol* sym = bind_var_declarator_sym(binder, d, type, true);
+        if (sym == NULL) return NULL;
 
         ElStorageClass scls = (var->is_static || binder->current_func == NULL)
             ? EL_STORAGECLS_STATIC
@@ -171,15 +189,8 @@ static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* v
         return NULL;
 
     for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
-        ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
-        if (!el_hir_scope_insert(binder->current_scope, sym)) {
-            return el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
-                d->name->span,
-                "redeclaration of symbol '${name}'",
-                EL_DIAG_STRING("name", sym->name)
-            );
-        }
+        ElHirSymbol* sym = bind_var_declarator_sym(binder, d, type, false);
+        if (sym == NULL) return NULL;
 
         el_hir_append_decl(&head, &tail,
             el_hir_new_var_decl(binder->arena, in->span, sym));

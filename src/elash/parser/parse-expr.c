@@ -209,10 +209,7 @@ ElAstExpr* _el_parse_call(ElParser* parser, ElAstExpr* callee) {
     );
 }
 
-ElAstExpr* _el_parse_postfix(ElParser* parser) {
-    ElAstExpr* expr = _el_parse_primary(parser);
-    if (el_parser_has_errs(parser)) return NULL;
-
+ElAstExpr* _el_parse_continue_postfixes(ElParser* parser, ElAstExpr* expr) {
     while (true) {
         if (el_parser_check(parser, EL_TT_INC)) {
             ElToken tok = el_parser_advance(parser);
@@ -261,6 +258,12 @@ ElAstExpr* _el_parse_postfix(ElParser* parser) {
         if (el_parser_has_errs(parser)) return NULL;
     }
     return expr;
+}
+
+ElAstExpr* _el_parse_postfix(ElParser* parser) {
+    ElAstExpr* expr = _el_parse_primary(parser);
+    if (el_parser_has_errs(parser)) return NULL;
+    return _el_parse_continue_postfixes(parser, expr);
 }
 
 ElAstExpr* _el_parse_unary(ElParser* parser) {

@@ -42,54 +42,7 @@ static bool is_slice_brackets(ElParser* parser) {
 }
 
 static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
-    while (true) {
-        if (el_parser_check(parser, EL_TT_INC)) {
-            ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_POST_INC, expr);
-        } else if (el_parser_check(parser, EL_TT_DEC)) {
-            ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_POST_DEC, expr);
-        } else if (el_parser_match(parser, EL_TT_LPAREN)) {
-            expr = _el_parse_call(parser, expr);
-        } else if (el_parser_check(parser, EL_TT_CARET)) {
-            ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_DEREF, expr);
-        } else if (el_parser_check(parser, EL_TT_LOGICAL_NOT)) {
-            ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_UNARY_OP_OPT_UNWRAP, expr);
-        } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
-            ElAstExpr* index = el_parse_expr(parser);
-            if (el_parser_has_errs(parser)) {
-                el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
-            }
-
-            ElToken rbracket = parser->current;
-            if (el_parser_check(parser, EL_TT_RBRACKET)) {
-                rbracket = el_parser_advance(parser);
-            } else {
-                el_parser_expect(parser, EL_TT_RBRACKET);
-                el_parser_skip_to(parser, EL_TT_RBRACKET);
-                if (el_parser_check(parser, EL_TT_RBRACKET)) {
-                    rbracket = el_parser_advance(parser);
-                }
-            }
-
-            expr = el_ast_new_bin_expr(
-                parser->aarena,
-                el_srcspan_merge(expr->span, rbracket.span),
-                EL_BIN_OP_INDEX, expr, index
-            );
-        } else if (el_parser_match(parser, EL_TT_DOT)) {
-            expr = _el_parse_member(parser, expr, false);
-        } else if (el_parser_match(parser, EL_TT_OPT_DOT)) {
-            expr = _el_parse_member(parser, expr, true);
-        } else {
-            break;
-        }
-
-        if (el_parser_has_errs(parser)) return NULL;
-    }
-    return expr;
+    return _el_parse_continue_postfixes(parser, expr);
 }
 
 static ElParseAmbig force_type_with_suffixes(ElParser* parser, ElParseAmbig node) {

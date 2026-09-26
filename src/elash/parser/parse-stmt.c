@@ -54,20 +54,15 @@ static ElAstStmt* parse_init_stmt(ElParser* parser) {
     return el_parse_stmt(parser);
 }
 
-ElAstStmt* _el_parse_if(ElParser* parser, ElToken if_tok) {
-    ElSourceSpan end_span;
-
+static bool parse_paren_init_cond(ElParser* parser, ElAstStmt** out_init, ElAstExpr** out_cond) {
     el_parser_expect(parser, EL_TT_LPAREN);
-    if (el_parser_has_errs(parser))
-        return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
+    if (el_parser_has_errs(parser)) return false;
 
-    ElAstStmt* init_stmt = parse_init_stmt(parser);
-    if (el_parser_has_errs(parser))
-        return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
+    *out_init = parse_init_stmt(parser);
+    if (el_parser_has_errs(parser)) return false;
 
-    ElAstExpr* cond = el_parse_expr(parser);
-    if (el_parser_has_errs(parser))
-        return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
+    *out_cond = el_parse_expr(parser);
+    if (el_parser_has_errs(parser)) return false;
 
     if (!el_parser_check(parser, EL_TT_RPAREN)) {
         el_parser_expect(parser, EL_TT_RPAREN);
@@ -78,6 +73,16 @@ ElAstStmt* _el_parse_if(ElParser* parser, ElToken if_tok) {
     } else {
         el_parser_advance(parser);
     }
+    return true;
+}
+
+ElAstStmt* _el_parse_if(ElParser* parser, ElToken if_tok) {
+    ElSourceSpan end_span;
+
+    ElAstStmt* init_stmt = NULL;
+    ElAstExpr* cond = NULL;
+    if (!parse_paren_init_cond(parser, &init_stmt, &cond))
+        return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
 
     ElAstStmt* then_stmt = el_parse_stmt(parser);
     if (el_parser_has_errs(parser)) return NULL;
@@ -99,27 +104,10 @@ ElAstStmt* _el_parse_if(ElParser* parser, ElToken if_tok) {
 }
 
 static ElAstStmt* _el_parse_while(ElParser* parser, ElToken while_tok) {
-    el_parser_expect(parser, EL_TT_LPAREN);
-    if (el_parser_has_errs(parser))
+    ElAstStmt* init_stmt = NULL;
+    ElAstExpr* cond = NULL;
+    if (!parse_paren_init_cond(parser, &init_stmt, &cond))
         return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
-
-    ElAstStmt* init_stmt = parse_init_stmt(parser);
-    if (el_parser_has_errs(parser))
-        return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
-
-    ElAstExpr* cond = el_parse_expr(parser);
-    if (el_parser_has_errs(parser))
-        return el_parser_sync(parser, EL_PARSER_SYNC_STMT);
-
-    if (!el_parser_check(parser, EL_TT_RPAREN)) {
-        el_parser_expect(parser, EL_TT_RPAREN);
-        el_parser_skip_to(parser, EL_TT_RPAREN);
-        if (el_parser_check(parser, EL_TT_RPAREN)) {
-            el_parser_advance(parser);
-        }
-    } else {
-        el_parser_advance(parser);
-    }
 
     ElAstStmt* body_stmt = el_parse_stmt(parser);
     if (el_parser_has_errs(parser)) return NULL;

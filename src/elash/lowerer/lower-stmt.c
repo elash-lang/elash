@@ -16,19 +16,19 @@
 static void lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
     ElMirValue* cond = el_lower_expr(lw, if_stmt->cond);
 
-    uint32_t then_id = lw->current_func->block_count++;
-    uint32_t merge_id = lw->current_func->block_count++;
+    uint32_t then_id = new_block_id(lw);
+    uint32_t merge_id = new_block_id(lw);
     uint32_t else_id = (if_stmt->else_ != NULL)
-        ? lw->current_func->block_count++
+        ? new_block_id(lw)
         : merge_id;
 
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, cond, then_id, else_id));
+    emit_jmpif(lw, cond, then_id, else_id);
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = then_id;
     el_lower_stmt(lw, if_stmt->then);
     if (!el_lowerer_has_terminator(lw)) {
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+        emit_jmp(lw, merge_id);
     }
     el_lowerer_emit_block(lw, lw->current_block_id);
 
@@ -36,7 +36,7 @@ static void lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
         lw->current_block_id = else_id;
         el_lower_stmt(lw, if_stmt->else_);
         if (!el_lowerer_has_terminator(lw)) {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+            emit_jmp(lw, merge_id);
         }
         el_lowerer_emit_block(lw, lw->current_block_id);
     }
@@ -46,39 +46,31 @@ static void lower_if(ElLowerer* lw, ElHirIfStmt* if_stmt) {
 
 static void lower_break(ElLowerer* lw, ElHirBreakStmt* node) {
     (void) node;
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->break_target_id));
+    emit_jmp(lw, lw->break_target_id);
 }
 
 static void lower_continue(ElLowerer* lw, ElHirContinueStmt* node) {
     (void) node;
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, lw->continue_target_id));
+    emit_jmp(lw, lw->continue_target_id);
 }
 
 static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
-    uint32_t cond_id = lw->current_func->block_count++;
-    uint32_t body_id = lw->current_func->block_count++;
-    uint32_t exit_id = lw->current_func->block_count++;
+    uint32_t cond_id = new_block_id(lw);
+    uint32_t body_id = new_block_id(lw);
+    uint32_t exit_id = new_block_id(lw);
 
     uint32_t prev_break = lw->break_target_id;
     uint32_t prev_continue = lw->continue_target_id;
     lw->break_target_id = exit_id;
     lw->continue_target_id = cond_id;
 
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, cond_id));
+    emit_jmp(lw, cond_id);
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = cond_id;
     ElMirValue* cond = el_lower_expr(lw, while_stmt->cond);
 
-    el_mir_ibuf_push(
-        &lw->ibuf,
-        el_mir_new_jmpif_instr(
-            lw->arena,
-            cond,
-            body_id,
-            exit_id
-        )
-    );
+    emit_jmpif(lw, cond, body_id, exit_id);
 
     el_lowerer_emit_block(lw, lw->current_block_id);
 
@@ -86,10 +78,7 @@ static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     el_lower_stmt(lw, while_stmt->body);
 
     if (!el_lowerer_has_terminator(lw)) {
-        el_mir_ibuf_push(
-            &lw->ibuf,
-            el_mir_new_jmp_instr(lw->arena, cond_id)
-        );
+        emit_jmp(lw, cond_id);
     }
 
     el_lowerer_emit_block(lw, lw->current_block_id);
@@ -102,7 +91,7 @@ static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
 static void lower_assign(ElLowerer* lw, ElHirAssignStmt* assign) {
     ElMirValue* value = el_lower_expr(lw, assign->value);
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, assign->target);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, value));
+    emit_store(lw, ptr, value);
 }
 
 static void lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
@@ -110,66 +99,52 @@ static void lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
     ElMirType* target_mir_type = el_tcache_get_mir(lw->tcache, cassign->target->type);
 
     if (cassign->op == EL_BIN_OP_AND || cassign->op == EL_BIN_OP_OR || cassign->op == EL_BIN_OP_IMP) {
-        ElMirValue* current_val = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
+        ElMirValue* current_val = emit_load(lw, target_mir_type, ptr);
 
-        uint32_t rhs_id = lw->current_func->block_count++;
-        uint32_t merge_id = lw->current_func->block_count++;
+        uint32_t rhs_id = new_block_id(lw);
+        uint32_t merge_id = new_block_id(lw);
 
         if (cassign->op == EL_BIN_OP_AND) {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, current_val, rhs_id, merge_id));
-            el_lowerer_emit_block(lw, lw->current_block_id);
-
-            lw->current_block_id = rhs_id;
-            ElMirValue* rhs = el_lower_expr(lw, cassign->value);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+            emit_jmpif(lw, current_val, rhs_id, merge_id);
             el_lowerer_emit_block(lw, lw->current_block_id);
         } else if (cassign->op == EL_BIN_OP_OR) {
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, current_val, merge_id, rhs_id));
-            el_lowerer_emit_block(lw, lw->current_block_id);
-
-            lw->current_block_id = rhs_id;
-            ElMirValue* rhs = el_lower_expr(lw, cassign->value);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+            emit_jmpif(lw, current_val, merge_id, rhs_id);
             el_lowerer_emit_block(lw, lw->current_block_id);
         } else if (cassign->op == EL_BIN_OP_IMP) {
-            uint32_t lhs_false_id = lw->current_func->block_count++;
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmpif_instr(lw->arena, current_val, rhs_id, lhs_false_id));
+            uint32_t lhs_false_id = new_block_id(lw);
+            emit_jmpif(lw, current_val, rhs_id, lhs_false_id);
             el_lowerer_emit_block(lw, lw->current_block_id);
 
             lw->current_block_id = lhs_false_id;
             ElMirConstant true_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = EL_INT128(1) };
             ElMirValue* true_val = el_mir_new_const(lw->arena, target_mir_type, true_lit);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, true_val));
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
-            el_lowerer_emit_block(lw, lw->current_block_id);
-
-            lw->current_block_id = rhs_id;
-            ElMirValue* rhs = el_lower_expr(lw, cassign->value);
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, rhs));
-            el_mir_ibuf_push(&lw->ibuf, el_mir_new_jmp_instr(lw->arena, merge_id));
+            emit_store(lw, ptr, true_val);
+            emit_jmp(lw, merge_id);
             el_lowerer_emit_block(lw, lw->current_block_id);
         }
+
+        lw->current_block_id = rhs_id;
+        ElMirValue* rhs = el_lower_expr(lw, cassign->value);
+        emit_store(lw, ptr, rhs);
+        emit_jmp(lw, merge_id);
+        el_lowerer_emit_block(lw, lw->current_block_id);
 
         lw->current_block_id = merge_id;
         return;
     }
 
     // Load current value
-    ElMirValue* current_val = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current_val, ptr));
+    ElMirValue* current_val = emit_load(lw, target_mir_type, ptr);
 
     // Lower RHS
     ElMirValue* rhs = el_lower_expr(lw, cassign->value);
 
     // Perform op
-    ElMirValue* result = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);
+    ElMirValue* result = emit_reg(lw, target_mir_type);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_bin_instr(lw->arena, result, cassign->op, current_val, rhs));
 
     // Store back
-    el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr, result));
+    emit_store(lw, ptr, result);
 }
 
 static void lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
