@@ -19,8 +19,7 @@ TestSuite(el_srcspan_happy);
 
 Test(el_srcspan_happy, make_and_query) {
     ElSourceDocument doc;
-    cr_assert_eq(el_srcdoc_init_from_str(&doc, EL_SV("abcdef"), EL_SV("test.eu")),
-                 EL_SRCDOC_ERR_SUCCESS);
+    el_srcdoc_init_from_str(&doc, EL_SV("abcdef"), EL_SV("test.eu"));
 
     ElSourceSpan span = el_srcspan_make(&doc, loc(1), loc(4));
     cr_assert(el_srcspan_is_valid(span));
@@ -39,8 +38,7 @@ Test(el_srcspan_happy, make_and_query) {
 
 Test(el_srcspan_happy, merge_ranges_in_same_document) {
     ElSourceDocument doc;
-    cr_assert_eq(el_srcdoc_init_from_str(&doc, EL_SV("0123456789"), EL_SV("test.eu")),
-                 EL_SRCDOC_ERR_SUCCESS);
+    el_srcdoc_init_from_str(&doc, EL_SV("0123456789"), EL_SV("test.eu"));
 
     ElSourceSpan left = el_srcspan_make(&doc, loc(1), loc(3));
     ElSourceSpan right = el_srcspan_make(&doc, loc(6), loc(9));
@@ -59,10 +57,8 @@ Test(el_srcspan_happy, merge_ranges_in_same_document) {
 
 Test(el_srcspan_happy, merge_different_documents_and_null) {
     ElSourceDocument first, second;
-    cr_assert_eq(el_srcdoc_init_from_str(&first, EL_SV("first"), EL_SV("one.eu")),
-                 EL_SRCDOC_ERR_SUCCESS);
-    cr_assert_eq(el_srcdoc_init_from_str(&second, EL_SV("second"), EL_SV("two.eu")),
-                 EL_SRCDOC_ERR_SUCCESS);
+    el_srcdoc_init_from_str(&first, EL_SV("first"), EL_SV("one.eu"));
+    el_srcdoc_init_from_str(&second, EL_SV("second"), EL_SV("two.eu"));
 
     ElSourceSpan a = el_srcspan_make(&first, loc(0), loc(2));
     ElSourceSpan b = el_srcspan_make(&second, loc(1), loc(4));
@@ -79,8 +75,7 @@ Test(el_srcspan_happy, merge_different_documents_and_null) {
 
 Test(el_srcspan_happy, invalid_ranges_have_no_text) {
     ElSourceDocument doc;
-    cr_assert_eq(el_srcdoc_init_from_str(&doc, EL_SV("abc"), EL_SV("test.eu")),
-                 EL_SRCDOC_ERR_SUCCESS);
+    el_srcdoc_init_from_str(&doc, EL_SV("abc"), EL_SV("test.eu"));
 
     ElSourceSpan backwards = el_srcspan_make(&doc, loc(2), loc(1));
     cr_assert(el_srcspan_is_valid(backwards));

@@ -2,25 +2,32 @@
 
 #include <inttypes.h>
 
-bool format_value(ElStringBuf* out, ElPpValue* value) {
+void format_value(ElStringBuf* out, ElPpValue* value) {
     switch (value->type) {
     case EL_PP_TYPE_NULL:
-        return el_strbuf_append(out, EL_SV("null"));
+        el_strbuf_append(out, EL_SV("null"));
+        break;
 
     case EL_PP_TYPE_INT:
         // NOLINTNEXTLINE(readability-magic-numbers): You wouldn't get this from any other guy
-        return el_strbuf_append(out, el_i128_to_string(value->as.int_, 10, (char[42]){}));
+        el_strbuf_append(out, el_i128_to_string(value->as.int_, 10, (char[42]){}));
+        break;
     case EL_PP_TYPE_FLOAT:
-        return el_strbuf_appendf(out, "%g", value->as.float_);
+        el_strbuf_appendf(out, "%g", value->as.float_);
+        break;
     case EL_PP_TYPE_CHAR:
-        return el_strbuf_appendf(out, "%c", value->as.char_);
+        el_strbuf_appendf(out, "%c", value->as.char_);
+        break;
 
     case EL_PP_TYPE_BOOL:
-        return el_strbuf_append_cstr(out, value->as.bool_ ? "true" : "false");
+        el_strbuf_append_cstr(out, value->as.bool_ ? "true" : "false");
+        break;
     case EL_PP_TYPE_STR:
-        return el_strbuf_append(out, value->as.str_);
+        el_strbuf_append(out, value->as.str_);
+        break;
     case EL_PP_TYPE_TOK:
-        return el_token_to_raw_string(&value->as.tok_, out, false);
+        el_token_to_raw_string(&value->as.tok_, out, false);
+        break;
 
     case EL_PP_TYPE_LIST:
         el_strbuf_append(out, EL_SV("{ "));
@@ -33,10 +40,10 @@ bool format_value(ElStringBuf* out, ElPpValue* value) {
         }
 
         el_strbuf_append(out, EL_SV(" }"));
-        return true;
+        break;
+    default:
+        EL_UNREACHABLE_ENUM_VAL(ElPpType, value->type);
     }
-
-    EL_UNREACHABLE_ENUM_VAL(ElPpType, value->type);
 }
 
 bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan dspan) {
@@ -46,16 +53,17 @@ bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan dspan) {
     while (true) {
         ElPpValue* value = _el_pp_eval(pp);
         if (value == NULL) {
+            el_strbuf_destroy(&message);
             return false;
         }
 
-        if (!format_value(&message, value))
-            return false;
+        format_value(&message, value);
 
         if (!_el_pp_match(pp, EL_TT_COMMA)) break;
 
         el_strbuf_append_char(&message, ' ');
     }
+
 
     el_diag_report_ex_nocat(
         pp->diag, true, sev, dspan, EL_SV("${message}"),

@@ -9,17 +9,11 @@
 
 ElScope* el_hir_scope_new(ElScope* parent) {
     ElScope* scope = EL_NEW(ElScope);
-    if (scope == NULL) return NULL;
 
     scope->parent = parent;
     scope->capacity = INITIAL_CAPACITY;
     scope->count = 0;
     scope->entries = EL_NEW_ARR_ZEROED(ElScopeEntry, scope->capacity);
-
-    if (scope->entries == NULL) {
-        el_free(scope);
-        return NULL;
-    }
 
     return scope;
 }
@@ -30,17 +24,12 @@ void el_hir_scope_free(ElScope* scope) {
     el_free(scope);
 }
 
-static bool resize(ElScope* scope) {
+static void resize(ElScope* scope) {
     usize old_capacity = scope->capacity;
     ElScopeEntry* old_entries = scope->entries;
 
     scope->capacity *= 2;
     scope->entries = EL_NEW_ARR_ZEROED(ElScopeEntry, scope->capacity);
-    if (scope->entries == NULL) {
-        scope->entries = old_entries;
-        scope->capacity = old_capacity;
-        return false;
-    }
 
     scope->count = 0;
     for (usize i = 0; i < old_capacity; i++) {
@@ -50,12 +39,11 @@ static bool resize(ElScope* scope) {
     }
 
     el_free(old_entries);
-    return true;
 }
 
 bool el_hir_scope_insert_ex(ElScope* scope, ElStringView name, ElHirSymbol* symbol) {
     if ((double)scope->count / (double)scope->capacity >= LOAD_FACTOR) {
-        if (!resize(scope)) return false;
+        resize(scope);
     }
 
     uhash hash = el_hash_string(name);

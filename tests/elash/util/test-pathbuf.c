@@ -40,13 +40,13 @@ Test(el_pathbuf, pop) {
     ElPathBuf pb;
     el_pathbuf_init_from(&pb, EL_PV("a/b/c"));
 
-    cr_assert(el_pathbuf_pop(&pb));
+    el_pathbuf_pop(&pb);
     cr_assert(el_strbuf_eql_to_cstr(&pb, "a/b"));
 
-    cr_assert(el_pathbuf_pop(&pb));
+    el_pathbuf_pop(&pb);
     cr_assert(el_strbuf_eql_to_cstr(&pb, "a"));
 
-    cr_assert(el_pathbuf_pop(&pb));
+    el_pathbuf_pop(&pb);
     cr_assert(el_strbuf_eql_to_cstr(&pb, ""));
 
     el_pathbuf_destroy(&pb);

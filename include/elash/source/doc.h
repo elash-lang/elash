@@ -14,18 +14,18 @@ typedef struct ElSourceDocument {
 } ElSourceDocument;
 
 /// Creates an empty source document with given file name.
-ElSrcDocStatus el_srcdoc_init_empty(ElSourceDocument* srcdoc, ElStringView filename);
+void el_srcdoc_init_empty(ElSourceDocument* srcdoc, ElStringView filename);
 /// Creates source document with the provided content and file name.
-ElSrcDocStatus el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv, ElStringView filename);
+void el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv, ElStringView filename);
 /// Creates a source document by reading content from the file at the given path.
 ElSrcDocStatus el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char* path);
 /// Creates a source document by copying content from the provided string buffer.
-ElSrcDocStatus el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf, ElStringView filename);
+void el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf, ElStringView filename);
 /// Creates a source document by taking ownership of the content from the provided string buffer.
 void el_srcdoc_init_from_strbuf_move(ElSourceDocument* srcdoc, ElStringBuf* buf, ElStringView filename);
 
 /// Creates a deep copy of the source document.
-ElSrcDocStatus el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst);
+void el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst);
 /// Moves the content from the source document to the destination.
 void el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst);
 
@@ -35,12 +35,12 @@ void el_srcdoc_free(ElSourceDocument* srcdoc);
 void el_srcdoc_clear(ElSourceDocument* srcdoc);
 
 /// Appends the raw text form of the token to the source document.
-ElSrcDocStatus el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok);
+void el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok);
 /// Appends a string view to the source document.
-ElSrcDocStatus el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv);
+void el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv);
 
 /// Concatenates two source documents into a new one.
-ElSrcDocStatus el_srcdoc_concat(
+void el_srcdoc_concat(
     const ElSourceDocument* src1, const ElSourceDocument* src2,
     ElSourceDocument* dst, ElStringView filename
 );

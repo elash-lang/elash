@@ -20,7 +20,7 @@ typedef struct ElDynArena {
     usize offset;
 } ElDynArena;
 
-bool el_dynarena_init(ElDynArena* arena);
+void el_dynarena_init(ElDynArena* arena);
 void el_dynarena_free(ElDynArena* arena);
 void el_dynarena_reset(ElDynArena* arena);
 

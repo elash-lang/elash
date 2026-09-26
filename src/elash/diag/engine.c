@@ -46,11 +46,8 @@ static void _el_diag_format_message(
 
     ElStringBuf formatted;
     el_strbuf_init(&formatted);
-    if (el_diag_render_template(template, meta, &formatted)) {
-        *out_formatted = el_dynarena_clone_sv(engine->arena, el_strbuf_view(&formatted));
-    } else {
-        *out_formatted = *out_template;
-    }
+    el_diag_render_template(template, meta, &formatted);
+    *out_formatted = el_dynarena_clone_sv(engine->arena, el_strbuf_view(&formatted));
     el_strbuf_destroy(&formatted);
 }
 

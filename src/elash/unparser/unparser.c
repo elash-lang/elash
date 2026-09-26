@@ -12,14 +12,16 @@ void el_unparser_init(ElUnparser* unpar, ElTokenBuf* out, ElDynArena* arena) {
 
 bool el_unparser_push(ElUnparser* unpar, ElTokenType type, ElStringView lexeme) {
     ElStringView cloned = el_dynarena_clone_sv(unpar->arena, lexeme);
-    if (el_sv_is_null(cloned) && !el_sv_is_null(lexeme) && lexeme.len > 0) return false;
+    if (el_sv_is_null(cloned) && lexeme.len > 0) return false;
 
     ElToken tok = {
         .type = type,
         .lexeme = cloned,
         .span = EL_SRCSPAN_NULL,
     };
-    return el_tkbuf_push(unpar->out, tok);
+
+    el_tkbuf_push(unpar->out, tok);
+    return true;
 }
 
 // if you're seeing this in 2027 or later,
@@ -56,10 +58,11 @@ bool el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, 
     vsnprintf(heap, (usize)n + 1, fmt, args);
     va_end(args);
 
-    return el_tkbuf_push(unpar->out, (ElToken) {
+    el_tkbuf_push(unpar->out, (ElToken) {
         .type = type,
         .lexeme = el_sv_from_data_and_len(heap, (usize)n),
     });
+    return true;
 }
 
 bool el_unparser_push_punct(ElUnparser* unpar, ElTokenType type) {

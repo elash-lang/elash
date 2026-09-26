@@ -24,7 +24,7 @@ Test(pp_scope, basic_usage) {
     };
 
     ElStringView key = EL_SV("foo");
-    cr_assert(el_pp_scope_assign(scope, key, &var1));
+    el_pp_scope_assign(scope, key, &var1);
 
     ElPpSymbol* lookup_result = el_pp_scope_lookup(scope, key);
     cr_assert_not_null(lookup_result);

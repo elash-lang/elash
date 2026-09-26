@@ -197,7 +197,7 @@ typedef struct ElPpArgList {
 void _el_pp_append_param(ElPpParamList* list, ElDynArena* arena, ElStringView name);
 void _el_pp_append_arg(ElPpArgList* list,  ElPpValue* val);
 
-bool _el_pp_finish_pending_func(ElPreproc* pp);
+void _el_pp_finish_pending_func(ElPreproc* pp);
 ElPpValue* _el_pp_call_func(ElPreproc* pp, ElPpSymbol* sym, ElSourceSpan cspan);
 
 ////////// expressions ///////////

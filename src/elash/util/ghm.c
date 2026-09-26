@@ -65,17 +65,12 @@ void el_ghm_free(ElGHM* ghm) {
     el_free(ghm->entries);
 }
 
-static bool resize(ElGHM* ghm) {
+static void resize(ElGHM* ghm) {
     usize old_capacity = ghm->capacity;
     Entry* old_entries = ghm->entries;
 
     ghm->capacity *= 2;
     ghm->entries = EL_NEW_ARR_ZEROED(Entry, ghm->capacity);
-    if (ghm->entries == NULL) {
-        ghm->entries = old_entries;
-        ghm->capacity = old_capacity;
-        return false;
-    }
 
     ghm->count = 0;
     ghm->tombstones = 0;
@@ -87,12 +82,11 @@ static bool resize(ElGHM* ghm) {
     }
 
     el_free(old_entries);
-    return true;
 }
 
-bool el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
+void el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
     if ((ghm->count + ghm->tombstones) * 4 >= ghm->capacity * 3) {
-        if (!resize(ghm)) return false;
+        resize(ghm);
     }
 
     isize index = find_index(ghm, key, true);
@@ -100,7 +94,7 @@ bool el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
 
     if (ghm->entries[index].state == OCCUPIED) {
         ghm->entries[index].value = value;
-        return true;
+        return;
     }
 
     if (ghm->entries[index].state == TOMBSTONE) {
@@ -111,7 +105,6 @@ bool el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
     ghm->entries[index].value = value;
     ghm->entries[index].state = OCCUPIED;
     ghm->count++;
-    return true;
 }
 
 void* el_ghm_lookup(ElGHM* ghm, const void* key) {

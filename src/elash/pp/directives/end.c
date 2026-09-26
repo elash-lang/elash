@@ -37,7 +37,8 @@ bool _el_pp_skip_end(ElPreproc* pp) {
         return true;
 
     case EL_PP_BLOCK_FUNC:
-        return _el_pp_finish_pending_func(pp);
+        _el_pp_finish_pending_func(pp);
+        return true;
 
     case EL_PP_BLOCK_WHILE:
     case EL_PP_BLOCK_FOR:

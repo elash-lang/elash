@@ -17,12 +17,10 @@ static void el_tkque_repack(ElToken* src, usize cap, usize head, usize tail, usi
     }
 }
 
-static bool el_tkque_grow(ElTokenQueue* tkque) {
+static void el_tkque_grow(ElTokenQueue* tkque) {
     usize new_cap = tkque->cap == 0 ? EL_TKQUE_DEFAULT_CAP : tkque->cap * 2;
-    if (new_cap < tkque->cap) return false;
 
     ElToken* new_data = EL_NEW_ARR(ElToken, new_cap);
-    if (new_data == NULL) return false;
 
     el_tkque_repack(tkque->data, tkque->cap, tkque->head, tkque->tail, tkque->len, new_data);
 
@@ -31,24 +29,20 @@ static bool el_tkque_grow(ElTokenQueue* tkque) {
     tkque->cap = new_cap;
     tkque->head = 0;
     tkque->tail = tkque->len;
-    return true;
 }
 
-bool el_tkque_init(ElTokenQueue* tkque) {
-    return el_tkque_init_with_cap(tkque, EL_TKQUE_DEFAULT_CAP);
+void el_tkque_init(ElTokenQueue* tkque) {
+    el_tkque_init_with_cap(tkque, EL_TKQUE_DEFAULT_CAP);
 }
 
-bool el_tkque_init_with_cap(ElTokenQueue* tkque, usize initial_cap) {
+void el_tkque_init_with_cap(ElTokenQueue* tkque, usize initial_cap) {
     memset(tkque, 0, sizeof(*tkque));
     if (initial_cap <= 0) {
         initial_cap = EL_TKQUE_DEFAULT_CAP;
     }
 
     tkque->data = EL_NEW_ARR(ElToken, initial_cap);
-    if (tkque->data == NULL) return false;
-
     tkque->cap = initial_cap;
-    return true;
 }
 
 void el_tkque_destroy(ElTokenQueue* tkque) {
@@ -56,9 +50,8 @@ void el_tkque_destroy(ElTokenQueue* tkque) {
     memset(tkque, 0, sizeof(*tkque));
 }
 
-bool el_tkque_copy(const ElTokenQueue* src, ElTokenQueue* dst) {
+void el_tkque_copy(const ElTokenQueue* src, ElTokenQueue* dst) {
     dst->data = EL_NEW_ARR(ElToken, src->cap);
-    if (dst->data == NULL) return false;
 
     el_tkque_repack(src->data, src->cap, src->head, src->tail, src->len, dst->data);
 
@@ -66,7 +59,6 @@ bool el_tkque_copy(const ElTokenQueue* src, ElTokenQueue* dst) {
     dst->len = src->len;
     dst->head = src->head;
     dst->tail = src->tail;
-    return true;
 }
 
 void el_tkque_move(ElTokenQueue* src, ElTokenQueue* dst) {
@@ -74,30 +66,24 @@ void el_tkque_move(ElTokenQueue* src, ElTokenQueue* dst) {
     memset(src, 0, sizeof(*src));
 }
 
-bool el_tkque_push(ElTokenQueue* tkque, ElToken tok) {
+void el_tkque_push(ElTokenQueue* tkque, ElToken tok) {
     if (tkque->len == tkque->cap) {
-        if (!el_tkque_grow(tkque)) {
-            return false;
-        }
+        el_tkque_grow(tkque);
     }
 
     tkque->data[tkque->tail] = tok;
     tkque->tail = (tkque->tail + 1) % tkque->cap;
     tkque->len++;
-    return true;
 }
 
-bool el_tkque_push_front(ElTokenQueue* tkque, ElToken tok) {
+void el_tkque_push_front(ElTokenQueue* tkque, ElToken tok) {
     if (tkque->len == tkque->cap) {
-        if (!el_tkque_grow(tkque)) {
-            return false;
-        }
+        el_tkque_grow(tkque);
     }
 
     tkque->head = (tkque->head + tkque->cap - 1) % tkque->cap;
     tkque->data[tkque->head] = tok;
     tkque->len++;
-    return true;
 }
 
 bool el_tkque_pop(ElTokenQueue* tkque, ElToken* out_tok) {
@@ -131,30 +117,23 @@ bool el_tkque_at(const ElTokenQueue* tkque, usize index, ElToken* out_tok) {
     return true;
 }
 
-bool el_tkque_clear(ElTokenQueue* tkque) {
+void el_tkque_clear(ElTokenQueue* tkque) {
     tkque->head = 0;
     tkque->tail = 0;
     tkque->len = 0;
-    return true;
 }
 
-bool el_tkque_reserve(ElTokenQueue* tkque, usize min_cap) {
+void el_tkque_reserve(ElTokenQueue* tkque, usize min_cap) {
     if (tkque->cap >= min_cap) {
-        return true;
+        return;
     }
 
     usize new_cap = tkque->cap == 0 ? EL_TKQUE_DEFAULT_CAP : tkque->cap;
     while (new_cap < min_cap) {
         new_cap *= 2;
-        if (new_cap < tkque->cap) {
-            return false;
-        }
     }
 
     ElToken* new_data = EL_NEW_ARR(ElToken, new_cap);
-    if (new_data == NULL) {
-        return false;
-    }
 
     el_tkque_repack(tkque->data, tkque->cap, tkque->head, tkque->tail, tkque->len, new_data);
 
@@ -163,5 +142,4 @@ bool el_tkque_reserve(ElTokenQueue* tkque, usize min_cap) {
     tkque->cap = new_cap;
     tkque->head = 0;
     tkque->tail = tkque->len;
-    return true;
 }

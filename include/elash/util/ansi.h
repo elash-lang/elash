@@ -65,5 +65,5 @@ bool el_ansi_is_stream_supported(ElAnsiStream stream);
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out);
 void el_ansi_reset_style(FILE* out);
 
-bool el_ansi_append_style(ElStringBuf* sb, ElAnsiStyle style, FILE* out);
-bool el_ansi_append_reset(ElStringBuf* sb, FILE* out);
+void el_ansi_append_style(ElStringBuf* sb, ElAnsiStyle style, FILE* out);
+void el_ansi_append_reset(ElStringBuf* sb, FILE* out);

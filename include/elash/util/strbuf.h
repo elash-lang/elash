@@ -9,37 +9,37 @@ typedef struct ElStringBuf {
     usize cap;
 } ElStringBuf;
 
-bool el_strbuf_init(ElStringBuf* sb);
-bool el_strbuf_init_with_cap(ElStringBuf* sb, usize init_cap);
-bool el_strbuf_init_from(ElStringBuf* sb, ElStringView sv);
-bool el_strbuf_init_from_cstr(ElStringBuf* sb, const char* cstr);
+void el_strbuf_init(ElStringBuf* sb);
+void el_strbuf_init_with_cap(ElStringBuf* sb, usize init_cap);
+void el_strbuf_init_from(ElStringBuf* sb, ElStringView sv);
+void el_strbuf_init_from_cstr(ElStringBuf* sb, const char* cstr);
 void el_strbuf_destroy(ElStringBuf* sb);
 
-bool el_strbuf_copy(const ElStringBuf* src, ElStringBuf* dst);
+void el_strbuf_copy(const ElStringBuf* src, ElStringBuf* dst);
 void el_strbuf_move(ElStringBuf* src, ElStringBuf* dst);
 
 static inline ElStringView el_strbuf_view(const ElStringBuf* sb) {
     return el_sv_from_data_and_len(sb->data, sb->len);
 }
 
-bool el_strbuf_resize(ElStringBuf* sb, usize new_len);
-bool el_strbuf_reserve(ElStringBuf* sb, usize min_cap);
-bool el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap);
+void el_strbuf_resize(ElStringBuf* sb, usize new_len);
+void el_strbuf_reserve(ElStringBuf* sb, usize min_cap);
+void el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap);
 
 void el_strbuf_clear(ElStringBuf* sb);
 
-bool el_strbuf_append(ElStringBuf* sb, ElStringView sv);
-bool el_strbuf_append_char(ElStringBuf* sb, char c);
+void el_strbuf_append(ElStringBuf* sb, ElStringView sv);
+void el_strbuf_append_char(ElStringBuf* sb, char c);
 
-bool el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) EL_ATTR_PRINTF_LIKE(2, 3);
+void el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) EL_ATTR_PRINTF_LIKE(2, 3);
 
 #define EL_STRBUF_APPEND(sb, text) el_strbuf_append(sb, EL_SV(text))
 
-static inline bool el_strbuf_append_cstr(ElStringBuf* sb, const char* cstr) {
-    return el_strbuf_append(sb, el_sv_from_cstr(cstr));
+static inline void el_strbuf_append_cstr(ElStringBuf* sb, const char* cstr) {
+    el_strbuf_append(sb, el_sv_from_cstr(cstr));
 }
-static inline bool el_strbuf_append_buf(ElStringBuf* sb, const ElStringBuf* other) {
-    return el_strbuf_append(sb, el_strbuf_view(other));
+static inline void el_strbuf_append_buf(ElStringBuf* sb, const ElStringBuf* other) {
+    el_strbuf_append(sb, el_strbuf_view(other));
 }
 
 static inline bool el_strbuf_eql_to(const ElStringBuf* lhs, ElStringView rhs) {

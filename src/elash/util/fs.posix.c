@@ -31,22 +31,21 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
     if (path.len == 0) return false;
 
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     char* abs_path = realpath(cpath, NULL);
     if (abs_path != NULL) {
         el_strbuf_clear(out_abs);
-        bool success = el_strbuf_append(out_abs, el_sv_from_cstr(abs_path));
+        el_strbuf_append(out_abs, el_sv_from_cstr(abs_path));
         el_free(abs_path);
         el_free(cpath);
-        return success;
+        return true;
     }
 
     if (el_pathview_is_absolute(path)) {
         el_strbuf_clear(out_abs);
-        bool success = el_strbuf_append(out_abs, path);
+        el_strbuf_append(out_abs, path);
         el_free(cpath);
-        return success;
+        return true;
     }
 
     char cwd[PATH_MAX];
@@ -56,19 +55,16 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
     }
 
     el_strbuf_clear(out_abs);
-    if (!el_strbuf_append(out_abs, el_sv_from_cstr(cwd))) {
-        el_free(cpath);
-        return false;
-    }
-    bool success = el_pathbuf_join(out_abs, path);
+    el_strbuf_append(out_abs, el_sv_from_cstr(cwd));
+
+    el_pathbuf_join(out_abs, path);
     el_free(cpath);
-    return success;
+    return true;
 }
 
 bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int fd = open(cpath, O_RDONLY);
     el_free(cpath);
@@ -86,10 +82,7 @@ bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
     }
 
     usize size = (usize)st.st_size;
-    if (!el_strbuf_resize(out, size)) {
-        close(fd);
-        return false;
-    }
+    el_strbuf_resize(out, size);
 
     ssize_t nread = read(fd, out->data, size);
     close(fd);
@@ -104,7 +97,6 @@ bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
 bool el_fs_write_file(ElPathView path, ElStringView content) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int fd = open(cpath, O_WRONLY | O_CREAT | O_TRUNC, DEFAULT_FILE_PERMS);
     el_free(cpath);
@@ -119,7 +111,6 @@ bool el_fs_write_file(ElPathView path, ElStringView content) {
 bool el_fs_mkdir(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int res = mkdir(cpath, DEFAULT_DIR_PERMS);
     if (res == 0) {
@@ -158,7 +149,6 @@ bool el_fs_mkdir_all(ElPathView path) {
 bool el_fs_mkfile(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int fd = open(cpath, O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_FILE_PERMS);
     if (fd == -1) {
@@ -178,7 +168,6 @@ bool el_fs_mkdir_if_not_exists(ElPathView path) {
 bool el_fs_mkfile_if_not_exists(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int fd = open(cpath, O_CREAT | O_WRONLY | O_EXCL, DEFAULT_FILE_PERMS);
     if (fd == -1) {
@@ -198,7 +187,6 @@ bool el_fs_mkfile_if_not_exists(ElPathView path) {
 bool el_fs_touch(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int res = utime(cpath, NULL);
     if (res == -1 && errno == ENOENT) {
@@ -216,7 +204,6 @@ bool el_fs_touch(ElPathView path) {
 bool el_fs_rm(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int res = remove(cpath);
     el_free(cpath);
@@ -251,10 +238,7 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
             continue;
         }
 
-        if (!el_pathbuf_join(pb, el_sv_from_cstr(entry->d_name))) {
-            success = false;
-            break;
-        }
+        el_pathbuf_join(pb, el_sv_from_cstr(entry->d_name));
 
         if (!rm_recursive_internal(pb)) {
             success = false;
@@ -280,7 +264,7 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
 bool el_fs_rm_recursive(ElPathView path) {
     if (path.len == 0) return false;
     ElPathBuf pb;
-    if (!el_pathbuf_init_from(&pb, path)) return false;
+    el_pathbuf_init_from(&pb, path);
     bool res = rm_recursive_internal(&pb);
     el_pathbuf_destroy(&pb);
     return res;
@@ -289,7 +273,6 @@ bool el_fs_rm_recursive(ElPathView path) {
 bool el_fs_file_exists(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     struct stat st;
     int res = stat(cpath, &st);
@@ -318,7 +301,6 @@ ElFileType el_fs_get_file_type(ElPathView path) {
 bool el_fs_set_executable(ElPathView path, bool enabled) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     int fd = open(cpath, O_RDONLY);
     el_free(cpath);

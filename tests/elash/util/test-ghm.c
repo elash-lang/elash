@@ -32,8 +32,8 @@ Test(ghm, basic) {
     const char* k2 = "key2";
     const char* v2 = "val2";
 
-    cr_assert(el_ghm_insert(&ghm, k1, (void*)v1));
-    cr_assert(el_ghm_insert(&ghm, k2, (void*)v2));
+    el_ghm_insert(&ghm, k1, (void*)v1);
+    el_ghm_insert(&ghm, k2, (void*)v2);
 
     cr_assert_str_eq(el_ghm_lookup(&ghm, k1), v1);
     cr_assert_str_eq(el_ghm_lookup(&ghm, k2), v2);
@@ -55,7 +55,7 @@ Test(ghm, resize) {
         sprintf(buf, "k%d", i);
         char* key = strclone(buf);
         char* val = strclone(buf);
-        cr_assert(el_ghm_insert(&ghm, key, val));
+        el_ghm_insert(&ghm, key, val);
     }
 
     for (uint i = 0; i < 32; i++) {

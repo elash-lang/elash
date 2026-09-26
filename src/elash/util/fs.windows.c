@@ -15,7 +15,6 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
     if (path.len == 0) return false;
 
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     char buffer[MAX_PATH];
     DWORD res = GetFullPathNameA(cpath, MAX_PATH, buffer, NULL);
@@ -51,7 +50,6 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
 bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     el_free(cpath);
@@ -82,7 +80,6 @@ bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
 bool el_fs_write_file(ElPathView path, ElStringView content) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     el_free(cpath);
@@ -98,7 +95,6 @@ bool el_fs_write_file(ElPathView path, ElStringView content) {
 bool el_fs_mkdir(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     BOOL res = CreateDirectoryA(cpath, NULL);
     if (res) {
@@ -137,7 +133,6 @@ bool el_fs_mkdir_all(ElPathView path) {
 bool el_fs_mkfile(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
@@ -157,7 +152,6 @@ bool el_fs_mkdir_if_not_exists(ElPathView path) {
 bool el_fs_mkfile_if_not_exists(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
@@ -177,7 +171,6 @@ bool el_fs_mkfile_if_not_exists(ElPathView path) {
 bool el_fs_touch(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
@@ -204,7 +197,6 @@ bool el_fs_touch(ElPathView path) {
 bool el_fs_rm(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     DWORD attrs = GetFileAttributesA(cpath);
     if (attrs == INVALID_FILE_ATTRIBUTES) {
@@ -294,7 +286,7 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
 bool el_fs_rm_recursive(ElPathView path) {
     if (path.len == 0) return false;
     ElPathBuf pb;
-    if (!el_pathbuf_init_from(&pb, path)) return false;
+    el_pathbuf_init_from(&pb, path);
     bool res = rm_recursive_internal(&pb);
     el_pathbuf_destroy(&pb);
     return res;
@@ -303,7 +295,6 @@ bool el_fs_rm_recursive(ElPathView path) {
 bool el_fs_file_exists(ElPathView path) {
     if (path.len == 0) return false;
     char* cpath = el_sv_to_cstr_alloc(path);
-    if (cpath == NULL) return false;
 
     DWORD attrs = GetFileAttributesA(cpath);
     el_free(cpath);

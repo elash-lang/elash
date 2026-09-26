@@ -226,31 +226,29 @@ static bool needs_separator(ElTokenType tt) {
      || tt == EL_TT_BITWISE_NOT   || tt == EL_TT_COLON         || tt == EL_TT_DOT;
 }
 
-bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace) {
-    bool success = true;
-
+void el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace) {
     switch (tok->type) {
     case EL_TT_STRING_LITERAL:
-        success &= el_strbuf_append_char(sb, '"');
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append_char(sb, '"');
+        el_strbuf_append_char(sb, '"');
+        el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append_char(sb, '"');
         break;
     case EL_TT_CHAR_LITERAL:
-        success &= el_strbuf_append_char(sb, '\'');
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append_char(sb, '\'');
+        el_strbuf_append_char(sb, '\'');
+        el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append_char(sb, '\'');
         break;
     case EL_TT_LINE_COMMENT:
-        success &= el_strbuf_append(sb, EL_SV("//"));
-        success &= el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append(sb, EL_SV("//"));
+        el_strbuf_append(sb, tok->lexeme);
         break;
     case EL_TT_BLOCK_COMMENT:
-        success &= el_strbuf_append(sb, EL_SV("/*"));
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append(sb, EL_SV("*/"));
+        el_strbuf_append(sb, EL_SV("/*"));
+        el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append(sb, EL_SV("*/"));
         break;
     case EL_TT_NEWLINE:
-        success &= el_strbuf_append_char(sb, '\n');
+        el_strbuf_append_char(sb, '\n');
         break;
 
     case EL_TT_UNKNOWN:
@@ -258,12 +256,11 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace
         break;
     default:
         // for all other token types, append the lexeme directly
-        success &= el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append(sb, tok->lexeme);
         break;
     }
 
     if (whitespace && needs_separator(tok->type)) {
-        success &= el_strbuf_append_char(sb, ' ');
+        el_strbuf_append_char(sb, ' ');
     }
-    return success;
 }

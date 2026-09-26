@@ -33,7 +33,6 @@ usize el_lexer_result_to_string(ElLexerResult r, char** out) {
 
     if (r.code == EL_LEXERR_SUCCESS) {
         *out = EL_NEW_ARR(char, error_code_str.len + 1);
-        if (*out == NULL) return 0;
         memcpy(*out, error_code_str.data, error_code_str.len);
         (*out)[error_code_str.len] = '\0';
         return error_code_str.len;
@@ -56,7 +55,6 @@ usize el_lexer_result_to_string(ElLexerResult r, char** out) {
 
     const usize full_len = error_code_str.len + (usize)loc_len + (usize)char_len;
     *out = EL_NEW_ARR(char, full_len + 1);
-    if (*out == NULL) return 0;
 
     char* p = *out;
     memcpy(p, error_code_str.data, error_code_str.len);
@@ -105,7 +103,6 @@ usize el_lexer_result_print(ElLexerResult r, FILE* out) {
 usize el_lexer_result_format(ElLexerResult r, usize n, char buf[static n]) {
     char* s = NULL;
     usize len = el_lexer_result_to_string(r, &s);
-    if (s == NULL) return 0;
 
     // NOLINTNEXTLINE
     usize to_copy = (len < n) ? len : (n > 0 ? n - 1 : 0);

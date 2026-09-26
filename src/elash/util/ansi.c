@@ -94,8 +94,8 @@ void el_ansi_reset_style(FILE* out) {
     }
 }
 
-bool el_ansi_append_style(ElStringBuf* sb, ElAnsiStyle style, FILE* out) {
-    if (!el_ansi_is_supported(out)) return true;
+void el_ansi_append_style(ElStringBuf* sb, ElAnsiStyle style, FILE* out) {
+    if (!el_ansi_is_supported(out)) return;
 
     EL_STRBUF_APPEND(sb, "\033[0");
 
@@ -113,10 +113,10 @@ bool el_ansi_append_style(ElStringBuf* sb, ElAnsiStyle style, FILE* out) {
         el_strbuf_appendf(sb, ";%d", (int)style.bg_color + ANSI_BG_OFFSET);
     }
 
-    return el_strbuf_append_char(sb, 'm');
+    el_strbuf_append_char(sb, 'm');
 }
 
-bool el_ansi_append_reset(ElStringBuf* sb, FILE* out) {
-    if (!el_ansi_is_supported(out)) return true;
-    return EL_STRBUF_APPEND(sb, "\033[0m");
+void el_ansi_append_reset(ElStringBuf* sb, FILE* out) {
+    if (!el_ansi_is_supported(out)) return;
+    EL_STRBUF_APPEND(sb, "\033[0m");
 }

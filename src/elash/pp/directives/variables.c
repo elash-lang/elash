@@ -128,7 +128,8 @@ static bool handle_var_slash_const(ElPreproc* pp, ElSourceSpan dspan, bool mut) 
 
     ElSourceSpan defspan = el_srcspan_merge(dspan, name_tok.span);
     sym = _el_pp_new_sym_var(pp->iarena, name_tok.lexeme, defspan, value, mut, is_public);
-    return el_pp_scope_assign(pp->current_scope, sym->name, sym);
+    el_pp_scope_assign(pp->current_scope, sym->name, sym);
+    return true;
 }
 
 static bool skip_var_slash_const(ElPreproc* pp) {

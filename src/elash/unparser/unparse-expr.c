@@ -137,9 +137,6 @@ static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView s
     char* buf = (needed <= LITERAL_BUFSIZE)
         ? stack_buf : el_alloc(needed, 1);
 
-    if (buf == NULL)
-        return false;
-
     usize bidx = 0;
     for (usize i = 0; i < sv.len; ++i) {
         // we don;t actually need to handle all escapes here. the lexer handles most special characters just fine

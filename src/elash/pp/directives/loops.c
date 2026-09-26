@@ -36,7 +36,7 @@ static ElTokenArray clone_tokbuf(ElPreproc* pp, const ElTokenBuf* buf) {
 static bool capture_line_tokens(ElPreproc* pp, ElTokenBuf* buf) {
     ElToken tok;
     while (_el_pp_read(pp, &tok)) {
-        if (!el_tkbuf_push(buf, tok)) return false;
+        el_tkbuf_push(buf, tok);
     }
     return true;
 }
@@ -92,7 +92,9 @@ static bool enter_loop_body(ElPreproc* pp) {
             pp->iarena, loop->as.for_.name, pp->block_stack->open_span,
             elem, false, false
         );
-        return el_pp_scope_assign(pp->current_scope, sym->name, sym);
+
+        el_pp_scope_assign(pp->current_scope, sym->name, sym);
+        return true;
     }
 
     ElTokenStream stream = el_tokarr_as_stream(&loop->body_stream, loop->body);
@@ -102,7 +104,7 @@ static bool enter_loop_body(ElPreproc* pp) {
 
 bool _el_pp_handle_while(ElPreproc* pp, ElSourceSpan dspan) {
     ElTokenBuf cond_buf;
-    if (!el_tkbuf_init(&cond_buf)) return false;
+    el_tkbuf_init(&cond_buf);
 
     if (!capture_line_tokens(pp, &cond_buf)) {
         el_tkbuf_destroy(&cond_buf);
