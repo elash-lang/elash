@@ -43,5 +43,7 @@ typedef struct ElcCliParseResult {
 #define ELC_CLI_PARSE_RESULT_OK ((ElcCliParseResult) { .code = ELC_CLI_PARSE_OK })
 
 ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out_args, ElDynArena* arena);
-void elc_cli_print_usage(FILE* out, const char* program_name);
+
 void elc_cli_print_error(FILE* out, ElcCliParseResult res);
+void elc_cli_print_usage(FILE* out, const char* program_name);
+void elc_cli_print_version(FILE* out);

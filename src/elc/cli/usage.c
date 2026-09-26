@@ -1,4 +1,5 @@
 #include <elc/cli/argparse.h>
+#include <elash/version.h>
 
 #include <stdio.h>
 
@@ -37,6 +38,15 @@ void elc_cli_print_usage(FILE* out, const char* program_name) {
     fprt(out, "  --until=<artifact>     Stop after generating <artifact>"            );
     fprt(out, "  --emit=<artifact>      Emit <artifact> to output"                   );
     fprt(out, "\nArtifacts: source, tokens, pp-tokens, ast, hir, mir, lir, asm, obj" );
+}
+
+void elc_cli_print_version(FILE* out) {
+    fprt(out, "elc " EL_VERSION_STRING);
+    fprt(out, "Compiled on " __DATE__ ", commit " EL_COMMIT_SHA);
+    fprt(out, "with " EL_COMPILER_NAME " " EL_COMPILER_VERSION_STRING
+              " for " EL_OS_STRING " " EL_ARCH_STRING);
+    fprt(out, "Licensed under EUPL-1.2 <https://opensource.org/licenses/EUPL-1.2>");
+    fprt(out, "Report bugs to: <https://github.com/elash-lang/elash/issues>");
 }
 
 // TODO: fancy ansi output

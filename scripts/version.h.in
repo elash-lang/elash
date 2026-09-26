@@ -8,6 +8,8 @@
 #define EL_VERSION_MINOR ${MINOR}
 #define EL_VERSION_PATCH ${PATCH}
 
+#define EL_COMMIT_SHA "${COMMIT}"
+
 // NOTE: parentheses are intentionally omitted so further
 //       compile-time string concatenation is possible
 #define EL_VERSION_STRING \

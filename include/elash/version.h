@@ -13,6 +13,8 @@
 #define EL_VERSION_MINOR 1
 #define EL_VERSION_PATCH 2
 
+#define EL_COMMIT_SHA "659c0dfd-dirty"
+
 // NOTE: parentheses are intentionally omitted so further
 //       compile-time string concatenation is possible
 #define EL_VERSION_STRING \

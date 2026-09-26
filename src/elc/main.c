@@ -41,8 +41,7 @@ int main(int argc, const char* argv[]) {
         return 0;
     }
     if (args.version) {
-        // TODO: actually print the version i guess
-        puts("what do you mean by 'version'?");
+        elc_cli_print_version(stdout);
         return 0;
     }
 

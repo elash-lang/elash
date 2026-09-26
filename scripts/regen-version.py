@@ -1,6 +1,7 @@
 from string import Template
 from pathlib import Path
 
+import subprocess
 import argparse
 import typing
 import sys
@@ -37,6 +38,29 @@ class CliArgs(argparse.Namespace):
 def eprint(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
 
+def get_commit_sha() -> str:
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short=8", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True
+        ).stdout.strip()
+
+        status = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True
+        ).stdout.strip()
+
+        if status:
+            commit += "-dirty"
+
+        return commit
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return "none"
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog='regen-version',
@@ -70,6 +94,7 @@ def main() -> int:
             "MAJOR": version.major,
             "MINOR": version.minor,
             "PATCH": version.patch,
+            "COMMIT": get_commit_sha(),
         }
 
         output = f"""\
