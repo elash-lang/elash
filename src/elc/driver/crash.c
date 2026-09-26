@@ -234,6 +234,15 @@ void elc_register_crash_handlers() {
 
 #else
 
+#include <stdio.h>
+
 void elc_register_crash_handlers() {}
+
+void elc_out_of_mem_cb(ElSourceLocInfo locinfo) {
+    // TODO: some better handler for windows
+    fprintf(stderr, "Out of memory!\n");
+    fprintf(stderr, "At %s:%u in %s\n",
+            locinfo.file, locinfo.line, locinfo.func);
+}
 
 #endif

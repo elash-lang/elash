@@ -13,11 +13,12 @@ export CC="$TOOLCHAIN/bin/x86_64-linux-musl-gcc"
 export AR="$TOOLCHAIN/bin/x86_64-linux-musl-ar"
 
 export EXTRA_LDFLAGS="-static -L${TOOLCHAIN_GXX_DIR} -L${TOOLCHAIN_GCC_DIR} -L${MUSL_DEPS}/lib"
-export EXTRA_CFLAGS="-I${MUSL_DEPS}/include"
+export EXTRA_CFLAGS="-I${MUSL_DEPS}/include -DELC_SHOW_BACKTRACE=0"
 
 make -C "$PROJECT_ROOT" archive -j"$(nproc)" \
     BUILD=release \
     LLVM_CONFIG="$LLVMPATH/bin/llvm-config" \
+    USE_LIB_BACKTRACE=\
     EXTRA_CFLAGS="$EXTRA_CFLAGS" \
     EXTRA_LDFLAGS="$EXTRA_LDFLAGS" \
     OBJ_ROOT_DIR="$PWD/build/obj" \

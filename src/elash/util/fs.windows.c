@@ -36,15 +36,17 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
             el_free(heap_buffer);
             return false;
         }
+
         el_strbuf_clear(out_abs);
-        bool success = el_strbuf_append(out_abs, el_sv_from_cstr(heap_buffer));
+        el_strbuf_append(out_abs, el_sv_from_cstr(heap_buffer));
         el_free(heap_buffer);
-        return success;
+        return true;
     }
 
     el_free(cpath);
     el_strbuf_clear(out_abs);
-    return el_strbuf_append(out_abs, el_sv_from_cstr(buffer));
+    el_strbuf_append(out_abs, el_sv_from_cstr(buffer));
+    return true;
 }
 
 bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
@@ -61,10 +63,7 @@ bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
         return false;
     }
 
-    if (!el_strbuf_resize(out, (usize)size.QuadPart)) {
-        CloseHandle(hFile);
-        return false;
-    }
+    el_strbuf_resize(out, (usize)size.QuadPart);
 
     DWORD nread;
     BOOL res = ReadFile(hFile, out->data, (DWORD)size.QuadPart, &nread, NULL);
@@ -260,10 +259,7 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
             continue;
         }
 
-        if (!el_pathbuf_join(pb, el_sv_from_cstr(fd.cFileName))) {
-            success = false;
-            break;
-        }
+        el_pathbuf_join(pb, el_sv_from_cstr(fd.cFileName));
 
         if (!rm_recursive_internal(pb)) {
             success = false;
