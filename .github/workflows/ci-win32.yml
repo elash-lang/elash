@@ -18,6 +18,7 @@ jobs:
     env:
       CC: ccache gcc
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+      EXTRA_CFLAGS: -DELC_SHOW_BACKTRACE=0
     defaults:
       run:
         shell: msys2 {0}

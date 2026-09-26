@@ -17,6 +17,8 @@ on:
 jobs:
   run-ci:
     runs-on: ubuntu-24.04-arm
+    env:
+      EXTRA_CFLAGS: -DELC_SHOW_BACKTRACE=0
 
     steps:
       - name: Checkout repository
