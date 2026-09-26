@@ -25,69 +25,77 @@ static ElTokenType cassign_token(ElBinOp op) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
-bool el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
+void el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
     switch (stmt->type) {
     case EL_AST_STMT_EXPR:
-        if (!el_unparser_unparse_expr(unpar, stmt->as.expr)) return false;
-        return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        el_unparser_unparse_expr(unpar, stmt->as.expr);
+        el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        return;
 
     case EL_AST_STMT_RETURN:
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_RETURN)) return false;
+        el_unparser_push_kw(unpar, EL_TT_KW_RETURN);
         if (stmt->as.return_.value != NULL) {
-            if (!el_unparser_unparse_init(unpar, stmt->as.return_.value)) return false;
+            el_unparser_unparse_init(unpar, stmt->as.return_.value);
         }
-        return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        return;
 
     case EL_AST_STMT_DECL:
         return el_unparser_unparse_decl(unpar, stmt->as.decl);
 
     case EL_AST_STMT_ASSIGN:
-        if (!el_unparser_unparse_expr(unpar, stmt->as.assign.target)) return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_ASSIGN))             return false;
-        if (!el_unparser_unparse_init(unpar, stmt->as.assign.value))  return false;
+        el_unparser_unparse_expr(unpar, stmt->as.assign.target);
+        el_unparser_push_punct(unpar, EL_TT_ASSIGN);
+        el_unparser_unparse_init(unpar, stmt->as.assign.value);
         return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 
     case EL_AST_STMT_CASSIGN:
-        if (!el_unparser_unparse_expr(unpar, stmt->as.cassign.target))          return false;
-        if (!el_unparser_push_punct(unpar, cassign_token(stmt->as.cassign.op))) return false;
-        if (!el_unparser_unparse_init(unpar, stmt->as.cassign.value))           return false;
-        return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        el_unparser_unparse_expr(unpar, stmt->as.cassign.target);
+        el_unparser_push_punct(unpar, cassign_token(stmt->as.cassign.op));
+        el_unparser_unparse_init(unpar, stmt->as.cassign.value);
+        el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        return;
 
     case EL_AST_STMT_BLOCK:
-        return _el_unparser_unparse_block(unpar, &stmt->as.block);
+        _el_unparser_unparse_block(unpar, &stmt->as.block);
+        return;
 
     case EL_AST_STMT_IF:
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_IF))            return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_LPAREN))        return false;
+        el_unparser_push_kw(unpar, EL_TT_KW_IF);
+        el_unparser_push_punct(unpar, EL_TT_LPAREN);
         if (stmt->as.if_.init != NULL) {
-            if (!el_unparser_unparse_stmt(unpar, stmt->as.if_.init)) return false;
+            el_unparser_unparse_stmt(unpar, stmt->as.if_.init);
         }
-        if (!el_unparser_unparse_expr(unpar, stmt->as.if_.cond)) return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_RPAREN))        return false;
-        if (!el_unparser_unparse_stmt(unpar, stmt->as.if_.then)) return false;
+        el_unparser_unparse_expr(unpar, stmt->as.if_.cond);
+        el_unparser_push_punct(unpar, EL_TT_RPAREN);
+        el_unparser_unparse_stmt(unpar, stmt->as.if_.then);
         if (stmt->as.if_.else_ != NULL) {
-            if (!el_unparser_push_kw(unpar, EL_TT_KW_ELSE))           return false;
-            if (!el_unparser_unparse_stmt(unpar, stmt->as.if_.else_)) return false;
+            el_unparser_push_kw(unpar, EL_TT_KW_ELSE);
+            el_unparser_unparse_stmt(unpar, stmt->as.if_.else_);
         }
-        return true;
+        return;
 
     case EL_AST_STMT_WHILE:
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_WHILE))            return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_LPAREN))           return false;
+        el_unparser_push_kw(unpar, EL_TT_KW_WHILE);
+        el_unparser_push_punct(unpar, EL_TT_LPAREN);
         if (stmt->as.while_.init != NULL) {
-            if (!el_unparser_unparse_stmt(unpar, stmt->as.while_.init)) return false;
+            el_unparser_unparse_stmt(unpar, stmt->as.while_.init);
         }
-        if (!el_unparser_unparse_expr(unpar, stmt->as.while_.cond)) return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_RPAREN))           return false;
-        return el_unparser_unparse_stmt(unpar, stmt->as.while_.body);
+
+        el_unparser_unparse_expr(unpar, stmt->as.while_.cond);
+        el_unparser_push_punct(unpar, EL_TT_RPAREN);
+        el_unparser_unparse_stmt(unpar, stmt->as.while_.body);
+        return;
 
     case EL_AST_STMT_BREAK:
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_BREAK)) return false;
-        return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        el_unparser_push_kw(unpar, EL_TT_KW_BREAK);
+        el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        return;
 
     case EL_AST_STMT_CONTINUE:
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_CONTINUE)) return false;
-        return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        el_unparser_push_kw(unpar, EL_TT_KW_CONTINUE);
+        el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+        return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, stmt->type);
 }

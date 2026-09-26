@@ -2,7 +2,7 @@
 
 #include <elash/util/assert.h>
 
-bool el_unparser_unparse_toi(ElUnparser* unpar, ElAstToI* toi) {
+void el_unparser_unparse_toi(ElUnparser* unpar, ElAstToI* toi) {
     switch (toi->kind) {
     case EL_AST_TOI_TYPE:
         return el_unparser_unparse_type(unpar, toi->as.type);

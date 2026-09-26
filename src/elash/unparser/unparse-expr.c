@@ -35,27 +35,27 @@ static int bin_op_prec(ElAstBinOp op) {
     switch (op) {
     case EL_BIN_OP_OPT_FB:
     case EL_BIN_OP_OPT_MAP: return PREC_OPT;
-    case EL_BIN_OP_IMP:    return PREC_IMP;
-    case EL_BIN_OP_OR:     return PREC_OR;
-    case EL_BIN_OP_AND:    return PREC_AND;
-    case EL_BIN_OP_BW_IMP: return PREC_BW_IMP;
-    case EL_BIN_OP_BW_OR:  return PREC_BW_OR;
-    case EL_BIN_OP_BW_XOR: return PREC_BW_XOR;
-    case EL_BIN_OP_BW_AND: return PREC_BW_AND;
+    case EL_BIN_OP_IMP:     return PREC_IMP;
+    case EL_BIN_OP_OR:      return PREC_OR;
+    case EL_BIN_OP_AND:     return PREC_AND;
+    case EL_BIN_OP_BW_IMP:  return PREC_BW_IMP;
+    case EL_BIN_OP_BW_OR:   return PREC_BW_OR;
+    case EL_BIN_OP_BW_XOR:  return PREC_BW_XOR;
+    case EL_BIN_OP_BW_AND:  return PREC_BW_AND;
     case EL_BIN_OP_EQ:
-    case EL_BIN_OP_NEQ:    return PREC_EQ;
+    case EL_BIN_OP_NEQ:     return PREC_EQ;
     case EL_BIN_OP_LT:
     case EL_BIN_OP_LTE:
     case EL_BIN_OP_GT:
-    case EL_BIN_OP_GTE:    return PREC_REL;
+    case EL_BIN_OP_GTE:     return PREC_REL;
     case EL_BIN_OP_SHL:
-    case EL_BIN_OP_SHR:    return PREC_SHIFT;
+    case EL_BIN_OP_SHR:     return PREC_SHIFT;
     case EL_BIN_OP_ADD:
-    case EL_BIN_OP_SUB:    return PREC_ADD;
+    case EL_BIN_OP_SUB:     return PREC_ADD;
     case EL_BIN_OP_MUL:
     case EL_BIN_OP_DIV:
-    case EL_BIN_OP_MOD:    return PREC_MUL;
-    case EL_BIN_OP_INDEX:  return PREC_POSTFIX;
+    case EL_BIN_OP_MOD:     return PREC_MUL;
+    case EL_BIN_OP_INDEX:   return PREC_POSTFIX;
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstBinOp, op);
 }
@@ -113,21 +113,24 @@ static int expr_prec(ElAstExpr* expr) {
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, expr->type);
 }
 
-static bool unparse_paren_expr(ElUnparser* unpar, ElAstExpr* expr) {
-    if (!el_unparser_push_punct(unpar, EL_TT_LPAREN)) return false;
-    if (!el_unparser_unparse_expr(unpar, expr))       return false;
-    return el_unparser_push_punct(unpar, EL_TT_RPAREN);
+static void unparse_paren_expr(ElUnparser* unpar, ElAstExpr* expr) {
+    el_unparser_push_punct(unpar, EL_TT_LPAREN);
+    el_unparser_unparse_expr(unpar, expr);
+    el_unparser_push_punct(unpar, EL_TT_RPAREN);
 }
 
-static bool unparse_child(ElUnparser* unpar, ElAstExpr* child, int parent_prec, bool is_right) {
+static void unparse_child(ElUnparser* unpar, ElAstExpr* child, int parent_prec, bool is_right) {
     int child_p = expr_prec(child);
     bool need_paren = is_right ? (child_p <= parent_prec) : (child_p < parent_prec);
-    if (need_paren) return unparse_paren_expr(unpar, child);
+
+    if (need_paren) {
+        return unparse_paren_expr(unpar, child);
+    }
     return el_unparser_unparse_expr(unpar, child);
 }
 
 #define LITERAL_BUFSIZE 2038
-static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView sv) {
+static void push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView sv) {
     char stack_buf[LITERAL_BUFSIZE];
 
     // the worst case, a string that contains only quotes or backslashes.
@@ -152,13 +155,12 @@ static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView s
         }
     }
 
-    bool success = el_unparser_push(unpar, type, el_sv_from_data_and_len(buf, bidx));
+    el_unparser_push(unpar, type, el_sv_from_data_and_len(buf, bidx));
     if (buf != stack_buf) el_free(buf);
-    return success;
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstLiteral* lit = &expr->as.literal;
     switch (lit->kind) {
     case EL_AST_LIT_INT: {
@@ -186,101 +188,102 @@ static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-static bool unparse_unary(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_unary(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstUnaryOp op = expr->as.unary.op;
     ElAstExpr* operand = expr->as.unary.operand;
     int prec = expr_prec(expr);
 
     if (el_unary_op_is_post(op) || op == EL_UNARY_OP_DEREF) {
-        if (!unparse_child(unpar, operand, prec, false)) return false;
+        unparse_child(unpar, operand, prec, false);
 
         switch (op) {
-        case EL_UNARY_OP_POST_INC: return el_unparser_push_punct(unpar, EL_TT_INC);
-        case EL_UNARY_OP_POST_DEC: return el_unparser_push_punct(unpar, EL_TT_DEC);
-        case EL_UNARY_OP_DEREF:    return el_unparser_push_punct(unpar, EL_TT_CARET);
+        case EL_UNARY_OP_POST_INC:   return el_unparser_push_punct(unpar, EL_TT_INC);
+        case EL_UNARY_OP_POST_DEC:   return el_unparser_push_punct(unpar, EL_TT_DEC);
+        case EL_UNARY_OP_DEREF:      return el_unparser_push_punct(unpar, EL_TT_CARET);
         case EL_UNARY_OP_OPT_UNWRAP: return el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT);
         default: EL_UNREACHABLE("not a postfix unary");
         }
     }
 
     switch (op) {
-    case EL_UNARY_OP_POS:     if (!el_unparser_push_punct(unpar, EL_TT_PLUS))        return false; break;
-    case EL_UNARY_OP_NEG:     if (!el_unparser_push_punct(unpar, EL_TT_MINUS))       return false; break;
-    case EL_UNARY_OP_NOT:     if (!el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT)) return false; break;
-    case EL_UNARY_OP_BW_NOT:  if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_NOT)) return false; break;
-    case EL_UNARY_OP_ADDROF:  if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_AND)) return false; break;
-    case EL_UNARY_OP_PRE_INC: if (!el_unparser_push_punct(unpar, EL_TT_INC))         return false; break;
-    case EL_UNARY_OP_PRE_DEC: if (!el_unparser_push_punct(unpar, EL_TT_DEC))         return false; break;
+    case EL_UNARY_OP_POS:     el_unparser_push_punct(unpar, EL_TT_PLUS);        break;
+    case EL_UNARY_OP_NEG:     el_unparser_push_punct(unpar, EL_TT_MINUS);       break;
+    case EL_UNARY_OP_NOT:     el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT); break;
+    case EL_UNARY_OP_BW_NOT:  el_unparser_push_punct(unpar, EL_TT_BITWISE_NOT); break;
+    case EL_UNARY_OP_ADDROF:  el_unparser_push_punct(unpar, EL_TT_BITWISE_AND); break;
+    case EL_UNARY_OP_PRE_INC: el_unparser_push_punct(unpar, EL_TT_INC);         break;
+    case EL_UNARY_OP_PRE_DEC: el_unparser_push_punct(unpar, EL_TT_DEC);         break;
     default: EL_UNREACHABLE("not a prefix unary");
     }
 
-    return unparse_child(unpar, operand, prec, true);
+    unparse_child(unpar, operand, prec, true);
 }
 
-static bool unparse_binary(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_binary(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstBinOp op = expr->as.binary.op;
     int prec = bin_op_prec(op);
 
     if (op == EL_BIN_OP_INDEX) {
-        if (!unparse_child(unpar, expr->as.binary.left, prec, false)) return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_LBRACKET))           return false;
-        if (!el_unparser_unparse_expr(unpar, expr->as.binary.right))  return false;
+        unparse_child(unpar, expr->as.binary.left, prec, false);
+        el_unparser_push_punct(unpar, EL_TT_LBRACKET);
+        el_unparser_unparse_expr(unpar, expr->as.binary.right);
         return el_unparser_push_punct(unpar, EL_TT_RBRACKET);
     }
 
-    if (!unparse_child(unpar, expr->as.binary.left, prec, false)) return false;
-    if (!el_unparser_push_punct(unpar, bin_op_token(op)))         return false;
-    return unparse_child(unpar, expr->as.binary.right, prec, true);
+    unparse_child(unpar, expr->as.binary.left, prec, false);
+    el_unparser_push_punct(unpar, bin_op_token(op));
+    unparse_child(unpar, expr->as.binary.right, prec, true);
 }
 
-static bool unparse_call(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_call(ElUnparser* unpar, ElAstExpr* expr) {
     int prec = PREC_POSTFIX;
-    if (!unparse_child(unpar, expr->as.call.callee, prec, false)) return false;
-    if (!el_unparser_push_punct(unpar, EL_TT_LPAREN))             return false;
+    unparse_child(unpar, expr->as.call.callee, prec, false);
+    el_unparser_push_punct(unpar, EL_TT_LPAREN);
 
     for (ElAstToI* arg = expr->as.call.args; arg != NULL; arg = arg->next) {
-        if (!el_unparser_unparse_toi(unpar, arg)) return false;
+        el_unparser_unparse_toi(unpar, arg);
         if (arg->next != NULL) {
-            if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
+            el_unparser_push_punct(unpar, EL_TT_COMMA);
         }
     }
 
-    return el_unparser_push_punct(unpar, EL_TT_RPAREN);
+    el_unparser_push_punct(unpar, EL_TT_RPAREN);
 }
 
-static bool unparse_cast(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_cast(ElUnparser* unpar, ElAstExpr* expr) {
     int prec = PREC_CAST;
-    if (!unparse_child(unpar, expr->as.cast.expr, prec, false)) return false;
-    if (!el_unparser_push_kw(unpar, EL_TT_KW_AS)) return false;
-    return el_unparser_unparse_type(unpar, expr->as.cast.type);
+    unparse_child(unpar, expr->as.cast.expr, prec, false);
+    el_unparser_push_kw(unpar, EL_TT_KW_AS);
+    el_unparser_unparse_type(unpar, expr->as.cast.type);
 }
 
-static bool unparse_member(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_member(ElUnparser* unpar, ElAstExpr* expr) {
     int prec = PREC_POSTFIX;
-    if (!unparse_child(unpar, expr->as.member.expr, prec, false)) return false;
-    if (!el_unparser_push_punct(unpar, EL_TT_DOT)) return false;
+    unparse_child(unpar, expr->as.member.expr, prec, false);
+    el_unparser_push_punct(unpar, EL_TT_DOT);
     return el_unparser_push_ident(unpar, expr->as.member.name);
 }
 
-static bool unparse_tmember(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_tmember(ElUnparser* unpar, ElAstExpr* expr) {
     int prec = PREC_POSTFIX;
-    if (!unparse_child(unpar, expr->as.tmember.expr, prec, false)) return false;
-    if (!el_unparser_push_punct(unpar, EL_TT_DOT)) return false;
+    unparse_child(unpar, expr->as.tmember.expr, prec, false);
+    el_unparser_push_punct(unpar, EL_TT_DOT);
 
     return el_unparser_push_fmt(
         unpar, EL_TT_INT_LITERAL, "%zu", expr->as.tmember.index
     );
 }
 
-static bool unparse_typedinit(ElUnparser* unpar, ElAstExpr* expr) {
+static void unparse_typedinit(ElUnparser* unpar, ElAstExpr* expr) {
     if (expr->as.typedinit.scls == EL_STORAGECLS_STATIC) {
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_STATIC)) return false;
+        el_unparser_push_kw(unpar, EL_TT_KW_STATIC);
     }
-    if (!el_unparser_unparse_type(unpar, expr->as.typedinit.type)) return false;
+
+    el_unparser_unparse_type(unpar, expr->as.typedinit.type);
     return el_unparser_unparse_init(unpar, expr->as.typedinit.init);
 }
 
-bool el_unparser_unparse_expr(ElUnparser* unpar, ElAstExpr* expr) {
+void el_unparser_unparse_expr(ElUnparser* unpar, ElAstExpr* expr) {
     switch (expr->type) {
     case EL_AST_EXPR_LITERAL:   return unparse_literal(unpar, expr);
     case EL_AST_EXPR_IDENT:     return _el_unparser_unparse_ident(unpar, &expr->as.ident);
