@@ -315,6 +315,7 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
 
 ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out, ElDynArena* arena) {
     memset(out, 0, sizeof(ElcArgs));
+    out->output = el_sv_from_cstr("-");
     out->stdlib = out->corelib = true;
     out->opt = ELC_OPT_UNSPEC;
     out->until = ELC_ART_OBJ;

@@ -7,6 +7,8 @@
 #include <elash/util/todo.h>
 #include <elash/util/ansi.h>
 
+#include <elash/version.h>
+
 #include <signal.h>
 #include <unistd.h>
 
@@ -138,6 +140,17 @@ static void handler(int sig, siginfo_t *info, void *ucontext) {
         print_bold_label(&msg, "Signal");
         el_strbuf_appendf(&msg, "SIGFPE\n");
     }
+
+    print_bold_label_ex(&msg, "\n", "Environment", "\n");
+
+    print_bold_label(&msg, "OS");
+    el_strbuf_appendf(&msg, EL_OS_STRING "\n");
+    print_bold_label(&msg, "Arch");
+    el_strbuf_appendf(&msg, EL_ARCH_STRING "\n");
+    print_bold_label(&msg, "Version");
+    el_strbuf_appendf(&msg, EL_VERSION_STRING "\n");
+    print_bold_label(&msg, "Commit");
+    el_strbuf_appendf(&msg, EL_COMMIT_SHA "\n");
 
     print_bold_label_ex(&msg, "\n", "Backtrace", "\n");
     write(STDERR_FILENO, msg.data, msg.len);
