@@ -1,6 +1,6 @@
 #include <elash/lexer/tokbuf.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 static bool el_tkbuf_reallocate(ElTokenBuf* tkbuf, usize new_cap);
@@ -30,7 +30,7 @@ bool el_tkbuf_init(ElTokenBuf* tkbuf) {
 }
 
 void el_tkbuf_destroy(ElTokenBuf* tkbuf) {
-    free(tkbuf->data);
+    el_free(tkbuf->data);
     tkbuf->data = NULL;
     tkbuf->len = 0;
     tkbuf->cap = 0;
@@ -42,7 +42,7 @@ bool el_tkbuf_copy(const ElTokenBuf* src, ElTokenBuf* dst) {
     if (src->len == 0)
         return true;
 
-    dst->data = malloc(src->len * sizeof(ElToken));
+    dst->data = EL_NEW_ARR(ElToken, src->len);
     if (dst->data == NULL) {
         return false;
     }
@@ -67,7 +67,7 @@ bool el_tkbuf_move(ElTokenBuf* src, ElTokenBuf* dst) {
 static bool el_tkbuf_reallocate(ElTokenBuf* tkbuf, usize new_cap) {
     if (new_cap == tkbuf->cap) return true;
 
-    ElToken* new_data = realloc(tkbuf->data, new_cap * sizeof(ElToken));
+    ElToken* new_data = el_realloc(tkbuf->data, new_cap, sizeof(ElToken));
     if (new_data == NULL) return false;
 
     tkbuf->data = new_data;

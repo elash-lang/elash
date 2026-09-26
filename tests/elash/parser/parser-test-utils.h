@@ -1,8 +1,7 @@
 #include <elash/parser/parser.h>
 #include <elash/lexer/lexer.h>
 #include <elash/source/doc.h>
-
-#include <stdlib.h>
+#include <elash/util/alloc.h>
 
 #define assert_int_lit(LIT, EXPECTED) do {                            \
     cr_assert_eq((LIT)->as.literal.kind, EL_AST_LIT_INT);             \
@@ -25,10 +24,10 @@ void fini() { el_dynarena_free(&arena); }
 
 // NOTE: memory leaks are intentional
 ElParser p(const char* code, ElDiagEngine* diag) {
-    ElSourceDocument* doc = malloc(sizeof *doc);
+    ElSourceDocument* doc = EL_NEW(ElSourceDocument);
     el_srcdoc_init_from_str(doc, el_sv_from_cstr(code), EL_SV("test.eu"));
 
-    ElLexer* lexer = malloc(sizeof *lexer);
+    ElLexer* lexer = EL_NEW(ElLexer);
     el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT | EL_LF_SKIP_WHITESPACE);
 
     ElTokenStream toks = el_lexer_as_token_stream(lexer);

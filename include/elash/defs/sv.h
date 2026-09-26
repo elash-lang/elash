@@ -1,10 +1,10 @@
 #pragma once
 
 #include <elash/defs/int-types.h>
+#include <elash/util/alloc.h>
 
 #include <stdbool.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 
 typedef struct ElStringView {
@@ -95,7 +95,7 @@ static inline ElStringView el_sv_window(ElStringView sv, usize start, usize len)
 
 static inline char* el_sv_to_cstr_alloc(ElStringView sv) {
     if (el_sv_is_null(sv)) return NULL;
-    char* cstr = malloc(sv.len + 1);
+    char* cstr = EL_NEW_ARR(char, sv.len + 1);
     if (cstr == NULL) return NULL;
     memcpy(cstr, sv.data, sv.len);
     cstr[sv.len] = '\0';

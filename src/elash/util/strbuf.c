@@ -1,6 +1,6 @@
 #include <elash/util/strbuf.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -20,7 +20,7 @@ bool el_strbuf_init(ElStringBuf* sb) {
 }
 
 bool el_strbuf_init_with_cap(ElStringBuf* sb, usize init_cap) {
-    sb->data = malloc(init_cap);
+    sb->data = EL_NEW_ARR(char, init_cap);
     if (sb->data == NULL) return false;
     sb->len = 0;
     sb->cap = init_cap;
@@ -28,7 +28,7 @@ bool el_strbuf_init_with_cap(ElStringBuf* sb, usize init_cap) {
 }
 
 bool el_strbuf_init_from(ElStringBuf* sb, ElStringView sv) {
-    sb->data = malloc(sv.len);
+    sb->data = EL_NEW_ARR(char, sv.len);
     if (sb->data == NULL) return false;
 
     memcpy(sb->data, sv.data, sv.len);
@@ -42,7 +42,7 @@ bool el_strbuf_init_from_cstr(ElStringBuf* sb, const char* cstr) {
 }
 
 void el_strbuf_destroy(ElStringBuf* sb) {
-    free(sb->data);
+    el_free(sb->data);
     sb->data = NULL;
     sb->len = 0;
     sb->cap = 0;
@@ -55,7 +55,7 @@ bool el_strbuf_copy(const ElStringBuf* src, ElStringBuf* dst) {
         dst->cap = 0;
         return true;
     }
-    dst->data = malloc(src->len);
+    dst->data = EL_NEW_ARR(char, src->len);
     if (dst->data == NULL) {
         dst->len = 0;
         dst->cap = 0;
@@ -90,7 +90,7 @@ bool el_strbuf_reserve(ElStringBuf* sb, usize min_cap) {
     }
 
     usize new_cap = _el_strbuf_next_cap(sb->cap, min_cap);
-    char* new_data = realloc(sb->data, new_cap);
+    char* new_data = el_realloc(sb->data, new_cap, 1);
     if (new_data == NULL) return false;
 
     sb->data = new_data;
@@ -103,7 +103,7 @@ bool el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap) {
         return true;
     }
 
-    char* new_data = realloc(sb->data, new_cap);
+    char* new_data = el_realloc(sb->data, new_cap, 1);
     if (new_data == NULL) return false;
 
     sb->data = new_data;

@@ -7,6 +7,7 @@
 #include <elash/source/doc.h>
 #include <elash/diag/engine.h>
 #include <elash/util/dynarena.h>
+#include <elash/util/alloc.h>
 
 #include <stdlib.h>
 
@@ -18,10 +19,10 @@ void fini() { el_dynarena_free(&arena); el_diag_engine_free(&diag);         }
 
 // NOTE: memory leaks are intentional
 static inline ElPreproc* p(const char* code) {
-    ElSourceDocument* doc = malloc(sizeof *doc);
+    ElSourceDocument* doc = EL_NEW(ElSourceDocument);
     el_srcdoc_init_from_str(doc, el_sv_from_cstr(code), EL_SV("test.eu"));
 
-    ElLexer* lexer = malloc(sizeof *lexer);
+    ElLexer* lexer = EL_NEW(ElLexer);
     el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
 
     ElTokenStream stream = el_lexer_as_token_stream(lexer);

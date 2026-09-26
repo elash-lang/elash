@@ -37,31 +37,31 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
     if (abs_path != NULL) {
         el_strbuf_clear(out_abs);
         bool success = el_strbuf_append(out_abs, el_sv_from_cstr(abs_path));
-        free(abs_path);
-        free(cpath);
+        el_free(abs_path);
+        el_free(cpath);
         return success;
     }
 
     if (el_pathview_is_absolute(path)) {
         el_strbuf_clear(out_abs);
         bool success = el_strbuf_append(out_abs, path);
-        free(cpath);
+        el_free(cpath);
         return success;
     }
 
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     el_strbuf_clear(out_abs);
     if (!el_strbuf_append(out_abs, el_sv_from_cstr(cwd))) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
     bool success = el_pathbuf_join(out_abs, path);
-    free(cpath);
+    el_free(cpath);
     return success;
 }
 
@@ -71,7 +71,7 @@ bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
     if (cpath == NULL) return false;
 
     int fd = open(cpath, O_RDONLY);
-    free(cpath);
+    el_free(cpath);
     if (fd == -1) return false;
 
     struct stat st;
@@ -107,7 +107,7 @@ bool el_fs_write_file(ElPathView path, ElStringView content) {
     if (cpath == NULL) return false;
 
     int fd = open(cpath, O_WRONLY | O_CREAT | O_TRUNC, DEFAULT_FILE_PERMS);
-    free(cpath);
+    el_free(cpath);
     if (fd == -1) return false;
 
     ssize_t nwritten = write(fd, content.data, content.len);
@@ -123,19 +123,19 @@ bool el_fs_mkdir(ElPathView path) {
 
     int res = mkdir(cpath, DEFAULT_DIR_PERMS);
     if (res == 0) {
-        free(cpath);
+        el_free(cpath);
         return true;
     }
 
     if (errno == EEXIST) {
         struct stat st;
         if (stat(cpath, &st) == 0 && S_ISDIR(st.st_mode)) {
-            free(cpath);
+            el_free(cpath);
             return true;
         }
     }
 
-    free(cpath);
+    el_free(cpath);
     return false;
 }
 
@@ -162,12 +162,12 @@ bool el_fs_mkfile(ElPathView path) {
 
     int fd = open(cpath, O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_FILE_PERMS);
     if (fd == -1) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     close(fd);
-    free(cpath);
+    el_free(cpath);
     return true;
 }
 
@@ -183,15 +183,15 @@ bool el_fs_mkfile_if_not_exists(ElPathView path) {
     int fd = open(cpath, O_CREAT | O_WRONLY | O_EXCL, DEFAULT_FILE_PERMS);
     if (fd == -1) {
         if (errno == EEXIST) {
-            free(cpath);
+            el_free(cpath);
             return true;
         }
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     close(fd);
-    free(cpath);
+    el_free(cpath);
     return true;
 }
 
@@ -209,7 +209,7 @@ bool el_fs_touch(ElPathView path) {
         }
     }
 
-    free(cpath);
+    el_free(cpath);
     return res == 0;
 }
 
@@ -219,7 +219,7 @@ bool el_fs_rm(ElPathView path) {
     if (cpath == NULL) return false;
 
     int res = remove(cpath);
-    free(cpath);
+    el_free(cpath);
     return res == 0;
 }
 
@@ -229,17 +229,17 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
     if (cpath == NULL) return false;
 
     if (unlink(cpath) == 0) {
-        free(cpath);
+        el_free(cpath);
         return true;
     }
 
     if (errno != EISDIR && errno != EPERM) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     DIR* dir = opendir(cpath);
-    free(cpath);
+    el_free(cpath);
     if (!dir) return false;
 
     bool success = true;
@@ -269,7 +269,7 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
         char* dpath = el_sv_to_cstr_alloc(el_pathbuf_view(pb));
         if (dpath != NULL) {
             success = (rmdir(dpath) == 0);
-            free(dpath);
+            el_free(dpath);
         } else {
             success = false;
         }
@@ -293,7 +293,7 @@ bool el_fs_file_exists(ElPathView path) {
 
     struct stat st;
     int res = stat(cpath, &st);
-    free(cpath);
+    el_free(cpath);
     return res == 0;
 }
 
@@ -304,11 +304,11 @@ ElFileType el_fs_get_file_type(ElPathView path) {
 
     struct stat st;
     if (lstat(cpath, &st) != 0) {
-        free(cpath);
+        el_free(cpath);
         return EL_FILE_NOT_FOUND;
     }
 
-    free(cpath);
+    el_free(cpath);
     if (S_ISREG(st.st_mode)) return EL_FILE_REGULAR;
     if (S_ISDIR(st.st_mode)) return EL_FILE_DIR;
     if (S_ISLNK(st.st_mode)) return EL_FILE_SYMLINK;
@@ -321,7 +321,7 @@ bool el_fs_set_executable(ElPathView path, bool enabled) {
     if (cpath == NULL) return false;
 
     int fd = open(cpath, O_RDONLY);
-    free(cpath);
+    el_free(cpath);
     if (fd < 0) return false;
 
     struct stat st;

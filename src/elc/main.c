@@ -7,6 +7,8 @@
 #include <elc/cli/argparse.h>
 
 int main(int argc, const char* argv[]) {
+    el_out_of_mem_cb = elc_out_of_mem_cb;
+
     ElcDriver driver;
     if (!elc_driver_init(&driver)) {
         fprintf(stderr, "failed to initialize driver\n");

@@ -9,11 +9,11 @@
 #include <elash/util/todo.h>
 
 #include <elash/util/int128.h>
+#include <elash/util/alloc.h>
+
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Analysis.h>
-
-#include <stdlib.h>
 
 #ifdef alloca
 #   undef alloca
@@ -67,12 +67,12 @@ static LLVMTypeRef _map_type_impl(Context* ctx, const ElMirType* type) {
         return LLVMArrayType(base_type, (unsigned)type->as.array.size);
     }
     case EL_MIR_TYPE_TUPLE: {
-        LLVMTypeRef* elem_types = malloc(sizeof(LLVMTypeRef) * type->as.tuple.item_count);
+        LLVMTypeRef* elem_types = EL_NEW_ARR(LLVMTypeRef, type->as.tuple.item_count);
         for (usize i = 0; i < type->as.tuple.item_count; ++i) {
             elem_types[i] = map_type(ctx, type->as.tuple.items[i]);
         }
         LLVMTypeRef struct_type = LLVMStructTypeInContext(ctx->context, elem_types, (unsigned)type->as.tuple.item_count, false);
-        free(elem_types);
+        el_free(elem_types);
         return struct_type;
     }
     case EL_MIR_TYPE_FLOAT:
@@ -88,14 +88,14 @@ static LLVMTypeRef _map_type_impl(Context* ctx, const ElMirType* type) {
         // NOLINTEND(readability-magic-numbers)
     case EL_MIR_TYPE_FUNC: {
         LLVMTypeRef ret_type = map_type(ctx, type->as.func.ret_type);
-        LLVMTypeRef* param_types = malloc(sizeof(LLVMTypeRef) * type->as.func.param_count);
+        LLVMTypeRef* param_types = EL_NEW_ARR(LLVMTypeRef, type->as.func.param_count);
         for (usize i = 0; i < type->as.func.param_count; ++i) {
             param_types[i] = map_type(ctx, type->as.func.params[i]);
         }
         LLVMTypeRef func_type = LLVMFunctionType(
             ret_type, param_types, type->as.func.param_count, /*IsVarArg=*/false
         );
-        free(param_types);
+        el_free(param_types);
         return func_type;
     }
     }
@@ -122,20 +122,20 @@ static LLVMValueRef _map_constant_impl(Context* ctx, ElMirType* type, ElMirConst
     case EL_MIR_CONST_AGG:
         if (type->kind == EL_MIR_TYPE_ARRAY) {
             LLVMTypeRef element_llvm_type = map_type(ctx, type->as.array.base);
-            LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
+            LLVMValueRef* elements = EL_NEW_ARR(LLVMValueRef, constant->as.agg.count);
             for (usize i = 0; i < constant->as.agg.count; ++i) {
                 elements[i] = _map_constant_impl(ctx, type->as.array.base, constant->as.agg.elements[i]);
             }
             LLVMValueRef res = LLVMConstArray(element_llvm_type, elements, (unsigned)constant->as.agg.count);
-            free(elements);
+            el_free(elements);
             return res;
         } else if (type->kind == EL_MIR_TYPE_TUPLE) {
-            LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
+            LLVMValueRef* elements = EL_NEW_ARR(LLVMValueRef, constant->as.agg.count);
             for (usize i = 0; i < constant->as.agg.count; ++i) {
                 elements[i] = _map_constant_impl(ctx, type->as.tuple.items[i], constant->as.agg.elements[i]);
             }
             LLVMValueRef res = LLVMConstNamedStruct(map_type(ctx, type), elements, (unsigned)constant->as.agg.count);
-            free(elements);
+            el_free(elements);
             return res;
         }
         EL_UNREACHABLE("invalid aggregate type for constant lowering");
@@ -332,7 +332,7 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
     LLVMValueRef callee    = elc_llvm_map_value(ctx, func, call->callee);
     LLVMTypeRef  func_type = map_type(ctx, call->callee->type);
 
-    LLVMValueRef* args = calloc(call->arg_count, sizeof(LLVMValueRef));
+    LLVMValueRef* args = EL_NEW_ARR(LLVMValueRef, call->arg_count);
     for (uint32_t i = 0; i < call->arg_count; ++i) {
         args[i] = elc_llvm_map_value(ctx, func, call->args[i]);
     }
@@ -345,7 +345,7 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
         ""
     );
 
-    free(args);
+    el_free(args);
     if (instr->result != NULL) {
         ASSIGN_REG(func, instr->result, result, "call");
     }

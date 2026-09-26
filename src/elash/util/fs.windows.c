@@ -21,29 +21,29 @@ bool el_fs_path_abs(ElPathView path, ElPathBuf* out_abs) {
     DWORD res = GetFullPathNameA(cpath, MAX_PATH, buffer, NULL);
 
     if (res == 0) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     if (res >= MAX_PATH) {
-        char* heap_buffer = malloc(res);
+        char* heap_buffer = EL_NEW_ARR(char, res);
         if (!heap_buffer) {
-            free(cpath);
+            el_free(cpath);
             return false;
         }
         DWORD res2 = GetFullPathNameA(cpath, res, heap_buffer, NULL);
-        free(cpath);
+        el_free(cpath);
         if (res2 == 0 || res2 >= res) {
-            free(heap_buffer);
+            el_free(heap_buffer);
             return false;
         }
         el_strbuf_clear(out_abs);
         bool success = el_strbuf_append(out_abs, el_sv_from_cstr(heap_buffer));
-        free(heap_buffer);
+        el_free(heap_buffer);
         return success;
     }
 
-    free(cpath);
+    el_free(cpath);
     el_strbuf_clear(out_abs);
     return el_strbuf_append(out_abs, el_sv_from_cstr(buffer));
 }
@@ -54,7 +54,7 @@ bool el_fs_read_file(ElPathView path, ElStringBuf* out) {
     if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    free(cpath);
+    el_free(cpath);
     if (hFile == INVALID_HANDLE_VALUE) return false;
 
     LARGE_INTEGER size;
@@ -85,7 +85,7 @@ bool el_fs_write_file(ElPathView path, ElStringView content) {
     if (cpath == NULL) return false;
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    free(cpath);
+    el_free(cpath);
     if (hFile == INVALID_HANDLE_VALUE) return false;
 
     DWORD nwritten;
@@ -102,19 +102,19 @@ bool el_fs_mkdir(ElPathView path) {
 
     BOOL res = CreateDirectoryA(cpath, NULL);
     if (res) {
-        free(cpath);
+        el_free(cpath);
         return true;
     }
 
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         DWORD attrs = GetFileAttributesA(cpath);
         if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-            free(cpath);
+            el_free(cpath);
             return true;
         }
     }
 
-    free(cpath);
+    el_free(cpath);
     return false;
 }
 
@@ -141,12 +141,12 @@ bool el_fs_mkfile(ElPathView path) {
 
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     CloseHandle(hFile);
-    free(cpath);
+    el_free(cpath);
     return true;
 }
 
@@ -162,15 +162,15 @@ bool el_fs_mkfile_if_not_exists(ElPathView path) {
     HANDLE hFile = CreateFileA(cpath, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_FILE_EXISTS || GetLastError() == ERROR_ALREADY_EXISTS) {
-            free(cpath);
+            el_free(cpath);
             return true;
         }
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     CloseHandle(hFile);
-    free(cpath);
+    el_free(cpath);
     return true;
 }
 
@@ -187,7 +187,7 @@ bool el_fs_touch(ElPathView path) {
     }
 
     if (hFile == INVALID_HANDLE_VALUE) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
@@ -197,7 +197,7 @@ bool el_fs_touch(ElPathView path) {
     BOOL res = SetFileTime(hFile, NULL, &ft, &ft);
 
     CloseHandle(hFile);
-    free(cpath);
+    el_free(cpath);
     return res != 0;
 }
 
@@ -208,7 +208,7 @@ bool el_fs_rm(ElPathView path) {
 
     DWORD attrs = GetFileAttributesA(cpath);
     if (attrs == INVALID_FILE_ATTRIBUTES) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
@@ -219,7 +219,7 @@ bool el_fs_rm(ElPathView path) {
         res = DeleteFileA(cpath);
     }
 
-    free(cpath);
+    el_free(cpath);
     return res != 0;
 }
 
@@ -230,13 +230,13 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
 
     DWORD attrs = GetFileAttributesA(cpath);
     if (attrs == INVALID_FILE_ATTRIBUTES) {
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
     if (!(attrs & FILE_ATTRIBUTE_DIRECTORY)) {
         BOOL res = DeleteFileA(cpath);
-        free(cpath);
+        el_free(cpath);
         return res != 0;
     }
 
@@ -248,15 +248,15 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
 
     WIN32_FIND_DATAA fd;
     HANDLE hFind = FindFirstFileA(csearch, &fd);
-    free(csearch);
+    el_free(csearch);
 
     if (hFind == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_FILE_NOT_FOUND) {
              BOOL res = RemoveDirectoryA(cpath);
-             free(cpath);
+             el_free(cpath);
              return res != 0;
         }
-        free(cpath);
+        el_free(cpath);
         return false;
     }
 
@@ -287,7 +287,7 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
         success = (RemoveDirectoryA(cpath) != 0);
     }
 
-    free(cpath);
+    el_free(cpath);
     return success;
 }
 
@@ -306,7 +306,7 @@ bool el_fs_file_exists(ElPathView path) {
     if (cpath == NULL) return false;
 
     DWORD attrs = GetFileAttributesA(cpath);
-    free(cpath);
+    el_free(cpath);
     return (attrs != INVALID_FILE_ATTRIBUTES);
 }
 
@@ -316,7 +316,7 @@ ElFileType el_fs_get_file_type(ElPathView path) {
     if (cpath == NULL) return EL_FILE_NOT_FOUND;
 
     DWORD attrs = GetFileAttributesA(cpath);
-    free(cpath);
+    el_free(cpath);
     if (attrs == INVALID_FILE_ATTRIBUTES) return EL_FILE_NOT_FOUND;
     if (attrs & FILE_ATTRIBUTE_REPARSE_POINT) return EL_FILE_SYMLINK;
     if (attrs & FILE_ATTRIBUTE_DIRECTORY) return EL_FILE_DIR;

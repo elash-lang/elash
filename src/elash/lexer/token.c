@@ -1,7 +1,6 @@
 #include <elash/lexer/token.h>
-
 #include <elash/util/strbuf.h>
-#include <stdlib.h>
+#include <elash/util/alloc.h>
 #include <string.h>
 
 #define F(T, M) \
@@ -183,7 +182,7 @@ usize el_token_to_debug_string(const ElToken* tok, char** out) {
     ElStringView type_string = el_token_type_to_string(tok->type);
 
     if (el_sv_is_null(tok->lexeme)) {
-        *out = malloc(type_string.len + 1); // +1 for \0
+        *out = EL_NEW_ARR(char, type_string.len + 1); // +1 for \0
         *out = memcpy(*out, type_string.data, type_string.len + 1);
         return type_string.len;
     }
@@ -191,7 +190,7 @@ usize el_token_to_debug_string(const ElToken* tok, char** out) {
     const usize full_len = type_string.len + 1 // '('
                          + tok->lexeme.len + 1; // ')'
 
-    *out = malloc(full_len + 1); // +1 for \0
+    *out = EL_NEW_ARR(char, full_len + 1); // +1 for \0
     memcpy(*out, type_string.data, type_string.len);
     (*out)[type_string.len] = '(';
     memcpy(*out + type_string.len + 1, tok->lexeme.data, tok->lexeme.len);

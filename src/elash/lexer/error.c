@@ -1,11 +1,12 @@
-#include <ctype.h>
 #include <elash/lexer/error.h>
 
 #include <elash/defs/sv.h>
+#include <elash/util/alloc.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 static ElStringView EL_LEXERR_to_string_map[] = {
     [EL_LEXERR_SUCCESS] = EL_SV("SUCCESS"),
@@ -31,7 +32,7 @@ usize el_lexer_result_to_string(ElLexerResult r, char** out) {
     ElStringView error_code_str = el_lexer_err_code_to_string(r.code);
 
     if (r.code == EL_LEXERR_SUCCESS) {
-        *out = (char*)malloc(error_code_str.len + 1);
+        *out = EL_NEW_ARR(char, error_code_str.len + 1);
         if (*out == NULL) return 0;
         memcpy(*out, error_code_str.data, error_code_str.len);
         (*out)[error_code_str.len] = '\0';
@@ -54,7 +55,7 @@ usize el_lexer_result_to_string(ElLexerResult r, char** out) {
     }
 
     const usize full_len = error_code_str.len + (usize)loc_len + (usize)char_len;
-    *out = malloc(full_len + 1);
+    *out = EL_NEW_ARR(char, full_len + 1);
     if (*out == NULL) return 0;
 
     char* p = *out;
@@ -113,6 +114,6 @@ usize el_lexer_result_format(ElLexerResult r, usize n, char buf[static n]) {
         buf[to_copy] = '\0';
     }
 
-    free(s);
+    el_free(s);
     return to_copy;
 }

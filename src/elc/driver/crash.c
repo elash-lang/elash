@@ -44,6 +44,12 @@ static void print_bold_label_ex(ElStringBuf* msg, const char* pre, const char* l
     el_ansi_append_reset(msg, stderr);
 }
 
+static void print_bold_label_f(FILE* out, const char* label) {
+    el_ansi_apply_style(bold, stderr);
+    fprintf(out, "%s: ", label);
+    el_ansi_reset_style(stderr);
+}
+
 static void print_bold_label(ElStringBuf* msg, const char* label) {
     print_bold_label_ex(msg, "  ", label, " ");
 }
@@ -89,9 +95,7 @@ static void print_bold_label(ElStringBuf* msg, const char* label) {
     #endif
 #endif
 
-static void handler(int sig, siginfo_t *info, void *ucontext) {
-    (void) ucontext;
-
+static void print_ice_header(void) {
     // theoretically we're using some non-async-safe functions later,
     // though it's very unlikely for them to fail let's be pendantic
     // and print a basic error message using write() first so we're
@@ -110,12 +114,36 @@ static void handler(int sig, siginfo_t *info, void *ucontext) {
                            "  " COMMON2 "\n\n";
         write(STDERR_FILENO, msg, sizeof msg - 1);
     }
+}
 
+static void print_env_and_backtrace(void) {
+    ElStringBuf msg;
+    el_strbuf_init(&msg);
+
+    print_bold_label_ex(&msg, "\n", "Environment", "\n");
+
+    print_bold_label(&msg, "OS");
+    el_strbuf_appendf(&msg, EL_OS_STRING "\n");
+    print_bold_label(&msg, "Arch");
+    el_strbuf_appendf(&msg, EL_ARCH_STRING "\n");
+    print_bold_label(&msg, "Version");
+    el_strbuf_appendf(&msg, EL_VERSION_STRING "\n");
+    print_bold_label(&msg, "Commit");
+    el_strbuf_appendf(&msg, EL_COMMIT_SHA "\n");
+
+    print_bold_label_ex(&msg, "\n", "Backtrace", "\n");
+    write(STDERR_FILENO, msg.data, msg.len);
+
+#if ELC_SHOW_BACKTRACE
+    show_backtrace();
+#endif
+}
+
+static void print_signal_summary(int sig, siginfo_t *info) {
     ElStringBuf msg;
     el_strbuf_init(&msg);
 
     print_bold_label_ex(&msg, "", "Crash summary", "\n");
-
     if (sig == SIGSEGV) {
         uintptr_t addr = (uintptr_t)info->si_addr;
 
@@ -141,25 +169,39 @@ static void handler(int sig, siginfo_t *info, void *ucontext) {
         el_strbuf_appendf(&msg, "SIGFPE\n");
     }
 
-    print_bold_label_ex(&msg, "\n", "Environment", "\n");
-
-    print_bold_label(&msg, "OS");
-    el_strbuf_appendf(&msg, EL_OS_STRING "\n");
-    print_bold_label(&msg, "Arch");
-    el_strbuf_appendf(&msg, EL_ARCH_STRING "\n");
-    print_bold_label(&msg, "Version");
-    el_strbuf_appendf(&msg, EL_VERSION_STRING "\n");
-    print_bold_label(&msg, "Commit");
-    el_strbuf_appendf(&msg, EL_COMMIT_SHA "\n");
-
-    print_bold_label_ex(&msg, "\n", "Backtrace", "\n");
     write(STDERR_FILENO, msg.data, msg.len);
+}
 
-#if ELC_SHOW_BACKTRACE
-    show_backtrace();
-#endif
+static void handler(int sig, siginfo_t *info, void *ucontext) {
+    (void) ucontext;
+
+    print_ice_header();
+    print_signal_summary(sig, info);
+    print_env_and_backtrace();
 
     _exit(SIGNAL_BASE + sig);
+}
+
+// theoretically we can use non-async-safe functions here because the oom handler is
+// not triggered by a signal but all helpers in this file are designed to be used this way.
+void elc_out_of_mem_cb(ElSourceLocInfo locinfo) {
+    print_ice_header();
+
+    print_bold_label_f(stderr, "Out of memory");
+    fputc('\n', stderr);
+
+    print_bold_label_f(stderr, "  File");
+    fprintf(stderr, "%s\n", locinfo.file);
+
+    print_bold_label_f(stderr, "  Line");
+    fprintf(stderr, "%u\n", locinfo.line);
+
+    print_bold_label_f(stderr, "  Function");
+    fprintf(stderr, "%s\n", locinfo.func);
+
+    print_env_and_backtrace();
+
+    _exit(SIGNAL_BASE + SIGKILL);
 }
 
 #define CRASH_STACK_SIZE (usize)(1024 * 12)

@@ -7,7 +7,7 @@ void elc_artifact_free(ElcArtifact* art) {
     switch (art->kind) {
     case ELC_ART_ASM:
     case ELC_ART_OBJ:
-        free(art->as.asm.data);
+        el_free(art->as.asm.data);
         break;
     case ELC_ART_LIR:
         if (art->as.lir.free != NULL) {

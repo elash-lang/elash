@@ -1,10 +1,10 @@
 #include <criterion/criterion.h>
 
+#include <elash/util/alloc.h>
 #include <elash/util/ghm.h>
 #include <elash/util/hash.h>
 #include <elash/defs/sv.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 static bool seql(const void* a, const void* b) {
@@ -16,7 +16,7 @@ static uhash shash(const void* a) {
 
 static char* strclone(const char* s) {
     size_t len = strlen(s) + 1;
-    char* new = malloc(len);
+    char* new = el_alloc(len, 1);
     if (new != NULL) {
         memcpy(new, s, len);
     }

@@ -1,5 +1,6 @@
 #include <elash/hir/scope.h>
 #include <elash/util/hash.h>
+#include <elash/util/alloc.h>
 
 #include <stdlib.h>
 
@@ -7,16 +8,16 @@
 #define LOAD_FACTOR 0.75
 
 ElScope* el_hir_scope_new(ElScope* parent) {
-    ElScope* scope = malloc(sizeof(ElScope));
+    ElScope* scope = EL_NEW(ElScope);
     if (scope == NULL) return NULL;
 
     scope->parent = parent;
     scope->capacity = INITIAL_CAPACITY;
     scope->count = 0;
-    scope->entries = calloc(scope->capacity, sizeof(ElScopeEntry));
+    scope->entries = EL_NEW_ARR_ZEROED(ElScopeEntry, scope->capacity);
 
     if (scope->entries == NULL) {
-        free(scope);
+        el_free(scope);
         return NULL;
     }
 
@@ -25,8 +26,8 @@ ElScope* el_hir_scope_new(ElScope* parent) {
 
 void el_hir_scope_free(ElScope* scope) {
     if (scope == NULL) return;
-    free(scope->entries);
-    free(scope);
+    el_free(scope->entries);
+    el_free(scope);
 }
 
 static bool resize(ElScope* scope) {
@@ -34,7 +35,7 @@ static bool resize(ElScope* scope) {
     ElScopeEntry* old_entries = scope->entries;
 
     scope->capacity *= 2;
-    scope->entries = calloc(scope->capacity, sizeof(ElScopeEntry));
+    scope->entries = EL_NEW_ARR_ZEROED(ElScopeEntry, scope->capacity);
     if (scope->entries == NULL) {
         scope->entries = old_entries;
         scope->capacity = old_capacity;
@@ -48,7 +49,7 @@ static bool resize(ElScope* scope) {
         }
     }
 
-    free(old_entries);
+    el_free(old_entries);
     return true;
 }
 

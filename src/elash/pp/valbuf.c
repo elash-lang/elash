@@ -24,7 +24,7 @@ bool el_pp_valbuf_init(ElPpValBuf* vbuf) {
 }
 
 void el_pp_valbuf_free(ElPpValBuf* vbuf) {
-    free(vbuf->data);
+    el_free(vbuf->data);
     vbuf->data = NULL;
     vbuf->count = 0;
     vbuf->cap = 0;

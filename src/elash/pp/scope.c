@@ -1,9 +1,8 @@
 #include <elash/pp/scope.h>
 
 #include <elash/defs/int-types.h>
+#include <elash/util/alloc.h>
 #include <elash/util/hash.h>
-
-#include <stdlib.h>
 
 typedef struct _ElPpScopeEntry Entry;
 
@@ -27,7 +26,7 @@ bool resize(ElPpScope* scope, usize new_capacity) {
     Entry* old_entries = scope->entries;
     usize old_capacity = scope->capacity;
 
-    Entry* new_entries = calloc(new_capacity, sizeof(Entry));
+    Entry* new_entries = EL_NEW_ARR_ZEROED(Entry, new_capacity);
     if (new_entries == NULL)
         return false;
 
@@ -42,7 +41,7 @@ bool resize(ElPpScope* scope, usize new_capacity) {
         }
     }
 
-    free(old_entries);
+    el_free(old_entries);
     return true;
 }
 
@@ -86,12 +85,12 @@ static Entry* find_slot(ElPpScope* scope, ElStringView key, bool* found) {
 }
 
 ElPpScope* el_pp_scope_new(ElPpScope* parent) {
-    ElPpScope* scope = malloc(sizeof(ElPpScope));
+    ElPpScope* scope = EL_NEW(ElPpScope);
     if (!scope) return NULL;
 
-    scope->entries = calloc(INITIAL_CAPACITY, sizeof(Entry));
+    scope->entries = EL_NEW_ARR_ZEROED(Entry, INITIAL_CAPACITY);
     if (scope->entries == NULL) {
-        free(scope);
+        el_free(scope);
         return NULL;
     }
 
@@ -108,8 +107,8 @@ void el_pp_scope_free(ElPpScope* scope) {
     if (scope == NULL)
         return;
 
-    free(scope->entries);
-    free(scope);
+    el_free(scope->entries);
+    el_free(scope);
 }
 
 bool el_pp_scope_assign(ElPpScope* scope, ElStringView key, ElPpSymbol* value) {

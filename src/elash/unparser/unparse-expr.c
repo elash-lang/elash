@@ -2,6 +2,8 @@
 
 #include <elash/util/assert.h>
 #include <elash/util/int128.h>
+#include <elash/util/alloc.h>
+
 #include <elash/sema/bin-op.h>
 #include <elash/sema/unary-op.h>
 #include <elash/sema/storage-cls.h>
@@ -133,7 +135,7 @@ static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView s
     // but RAM is cheaper than CPU time.
     usize needed = sv.len * 2;
     char* buf = (needed <= LITERAL_BUFSIZE)
-        ? stack_buf : malloc(needed);
+        ? stack_buf : el_alloc(needed, 1);
 
     if (buf == NULL)
         return false;
@@ -154,7 +156,7 @@ static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView s
     }
 
     bool success = el_unparser_push(unpar, type, el_sv_from_data_and_len(buf, bidx));
-    if (buf != stack_buf) free(buf);
+    if (buf != stack_buf) el_free(buf);
     return success;
 }
 

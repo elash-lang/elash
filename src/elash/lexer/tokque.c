@@ -1,7 +1,7 @@
 #include <elash/lexer/tokque.h>
 #include <elash/defs/int-types.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 #define EL_TKQUE_DEFAULT_CAP 16
@@ -21,12 +21,12 @@ static bool el_tkque_grow(ElTokenQueue* tkque) {
     usize new_cap = tkque->cap == 0 ? EL_TKQUE_DEFAULT_CAP : tkque->cap * 2;
     if (new_cap < tkque->cap) return false;
 
-    ElToken* new_data = malloc(new_cap * sizeof(ElToken));
+    ElToken* new_data = EL_NEW_ARR(ElToken, new_cap);
     if (new_data == NULL) return false;
 
     el_tkque_repack(tkque->data, tkque->cap, tkque->head, tkque->tail, tkque->len, new_data);
 
-    free(tkque->data);
+    el_free(tkque->data);
     tkque->data = new_data;
     tkque->cap = new_cap;
     tkque->head = 0;
@@ -44,7 +44,7 @@ bool el_tkque_init_with_cap(ElTokenQueue* tkque, usize initial_cap) {
         initial_cap = EL_TKQUE_DEFAULT_CAP;
     }
 
-    tkque->data = malloc(initial_cap * sizeof(ElToken));
+    tkque->data = EL_NEW_ARR(ElToken, initial_cap);
     if (tkque->data == NULL) return false;
 
     tkque->cap = initial_cap;
@@ -52,12 +52,12 @@ bool el_tkque_init_with_cap(ElTokenQueue* tkque, usize initial_cap) {
 }
 
 void el_tkque_destroy(ElTokenQueue* tkque) {
-    free(tkque->data);
+    el_free(tkque->data);
     memset(tkque, 0, sizeof(*tkque));
 }
 
 bool el_tkque_copy(const ElTokenQueue* src, ElTokenQueue* dst) {
-    dst->data = malloc(src->cap* sizeof(ElToken));
+    dst->data = EL_NEW_ARR(ElToken, src->cap);
     if (dst->data == NULL) return false;
 
     el_tkque_repack(src->data, src->cap, src->head, src->tail, src->len, dst->data);
@@ -151,14 +151,14 @@ bool el_tkque_reserve(ElTokenQueue* tkque, usize min_cap) {
         }
     }
 
-    ElToken* new_data = malloc(new_cap * sizeof(ElToken));
+    ElToken* new_data = EL_NEW_ARR(ElToken, new_cap);
     if (new_data == NULL) {
         return false;
     }
 
     el_tkque_repack(tkque->data, tkque->cap, tkque->head, tkque->tail, tkque->len, new_data);
 
-    free(tkque->data);
+    el_free(tkque->data);
     tkque->data = new_data;
     tkque->cap = new_cap;
     tkque->head = 0;

@@ -1,6 +1,6 @@
 #include <elash/util/dynarena.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 typedef _ElDynArenaChunk Chunk;
@@ -18,7 +18,7 @@ void el_dynarena_free(ElDynArena* arena) {
     Chunk* chunk = arena->head;
     while (chunk != NULL) {
         Chunk* next = chunk->next;
-        free(chunk);
+        el_free(chunk);
         chunk = next;
     }
     arena->head = NULL;
@@ -33,7 +33,7 @@ void el_dynarena_reset(ElDynArena* arena) {
 
 static Chunk* _el_dynarena_alloc_chunk(usize size) {
     usize alloc_size = size + sizeof(Chunk);
-    Chunk* chunk = malloc(alloc_size);
+    Chunk* chunk = el_alloc(alloc_size, 1);
     if (!chunk) return NULL;
     chunk->next = NULL;
     chunk->size = size;

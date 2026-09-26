@@ -1,6 +1,6 @@
 #include <elash/mir/instr-buf.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 static bool el_mir_ibuf_reallocate(ElMirInstrBuf* ibuf, usize new_cap);
@@ -13,7 +13,7 @@ bool el_mir_ibuf_init(ElMirInstrBuf* ibuf) {
 }
 
 void el_mir_ibuf_destroy(ElMirInstrBuf* ibuf) {
-    free(ibuf->items);
+    el_free(ibuf->items);
     ibuf->items = NULL;
     ibuf->len = 0;
     ibuf->cap = 0;
@@ -24,7 +24,7 @@ bool el_mir_ibuf_copy(const ElMirInstrBuf* src, ElMirInstrBuf* dst) {
 
     if (src->len == 0) return true;
 
-    dst->items = malloc(src->len * sizeof(ElMirInstr*));
+    dst->items = EL_NEW_ARR(ElMirInstr*, src->len);
     if (dst->items == NULL) {
         return false;
     }
@@ -49,7 +49,7 @@ bool el_mir_ibuf_move(ElMirInstrBuf* src, ElMirInstrBuf* dst) {
 static bool el_mir_ibuf_reallocate(ElMirInstrBuf* ibuf, usize new_cap) {
     if (new_cap == ibuf->cap) return true;
 
-    ElMirInstr** new_items = realloc(ibuf->items, new_cap * sizeof(ElMirInstr*));
+    ElMirInstr** new_items = el_realloc(ibuf->items, new_cap, sizeof(ElMirInstr*));
     if (new_items == NULL) return false;
 
     ibuf->items = new_items;
