@@ -135,9 +135,10 @@ Test(el_parser_happy, parse_alias_array_mut_suffixes) {
 
     cr_assert_not_null(decl);
     cr_assert_eq(decl->type, EL_AST_DECL_ALIAS);
-    cr_assert_eq(decl->as.alias.target.kind, EL_AST_TOE_TYPE);
+    cr_assert_not_null(decl->as.alias.elements);
+    cr_assert_eq(decl->as.alias.elements->target->kind, EL_AST_TOE_TYPE);
 
-    ElAstType* ref = decl->as.alias.target.as.type;
+    ElAstType* ref = decl->as.alias.elements->target->as.type;
     cr_assert_not_null(ref);
     cr_assert_eq(ref->kind, EL_AST_TYPE_REF);
     cr_assert_eq(ref->mut, EL_MUTSPEC_WONLY);
@@ -156,9 +157,10 @@ Test(el_parser_happy, parse_alias_ref_mut_suffix) {
 
     cr_assert_not_null(decl);
     cr_assert_eq(decl->type, EL_AST_DECL_ALIAS);
-    cr_assert_eq(decl->as.alias.target.kind, EL_AST_TOE_TYPE);
+    cr_assert_not_null(decl->as.alias.elements);
+    cr_assert_eq(decl->as.alias.elements->target->kind, EL_AST_TOE_TYPE);
 
-    ElAstType* ref = decl->as.alias.target.as.type;
+    ElAstType* ref = decl->as.alias.elements->target->as.type;
     cr_assert_not_null(ref);
     cr_assert_eq(ref->kind, EL_AST_TYPE_REF);
     cr_assert_eq(ref->mut, EL_MUTSPEC_WONLY);

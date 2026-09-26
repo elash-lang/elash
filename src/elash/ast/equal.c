@@ -136,6 +136,26 @@ bool el_ast_equal_declarators(const ElAstDeclarator* a, const ElAstDeclarator* b
     return a == NULL && b == NULL;
 }
 
+static bool el_ast_equal_typedef_elements(const ElAstTypedefElem* a, const ElAstTypedefElem* b) {
+    while (a != NULL && b != NULL) {
+        if (!el_sv_eql(a->name, b->name)) return false;
+        if (!el_ast_equal_type(a->target, b->target)) return false;
+        a = a->next;
+        b = b->next;
+    }
+    return a == NULL && b == NULL;
+}
+
+static bool el_ast_equal_alias_elements(const ElAstAliasElem* a, const ElAstAliasElem* b) {
+    while (a != NULL && b != NULL) {
+        if (!el_sv_eql(a->name, b->name)) return false;
+        if (!el_ast_equal_toe(a->target, b->target)) return false;
+        a = a->next;
+        b = b->next;
+    }
+    return a == NULL && b == NULL;
+}
+
 bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
     if (a == b) return true;
     if (!a || !b) return false;
@@ -143,11 +163,9 @@ bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
 
     switch (a->type) {
     case EL_AST_DECL_ALIAS:
-        return el_sv_eql(a->as.alias.name, b->as.alias.name) &&
-               el_ast_equal_toe(&a->as.alias.target, &b->as.alias.target);
+        return el_ast_equal_alias_elements(a->as.alias.elements, b->as.alias.elements);
     case EL_AST_DECL_TYPEDEF:
-        return el_sv_eql(a->as.typedef_.name, b->as.typedef_.name) &&
-               el_ast_equal_type(a->as.typedef_.target, b->as.typedef_.target);
+        return el_ast_equal_typedef_elements(a->as.typedef_.elements, b->as.typedef_.elements);
     case EL_AST_DECL_VAR_DEF:
         if (a->as.var_def.is_static != b->as.var_def.is_static)
             return false;

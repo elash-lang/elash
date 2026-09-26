@@ -2,6 +2,10 @@
 alias TInteger = int;
 alias PInteger = TInteger&;
 
+alias
+    X = int,
+    Y = float;
+
 TInteger add(int a, TInteger b) {
     return a + b;
 }
@@ -51,6 +55,12 @@ int main() {
     strct.foo = true;
     if (!strct.foo) {
         return 6;
+    }
+
+    X valx = 100;
+    Y valy = 2.5;
+    if (valx != 100 || valy != 2.5) {
+        return 7;
     }
 
     return 0;

@@ -50,18 +50,28 @@ static void unparse_func_decl(ElUnparser* unpar, ElAstDecl* decl) {
 
 static void unparse_alias(ElUnparser* unpar, ElAstDecl* decl) {
     el_unparser_push_kw(unpar, EL_TT_KW_ALIAS);
-    el_unparser_push_ident(unpar, decl->as.alias.name);
-    el_unparser_push_punct(unpar, EL_TT_ASSIGN);
-    el_unparse_toe(unpar, &decl->as.alias.target);
+    for (ElAstAliasElem* elem = decl->as.alias.elements; elem != NULL; elem = elem->next) {
+        if (elem != decl->as.alias.elements) {
+            el_unparser_push_punct(unpar, EL_TT_COMMA);
+        }
+        el_unparser_push_ident(unpar, elem->name);
+        el_unparser_push_punct(unpar, EL_TT_ASSIGN);
+        el_unparse_toe(unpar, elem->target);
+    }
     el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 
 static void unparse_typedef(ElUnparser* unpar, ElAstDecl* decl) {
     el_unparser_push_kw(unpar, EL_TT_KW_TYPEDEF);
-    el_unparser_push_ident(unpar, decl->as.typedef_.name);
-    if (decl->as.typedef_.target != NULL) {
-        el_unparser_push_kw(unpar, EL_TT_KW_AS);
-        el_unparse_type(unpar, decl->as.typedef_.target);
+    for (ElAstTypedefElem* elem = decl->as.typedef_.elements; elem != NULL; elem = elem->next) {
+        if (elem != decl->as.typedef_.elements) {
+            el_unparser_push_punct(unpar, EL_TT_COMMA);
+        }
+        el_unparser_push_ident(unpar, elem->name);
+        if (elem->target != NULL) {
+            el_unparser_push_kw(unpar, EL_TT_KW_AS);
+            el_unparse_type(unpar, elem->target);
+        }
     }
     el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }

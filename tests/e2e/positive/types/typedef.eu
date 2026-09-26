@@ -1,6 +1,11 @@
 typedef MyInt as int;
 typedef MyFloat as float;
 
+typedef
+    Foo as int,
+    Bar as char,
+    Baz as struct { int x; };
+
 alias ConstChar = const char;
 typedef String as ConstChar[];
 
@@ -23,6 +28,12 @@ int main() {
     const char[] sslice = s as const char[];
     if (sslice[0] != 'H' || s[1] != 'e' || sslice[2] != 'l')
         return 3;
+
+    Foo foo = 42;
+    Bar bar = 'a';
+    Baz baz = { .x = foo as int };
+    if (foo != 42 || bar != 'a' || baz.x != 42)
+        return 4;
 
     return 0;
 }

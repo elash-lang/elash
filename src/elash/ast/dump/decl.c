@@ -32,12 +32,14 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
     case EL_AST_DECL_TYPEDEF:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "Typedef:\n");
-        el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.typedef_.name));
-        el_ast_dump_print_indent(indent + 1, out);
-        if (node->as.typedef_.target != NULL) {
-            fprintf(out, "target:\n");
-            el_ast_dump_type(node->as.typedef_.target, indent + 2, out);
+        for (ElAstTypedefElem* elem = node->as.typedef_.elements; elem != NULL; elem = elem->next) {
+            el_ast_dump_print_indent(indent + 1, out);
+            fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(elem->name));
+            if (elem->target != NULL) {
+                el_ast_dump_print_indent(indent + 1, out);
+                fprintf(out, "target:\n");
+                el_ast_dump_type(elem->target, indent + 2, out);
+            }
         }
         return;
 
@@ -90,11 +92,13 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
     case EL_AST_DECL_ALIAS:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "Alias:\n");
-        el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.alias.name));
-        el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "target:\n");
-        el_ast_dump_type_or_expr(&node->as.alias.target, indent + 2, out);
+        for (ElAstAliasElem* elem = node->as.alias.elements; elem != NULL; elem = elem->next) {
+            el_ast_dump_print_indent(indent + 1, out);
+            fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(elem->name));
+            el_ast_dump_print_indent(indent + 1, out);
+            fprintf(out, "target:\n");
+            el_ast_dump_type_or_expr(elem->target, indent + 2, out);
+        }
         return;
     }
 

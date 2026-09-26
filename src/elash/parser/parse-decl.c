@@ -183,37 +183,57 @@ static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
     }
 }
 
-static ElAstDecl* parse_alias_decl(ElParser* parser, ElToken alias_tok) {
-    ElToken name_tok = el_parser_expect(parser, EL_TT_IDENT);
-    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+// NOLINTBEGIN(bugprone-macro-parentheses): clueless
+// maybe macros aren't the best way of deduplicating code but i really had
+// no other ideas and... it's still way better than 35 lines duplicated x2!
+#define PARSE_GENERIC_LIST(                                                                     \
+    ElemType, TargetType, PARSE_TARGET, APPEND_FN,                                              \
+    NEW_ELEM_FN, NEW_FN, TOKEN, IS_OPTIONAL                                                     \
+) do {                                                                                          \
+    ElemType* head = NULL;                                                                      \
+    ElemType* tail = NULL;                                                                      \
+                                                                                                \
+    while (true) {                                                                              \
+        ElToken name_tok = el_parser_expect(parser, EL_TT_IDENT);                               \
+        if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);     \
+                                                                                                \
+        TargetType* target = NULL;                                                              \
+        if (IS_OPTIONAL) {                                                                      \
+            if (el_parser_match(parser, TOKEN)) {                                               \
+                target = PARSE_TARGET(parser);                                                  \
+                if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);         \
+            }                                                                                   \
+        } else {                                                                                \
+            el_parser_expect(parser, TOKEN);                                                    \
+            if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL); \
+            target = PARSE_TARGET(parser);                                                      \
+            if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);             \
+        }                                                                                       \
+                                                                                                \
+        APPEND_FN(&head, &tail,                                                                 \
+            NEW_ELEM_FN(parser->aarena, name_tok.lexeme, target));                              \
+                                                                                                \
+        if (!el_parser_match(parser, EL_TT_COMMA)) break;                                       \
+    }                                                                                           \
+                                                                                                \
+    ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);                               \
+    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);         \
+                                                                                                \
+    ElSourceSpan span = el_srcspan_merge(tok.span, semi_tok.span);                              \
+    return NEW_FN(parser->aarena, span, head);                                                  \
+} while (0)
+// NOLINTEND(bugprone-macro-parentheses)
 
-    el_parser_expect(parser, EL_TT_ASSIGN);
-    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-
-    ElAstToE* target = el_parse_toe(parser);
-    if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-
-    ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
-
-    ElSourceSpan span = el_srcspan_merge(alias_tok.span, semi_tok.span);
-    return el_ast_new_alias(parser->aarena, span, name_tok.lexeme, *target);
+static ElAstDecl* parse_alias_decl(ElParser* parser, ElToken tok) {
+    PARSE_GENERIC_LIST(ElAstAliasElem, ElAstToE, el_parse_toe,
+            el_ast_append_alias_elem, el_ast_new_alias_elem,
+            el_ast_new_alias, EL_TT_ASSIGN, false);
 }
 
-// 100% not just copy pased from the function above (no idea how to dedup this)
-static ElAstDecl* parse_typedef_decl(ElParser* parser, ElToken typedef_tok) {
-    ElToken name_tok = el_parser_expect(parser, EL_TT_IDENT);
-    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-
-    ElAstType* target = NULL;
-    if (el_parser_match(parser, EL_TT_KW_AS)) {
-        target = _el_parse_type(parser);
-        if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-    }
-
-    ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
-
-    ElSourceSpan span = el_srcspan_merge(typedef_tok.span, semi_tok.span);
-    return el_ast_new_typedef(parser->aarena, span, name_tok.lexeme, target);
+static ElAstDecl* parse_typedef_decl(ElParser* parser, ElToken tok) {
+    PARSE_GENERIC_LIST(ElAstTypedefElem, ElAstType, _el_parse_type,
+            el_ast_append_typedef_elem, el_ast_new_typedef_elem,
+            el_ast_new_typedef, EL_TT_KW_AS, true);
 }
 
 static ElAstDecl* el_parse_internal_decl(ElParser* parser) {

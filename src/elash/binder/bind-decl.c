@@ -247,68 +247,70 @@ static ElHirDecl* bind_func_decl(ElBinder* binder, ElAstDecl* in, ElAstFuncDecl*
 }
 
 static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias) {
-    ElHirToE* toe = el_bind_toe(binder, &alias->target);
-    if (toe == NULL) return NULL;
+    for (ElAstAliasElem* elem = alias->elements; elem != NULL; elem = elem->next) {
+        ElHirToE* toe = el_bind_toe(binder, elem->target);
+        if (toe == NULL) return NULL;
 
-    if (toe->is_type) {
-        ElHirSymbol* sym = el_hir_new_type_symbol(
-            binder->arena, binder->sym_id_counter++, alias->name, toe->as.type);
+        if (toe->is_type) {
+            ElHirSymbol* sym = el_hir_new_type_symbol(
+                binder->arena, binder->sym_id_counter++, elem->name, toe->as.type);
 
-        if (!el_hir_scope_insert(binder->current_scope, sym)) {
-            return REPORT_REDEFINITION(binder, in->span, sym->name);
-        }
-    } else {
-        if (toe->as.expr->kind != EL_HIR_EXPR_SYMBOL) {
-            el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.invalid-alias",
-                alias->target.span, "invalid alias target, symbol expected"
-            );
-            return NULL;
-        }
+            if (!el_hir_scope_insert(binder->current_scope, sym)) {
+                return REPORT_REDEFINITION(binder, in->span, sym->name);
+            }
+        } else {
+            if (toe->as.expr->kind != EL_HIR_EXPR_SYMBOL) {
+                el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.invalid-alias",
+                    elem->target->span, "invalid alias target, symbol expected"
+                );
+                return NULL;
+            }
 
-        if (!el_hir_scope_insert_ex(binder->current_scope, alias->name, toe->as.expr->as.symbol)) {
-            return REPORT_REDEFINITION(binder, in->span, alias->name);
+            if (!el_hir_scope_insert_ex(binder->current_scope, elem->name, toe->as.expr->as.symbol)) {
+                return REPORT_REDEFINITION(binder, in->span, elem->name);
+            }
         }
     }
     return el_hir_decl_none(binder->arena, in->span);
 }
 
 static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* typedef_) {
-    ElHirSymbol* existing = el_hir_scope_lookup(binder->current_scope, typedef_->name);
+    for (ElAstTypedefElem* elem = typedef_->elements; elem != NULL; elem = elem->next) {
+        ElHirSymbol* existing = el_hir_scope_lookup(binder->current_scope, elem->name);
 
-    if (existing != NULL) {
-        ElHirType* etype = existing->as.type.type;
-        if (0
-         || existing->kind != EL_SYM_TYPE
-         || etype->kind != EL_HIR_TYPE_DISTINCT
-         || etype->as.distinct.orig != NULL
-        ) {
-            return REPORT_REDEFINITION(binder, in->span, typedef_->name);
+        if (existing != NULL) {
+            ElHirType* etype = existing->as.type.type;
+            if (0
+             || existing->kind != EL_SYM_TYPE
+             || etype->kind != EL_HIR_TYPE_DISTINCT
+             || etype->as.distinct.orig != NULL
+            ) {
+                return REPORT_REDEFINITION(binder, in->span, elem->name);
+            }
+
+            if (elem->target != NULL) {
+                ElHirType* target = el_bind_type(binder, elem->target);
+                if (target == NULL) return NULL;
+
+                ElHirType* incomplete = el_hir_type_unwrap(existing->as.type.type);
+                incomplete->as.distinct.orig = target;
+            }
+            continue;
         }
 
-        if (typedef_->target == NULL) {
-            return el_hir_decl_none(binder->arena, in->span);
+        ElHirType* distinct = el_hir_new_distinct_type(binder->arena, NULL, elem->name);
+        ElHirSymbol* the_symbol = el_hir_new_type_symbol(binder->arena, binder->sym_id_counter++, elem->name, distinct);
+
+        if (!el_hir_scope_insert(binder->current_scope, the_symbol))
+            return REPORT_REDEFINITION(binder, in->span, elem->name);
+
+        if (elem->target != NULL) {
+            ElHirType* target = el_bind_type(binder, elem->target);
+            if (target == NULL) return NULL;
+
+            distinct->as.distinct.orig = target;
         }
-
-        ElHirType* target = el_bind_type(binder, typedef_->target);
-        if (target == NULL) return NULL;
-
-        ElHirType* incomplete = el_hir_type_unwrap(existing->as.type.type);
-        incomplete->as.distinct.orig = target;
-        return el_hir_decl_none(binder->arena, in->span);
-    }
-
-    ElHirType* distinct = el_hir_new_distinct_type(binder->arena, NULL, typedef_->name);
-    ElHirSymbol* the_symbol = el_hir_new_type_symbol(binder->arena, binder->sym_id_counter++, typedef_->name, distinct);
-
-    if (!el_hir_scope_insert(binder->current_scope, the_symbol))
-        return REPORT_REDEFINITION(binder, in->span, typedef_->name);
-
-    if (typedef_->target != NULL) {
-        ElHirType* target = el_bind_type(binder, typedef_->target);
-        if (target == NULL) return NULL;
-
-        distinct->as.distinct.orig = target;
     }
 
     return el_hir_decl_none(binder->arena, in->span);
