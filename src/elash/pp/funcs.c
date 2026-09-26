@@ -99,11 +99,7 @@ static ElPpValue* execute_function(
             arg, /*mut=*/false, /*is_public=*/false
         );
 
-        if (!el_pp_scope_assign(pp->current_scope, param->name, psym)) {
-            cleanup_call(pp, call);
-            return NULL;
-        }
-
+        el_pp_scope_assign(pp->current_scope, param->name, psym);
         arg = arg->next, param = param->next;
     }
 

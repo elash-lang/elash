@@ -1,30 +1,27 @@
 #include <elash/pp/valbuf.h>
 #include <elash/pp/value.h>
+#include <elash/util/alloc.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
-bool el_pp_valbuf_reserve(ElPpValBuf* vbuf, usize new_cap) {
+void el_pp_valbuf_reserve(ElPpValBuf* vbuf, usize new_cap) {
     if (new_cap <= vbuf->cap)
-        return true;
+        return;
 
-    ElPpValue** new_data = realloc(vbuf->data, new_cap * sizeof(ElPpValue*));
-    if (new_data == NULL) return false;
-
-    vbuf->data = new_data;
+    vbuf->data = el_realloc(vbuf->data, new_cap, sizeof(ElPpValue*));
     vbuf->cap = new_cap;
-    return true;
 }
 
-bool el_pp_valbuf_init(ElPpValBuf* vbuf) {
+void el_pp_valbuf_init(ElPpValBuf* vbuf) {
     vbuf->data = NULL;
     vbuf->count = 0;
     vbuf->cap = 0;
-    return true;
 }
 
 void el_pp_valbuf_free(ElPpValBuf* vbuf) {
-    free(vbuf->data);
+    el_free(vbuf->data);
     vbuf->data = NULL;
     vbuf->count = 0;
     vbuf->cap = 0;
@@ -34,16 +31,14 @@ void el_pp_valbuf_clear(ElPpValBuf* vbuf) {
     vbuf->count = 0;
 }
 
-bool el_pp_valbuf_push(ElPpValBuf* vbuf, ElPpValue* val) {
+void el_pp_valbuf_push(ElPpValBuf* vbuf, ElPpValue* val) {
     if (vbuf->count == vbuf->cap) {
         usize new_cap = vbuf->cap ? vbuf->cap * 2 : 4;
-        if (!el_pp_valbuf_reserve(vbuf, new_cap))
-            return false;
+        el_pp_valbuf_reserve(vbuf, new_cap);
     }
 
     vbuf->data[vbuf->count] = val;
     vbuf->count++;
-    return true;
 }
 
 ElPpList el_pp_valbuf_flush(ElPpValBuf* vbuf, ElDynArena* arena) {

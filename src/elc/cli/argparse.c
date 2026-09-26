@@ -202,6 +202,8 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
         return handle_opt_flag(p, arg);
     if (el_sv_starts_with(arg, EL_SV("--color")))
         return parse_preference_flag(p, arg, EL_SV("--color"), &p->out->color);
+    if (el_sv_starts_with(arg, EL_SV("--crash-handlers")))
+        return parse_preference_flag(p, arg, EL_SV("--crash-handlers"), &p->out->crash_handlers);
 
     if (handle_dump_switch(p, arg, EL_SV("--dump-toks"),    &p->out->dump_toks))    return ELC_CLI_PARSE_RESULT_OK;
     if (handle_dump_switch(p, arg, EL_SV("--dump-pp-toks"), &p->out->dump_pp_toks)) return ELC_CLI_PARSE_RESULT_OK;

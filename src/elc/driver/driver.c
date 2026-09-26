@@ -32,7 +32,7 @@
 #include <elash/prof/prof.h>
 
 bool elc_driver_init(ElcDriver* driver) {
-    if (!el_dynarena_init(&driver->arena)) return false;
+    el_dynarena_init(&driver->arena);
     el_diag_engine_init(&driver->diag, &driver->arena);
     el_binder_init_builtins(&driver->binder_builtins, &driver->arena);
     el_lowerer_init_builtins(&driver->lowerer_builtins, &driver->arena);
@@ -132,24 +132,20 @@ bool elc_driver_register_observers(ElcDriver* driver, const ElcArgs* args) {
 }
 
 #define STDIN_READ_BUF_SIZE 4096
-
 static bool init_source_document(ElcDriver* driver, const ElcArgs* args, ElSourceDocument* src) {
-    ElSrcDocStatus err;
-
     if (el_sv_eql(args->input, EL_SV("-"))) {
-        err = el_srcdoc_init_empty(src, EL_SV("<stdin>"));
-        if (err == EL_SRCDOC_ERR_SUCCESS) {
-            char buf[STDIN_READ_BUF_SIZE];
-            size_t n;
-            while ((n = fread(buf, 1, sizeof(buf), stdin)) > 0) {
-                el_srcdoc_append_str(src, el_sv_from_data_and_len(buf, n));
-            }
+        el_srcdoc_init_empty(src, EL_SV("<stdin>"));
+        char buf[STDIN_READ_BUF_SIZE];
+        size_t n;
+        while ((n = fread(buf, 1, sizeof(buf), stdin)) > 0) {
+            el_srcdoc_append_str(src, el_sv_from_data_and_len(buf, n));
         }
-    } else {
-        err = el_srcdoc_init_from_file(src, el_dynarena_make_cstr(&driver->arena, args->input));
+        return true;
     }
 
-    if (err != EL_SRCDOC_ERR_SUCCESS) return false;
+    if (el_srcdoc_init_from_file(src, el_dynarena_make_cstr(&driver->arena, args->input)) != EL_SRCDOC_ERR_SUCCESS) {
+        return false;
+    }
 
     elc_pipeline_provide(&driver->pipeline, (ElcArtifact) {
         .kind = ELC_ART_SRC,
@@ -157,7 +153,6 @@ static bool init_source_document(ElcDriver* driver, const ElcArgs* args, ElSourc
     });
     return true;
 }
-
 static ElcArtifactKind determine_target(const ElcArgs* args) {
     if (args->emit  != ELC_ART_NONE) return args->emit;
     if (args->until != ELC_ART_NONE) return args->until;

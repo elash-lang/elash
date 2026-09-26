@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
     ElUnparser unparser;
     el_unparser_init(&unparser, &toks, &arena);
-    el_unparser_unparse_module(&unparser, orig);
+    el_unparse_module(&unparser, orig);
 
     el_parser_init(&parser, el_tkbuf_as_stream(&stream, &toks), &diag, &arena, &arena, NULL);
     ElAstModule* repro = el_parse_module(&parser);

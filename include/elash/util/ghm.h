@@ -23,6 +23,6 @@ typedef struct ElGHM {
 void el_ghm_init(ElGHM* ghm, ElGHMHashFn* hash, ElGHMEqualFn* eql);
 void el_ghm_free(ElGHM* ghm);
 
-bool el_ghm_insert(ElGHM* ghm, const void* key, void* value);
+void el_ghm_insert(ElGHM* ghm, const void* key, void* value);
 void* el_ghm_lookup(ElGHM* ghm, const void* key);
 bool el_ghm_remove(ElGHM* ghm, const void* key);

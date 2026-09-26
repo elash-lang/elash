@@ -2,71 +2,71 @@
 
 #include <elash/util/assert.h>
 
-static bool unparse_var_def(ElUnparser* unpar, ElAstDecl* decl) {
+static void unparse_var_def(ElUnparser* unpar, ElAstDecl* decl) {
     ElAstVarDef* def = &decl->as.var_def;
     if (def->is_static) {
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_STATIC)) return false;
+        el_unparser_push_kw(unpar, EL_TT_KW_STATIC);
     }
 
-    if (!el_unparser_unparse_type(unpar, def->type)) return false;
+    el_unparse_type(unpar, def->type);
 
     for (ElAstDeclarator* d = def->declarators; d != NULL; d = d->next) {
         if (d != def->declarators) {
-            if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
+            el_unparser_push_punct(unpar, EL_TT_COMMA);
         }
 
-        if (!_el_unparser_unparse_ident(unpar, d->name)) return false;
+        _el_unparse_ident(unpar, d->name);
         if (d->init != NULL) {
-            if (!el_unparser_push_punct(unpar, EL_TT_ASSIGN)) return false;
-            if (!el_unparser_unparse_init(unpar, d->init))    return false;
+            el_unparser_push_punct(unpar, EL_TT_ASSIGN);
+            el_unparse_init(unpar, d->init);
         }
     }
-    return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+    el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 
-static bool unparse_var_decl(ElUnparser* unpar, ElAstDecl* decl) {
+static void unparse_var_decl(ElUnparser* unpar, ElAstDecl* decl) {
     ElAstVarDecl* vd = &decl->as.var_decl;
-    if (!el_unparser_push_kw(unpar, EL_TT_KW_EXTERN)) return false;
+    el_unparser_push_kw(unpar, EL_TT_KW_EXTERN);
 
-    if (!el_unparser_unparse_type(unpar, vd->type)) return false;
+    el_unparse_type(unpar, vd->type);
     for (ElAstDeclarator* d = vd->declarators; d != NULL; d = d->next) {
         if (d != vd->declarators) {
-            if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
+            el_unparser_push_punct(unpar, EL_TT_COMMA);
         }
-        if (!_el_unparser_unparse_ident(unpar, d->name)) return false;
+        _el_unparse_ident(unpar, d->name);
     }
-    return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+    el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 
-static bool unparse_func_def(ElUnparser* unpar, ElAstDecl* decl) {
-    if (!_el_unparser_unparse_func_sig(unpar, &decl->as.func_def.sig)) return false;
-    return _el_unparser_unparse_block(unpar, decl->as.func_def.block);
+static void unparse_func_def(ElUnparser* unpar, ElAstDecl* decl) {
+    _el_unparse_func_sig(unpar, &decl->as.func_def.sig);
+    _el_unparse_block(unpar, decl->as.func_def.block);
 }
 
-static bool unparse_func_decl(ElUnparser* unpar, ElAstDecl* decl) {
-    if (!_el_unparser_unparse_func_sig(unpar, &decl->as.func_decl.sig)) return false;
-    return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+static void unparse_func_decl(ElUnparser* unpar, ElAstDecl* decl) {
+    _el_unparse_func_sig(unpar, &decl->as.func_decl.sig);
+    el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 
-static bool unparse_alias(ElUnparser* unpar, ElAstDecl* decl) {
-    if (!el_unparser_push_kw(unpar, EL_TT_KW_ALIAS))             return false;
-    if (!el_unparser_push_ident(unpar, decl->as.alias.name))     return false;
-    if (!el_unparser_push_punct(unpar, EL_TT_ASSIGN))            return false;
-    if (!el_unparser_unparse_toe(unpar, &decl->as.alias.target)) return false;
-    return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+static void unparse_alias(ElUnparser* unpar, ElAstDecl* decl) {
+    el_unparser_push_kw(unpar, EL_TT_KW_ALIAS);
+    el_unparser_push_ident(unpar, decl->as.alias.name);
+    el_unparser_push_punct(unpar, EL_TT_ASSIGN);
+    el_unparse_toe(unpar, &decl->as.alias.target);
+    el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 
-static bool unparse_typedef(ElUnparser* unpar, ElAstDecl* decl) {
-    if (!el_unparser_push_kw(unpar, EL_TT_KW_TYPEDEF))          return false;
-    if (!el_unparser_push_ident(unpar, decl->as.typedef_.name)) return false;
+static void unparse_typedef(ElUnparser* unpar, ElAstDecl* decl) {
+    el_unparser_push_kw(unpar, EL_TT_KW_TYPEDEF);
+    el_unparser_push_ident(unpar, decl->as.typedef_.name);
     if (decl->as.typedef_.target != NULL) {
-        if (!el_unparser_push_kw(unpar, EL_TT_KW_AS))                   return false;
-        if (!el_unparser_unparse_type(unpar, decl->as.typedef_.target)) return false;
+        el_unparser_push_kw(unpar, EL_TT_KW_AS);
+        el_unparse_type(unpar, decl->as.typedef_.target);
     }
-    return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
+    el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 
-bool el_unparser_unparse_decl(ElUnparser* unpar, ElAstDecl* decl) {
+void el_unparse_decl(ElUnparser* unpar, ElAstDecl* decl) {
     switch (decl->type) {
     case EL_AST_DECL_VAR_DEF:   return unparse_var_def(unpar, decl);
     case EL_AST_DECL_VAR_DECL:  return unparse_var_decl(unpar, decl);

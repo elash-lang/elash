@@ -1,10 +1,10 @@
 #include <criterion/criterion.h>
 
+#include <elash/util/alloc.h>
 #include <elash/util/ghm.h>
 #include <elash/util/hash.h>
 #include <elash/defs/sv.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 static bool seql(const void* a, const void* b) {
@@ -16,7 +16,7 @@ static uhash shash(const void* a) {
 
 static char* strclone(const char* s) {
     size_t len = strlen(s) + 1;
-    char* new = malloc(len);
+    char* new = el_alloc(len, 1);
     if (new != NULL) {
         memcpy(new, s, len);
     }
@@ -32,8 +32,8 @@ Test(ghm, basic) {
     const char* k2 = "key2";
     const char* v2 = "val2";
 
-    cr_assert(el_ghm_insert(&ghm, k1, (void*)v1));
-    cr_assert(el_ghm_insert(&ghm, k2, (void*)v2));
+    el_ghm_insert(&ghm, k1, (void*)v1);
+    el_ghm_insert(&ghm, k2, (void*)v2);
 
     cr_assert_str_eq(el_ghm_lookup(&ghm, k1), v1);
     cr_assert_str_eq(el_ghm_lookup(&ghm, k2), v2);
@@ -55,7 +55,7 @@ Test(ghm, resize) {
         sprintf(buf, "k%d", i);
         char* key = strclone(buf);
         char* val = strclone(buf);
-        cr_assert(el_ghm_insert(&ghm, key, val));
+        el_ghm_insert(&ghm, key, val);
     }
 
     for (uint i = 0; i < 32; i++) {

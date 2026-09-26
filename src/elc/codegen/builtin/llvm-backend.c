@@ -2,6 +2,7 @@
 
 #include <elash/util/dynarena.h>
 #include <elash/util/assert.h>
+#include <elash/util/alloc.h>
 #include <elash/util/todo.h>
 
 #include <llvm-c/Core.h>
@@ -15,7 +16,6 @@
 #include <llvm-c/TargetMachine.h>
 #include <llvm-c/Transforms/PassBuilder.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 void elc_llvm_lir_free(ElcLirHandle* handle) {
@@ -76,7 +76,7 @@ ElcCodegenBuffer elc_llvm_lir_emit_to_buffer(const ElcLirHandle* handle, LLVMCod
 
     ElcCodegenBuffer buffer = {
         .size = LLVMGetBufferSize(buffer_ref),
-        .data = malloc(LLVMGetBufferSize(buffer_ref))
+        .data = el_alloc(LLVMGetBufferSize(buffer_ref), 1)
     };
 
     if (buffer.data != NULL) {
@@ -98,7 +98,7 @@ ElcCodegenBuffer elc_llvm_lir_emit_asm(const ElcLirHandle* handle) {
 
 void elc_llvm_lir_free_buffer(const ElcLirHandle* handle, ElcCodegenBuffer buffer) {
     (void) handle;
-    free(buffer.data);
+    el_free(buffer.data);
 }
 
 void elc_llvm_cleanup(ElcCodegenBackend* self) {

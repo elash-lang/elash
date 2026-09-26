@@ -24,6 +24,7 @@ make -C "$PROJECT_ROOT" archive -j"$(nproc)" \
     OUT_DIR="$PWD/out" \
     HAS_LLVM="yes" \
     LLVM_LDFLAGS="-Wl,--start-group $LLVM_FLAGS -Wl,--end-group -lstdc++ -lversion -luuid -lole32 -lpsapi -lshell32 -lz -lzstd -lws2_32 -lbcrypt" \
+    USE_LIB_BACKTRACE=\
     \
     LLVM_CFLAGS="" \
     CFLAGS="-O3 -DNDEBUG -std=c11 -Wall -Wextra -I$LLVMPATH/include -Iinclude $LLVM_CPP_FLAGS" \

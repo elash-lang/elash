@@ -8,8 +8,8 @@
 
 #include <inttypes.h>
 
-static bool toktok(ElPreproc* pp, ElTokenType type, ElStringView lexeme, ElSourceSpan span) {
-    return el_tkque_push(&pp->pending, (ElToken) {
+static void toktok(ElPreproc* pp, ElTokenType type, ElStringView lexeme, ElSourceSpan span) {
+    el_tkque_push(&pp->pending, (ElToken) {
         .type = type,
         .lexeme = el_dynarena_clone_sv(pp->farena, lexeme),
         .span = span,
@@ -17,49 +17,54 @@ static bool toktok(ElPreproc* pp, ElTokenType type, ElStringView lexeme, ElSourc
 }
 
 #define BUFSIZE 42
-static bool emit_value(ElPreproc* pp, ElPpValue* value, ElSourceSpan span) {
+static void emit_value(ElPreproc* pp, ElPpValue* value, ElSourceSpan span) {
     char buf[BUFSIZE];
     int len;
 
     switch (value->type) {
     case EL_PP_TYPE_TOK:
-        return el_tkque_push(&pp->pending, value->as.tok_);
+        el_tkque_push(&pp->pending, value->as.tok_);
+        break;
     case EL_PP_TYPE_NULL:
-        return toktok(pp, EL_TT_NULL_LITERAL, EL_SV("null"), span);
+        toktok(pp, EL_TT_NULL_LITERAL, EL_SV("null"), span);
+        break;
     case EL_PP_TYPE_BOOL:
-        return toktok(
+        toktok(
             pp,
             value->as.bool_ ? EL_TT_TRUE_LITERAL : EL_TT_FALSE_LITERAL,
             value->as.bool_ ? EL_SV("true") : EL_SV("false"),
             span
         );
+        break;
 
     case EL_PP_TYPE_INT:
         // NOLINTNEXTLINE(readability-magic-numbers): I just wanna tell you how I'm feeling, Gotta make you understand
         len = (int)el_i128_to_string(value->as.int_, 10, buf).len;
-        return toktok(pp, EL_TT_INT_LITERAL, el_sv_from_data_and_len(buf, len), span);
+        toktok(pp, EL_TT_INT_LITERAL, el_sv_from_data_and_len(buf, len), span);
+        break;
     case EL_PP_TYPE_FLOAT:
         len = snprintf(buf, sizeof buf, "%g", value->as.float_);
-        return toktok(pp, EL_TT_FLOAT_LITERAL, el_sv_from_data_and_len(buf, len), span);
+        toktok(pp, EL_TT_FLOAT_LITERAL, el_sv_from_data_and_len(buf, len), span);
+        break;
 
     case EL_PP_TYPE_LIST: {
         ElPpList list = value->as.list_;
         for (usize i = 0; i < list.count; ++i) {
-            if (!emit_value(pp, list.values[i], span)) {
-                return false;
-            }
+            emit_value(pp, list.values[i], span);
         }
-        return true;
+        break;
     }
 
     case EL_PP_TYPE_CHAR:
         EL_TODO("escaping chars literals is tricky");
+        break;
 
     case EL_PP_TYPE_STR:
-        return toktok(pp, EL_TT_STRING_LITERAL, value->as.str_, span);
+        toktok(pp, EL_TT_STRING_LITERAL, value->as.str_, span);
+        break;
+    default:
+        EL_UNREACHABLE_ENUM_VAL(ElPpType, value->type);
     }
-
-    EL_UNREACHABLE_ENUM_VAL(ElPpType, value->type);
 }
 
 static bool handle_splice(ElPreproc* pp, ElToken hash) {
@@ -78,7 +83,8 @@ static bool handle_splice(ElPreproc* pp, ElToken hash) {
     }
 
     ElSourceSpan espan = el_srcspan_merge(hash.span, t.span);
-    return emit_value(pp, value, espan);
+    emit_value(pp, value, espan);
+    return true;
 }
 
 bool _el_pp_handle_emit(ElPreproc* pp, ElSourceSpan dspan) {
@@ -100,9 +106,7 @@ bool _el_pp_handle_emit(ElPreproc* pp, ElSourceSpan dspan) {
             }
         }
 
-        if (!el_tkque_push(&pp->pending, tok)) {
-            return false;
-        }
+        el_tkque_push(&pp->pending, tok);
     }
 
     return true;

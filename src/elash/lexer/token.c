@@ -1,7 +1,6 @@
 #include <elash/lexer/token.h>
-
 #include <elash/util/strbuf.h>
-#include <stdlib.h>
+#include <elash/util/alloc.h>
 #include <string.h>
 
 #define F(T, M) \
@@ -183,7 +182,7 @@ usize el_token_to_debug_string(const ElToken* tok, char** out) {
     ElStringView type_string = el_token_type_to_string(tok->type);
 
     if (el_sv_is_null(tok->lexeme)) {
-        *out = malloc(type_string.len + 1); // +1 for \0
+        *out = EL_NEW_ARR(char, type_string.len + 1); // +1 for \0
         *out = memcpy(*out, type_string.data, type_string.len + 1);
         return type_string.len;
     }
@@ -191,7 +190,7 @@ usize el_token_to_debug_string(const ElToken* tok, char** out) {
     const usize full_len = type_string.len + 1 // '('
                          + tok->lexeme.len + 1; // ')'
 
-    *out = malloc(full_len + 1); // +1 for \0
+    *out = EL_NEW_ARR(char, full_len + 1); // +1 for \0
     memcpy(*out, type_string.data, type_string.len);
     (*out)[type_string.len] = '(';
     memcpy(*out + type_string.len + 1, tok->lexeme.data, tok->lexeme.len);
@@ -227,31 +226,29 @@ static bool needs_separator(ElTokenType tt) {
      || tt == EL_TT_BITWISE_NOT   || tt == EL_TT_COLON         || tt == EL_TT_DOT;
 }
 
-bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace) {
-    bool success = true;
-
+void el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace) {
     switch (tok->type) {
     case EL_TT_STRING_LITERAL:
-        success &= el_strbuf_append_char(sb, '"');
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append_char(sb, '"');
+        el_strbuf_append_char(sb, '"');
+        el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append_char(sb, '"');
         break;
     case EL_TT_CHAR_LITERAL:
-        success &= el_strbuf_append_char(sb, '\'');
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append_char(sb, '\'');
+        el_strbuf_append_char(sb, '\'');
+        el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append_char(sb, '\'');
         break;
     case EL_TT_LINE_COMMENT:
-        success &= el_strbuf_append(sb, EL_SV("//"));
-        success &= el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append(sb, EL_SV("//"));
+        el_strbuf_append(sb, tok->lexeme);
         break;
     case EL_TT_BLOCK_COMMENT:
-        success &= el_strbuf_append(sb, EL_SV("/*"));
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append(sb, EL_SV("*/"));
+        el_strbuf_append(sb, EL_SV("/*"));
+        el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append(sb, EL_SV("*/"));
         break;
     case EL_TT_NEWLINE:
-        success &= el_strbuf_append_char(sb, '\n');
+        el_strbuf_append_char(sb, '\n');
         break;
 
     case EL_TT_UNKNOWN:
@@ -259,12 +256,11 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb, bool whitespace
         break;
     default:
         // for all other token types, append the lexeme directly
-        success &= el_strbuf_append(sb, tok->lexeme);
+        el_strbuf_append(sb, tok->lexeme);
         break;
     }
 
     if (whitespace && needs_separator(tok->type)) {
-        success &= el_strbuf_append_char(sb, ' ');
+        el_strbuf_append_char(sb, ' ');
     }
-    return success;
 }

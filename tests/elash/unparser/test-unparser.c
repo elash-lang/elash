@@ -26,8 +26,7 @@ Test(el_unparser, null_span_int_literal) {
 
     ElAstExpr* lit = el_ast_new_int_lit(&arena, EL_SRCSPAN_NULL, EL_INT128(42));
 
-    bool success = el_unparser_unparse_expr(&unparser, lit);
-    cr_assert(success);
+    el_unparse_expr(&unparser, lit);
 
     cr_assert_eq(toks.data[0].type, EL_TT_INT_LITERAL);
     cr_assert_str_eq(toks.data[0].lexeme.data, "42");
@@ -42,8 +41,7 @@ Test(el_unparser, null_span_float_literal) {
     const double expected = 3.14;
     ElAstExpr* lit = el_ast_new_float_lit(&arena, EL_SRCSPAN_NULL, expected);
 
-    bool success = el_unparser_unparse_expr(&unparser, lit);
-    cr_assert(success);
+    el_unparse_expr(&unparser, lit);
 
     double actual = strtod(toks.data[0].lexeme.data, NULL);
     cr_assert_eq(toks.data[0].type, EL_TT_FLOAT_LITERAL);

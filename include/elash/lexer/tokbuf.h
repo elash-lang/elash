@@ -14,19 +14,19 @@ typedef struct ElTkBufStream {
     usize pos;
 } ElTkBufStream;
 
-bool el_tkbuf_init(ElTokenBuf* tkbuf);
+void el_tkbuf_init(ElTokenBuf* tkbuf);
 void el_tkbuf_destroy(ElTokenBuf* tkbuf);
 
-bool el_tkbuf_copy(const ElTokenBuf* src, ElTokenBuf* dst);
-bool el_tkbuf_move(ElTokenBuf* src, ElTokenBuf* dst);
+void el_tkbuf_copy(const ElTokenBuf* src, ElTokenBuf* dst);
+void el_tkbuf_move(ElTokenBuf* src, ElTokenBuf* dst);
 
-bool el_tkbuf_resize(ElTokenBuf* tkbuf, usize new_size);
-bool el_tkbuf_reserve(ElTokenBuf* tkbuf, usize min_cap);
-bool el_tkbuf_reserve_exact(ElTokenBuf* tkbuf, usize new_cap);
+void el_tkbuf_resize(ElTokenBuf* tkbuf, usize new_size);
+void el_tkbuf_reserve(ElTokenBuf* tkbuf, usize min_cap);
+void el_tkbuf_reserve_exact(ElTokenBuf* tkbuf, usize new_cap);
 
-bool el_tkbuf_push(ElTokenBuf* tkbuf, ElToken tok);
+void el_tkbuf_push(ElTokenBuf* tkbuf, ElToken tok);
 
-bool el_tkbuf_clear(ElTokenBuf* tkbuf);
+void el_tkbuf_clear(ElTokenBuf* tkbuf);
 
 void el_tkbuf_capture_stream(ElTokenStream* stream, ElTokenBuf* buf, ElDiagEngine* diag);
 ElTokenStream el_tkbuf_as_stream(ElTkBufStream* ctx, const ElTokenBuf* buf);

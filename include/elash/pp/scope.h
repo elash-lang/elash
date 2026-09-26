@@ -35,7 +35,7 @@ void el_pp_scope_free(ElPpScope* scope);
 
 /// @brief Assigns a pointer to a symbol to a key in the hash map.
 /// @return True if assignment is successful, false otherwise.
-bool el_pp_scope_assign(ElPpScope* scope, ElStringView key, ElPpSymbol* value);
+void el_pp_scope_assign(ElPpScope* scope, ElStringView key, ElPpSymbol* value);
 /// @brief Removes a key-value pair from the hash map (does not free the value).
 bool el_pp_scope_deassign(ElPpScope* scope, ElStringView key);
 

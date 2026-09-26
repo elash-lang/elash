@@ -39,6 +39,7 @@ jobs:
             -w "${{ github.workspace }}" \
             -e CC="ccache cc" \
             -e CCACHE_DIR="/ccache" \
+            -e EXTRA_CFLAGS="-DELC_SHOW_BACKTRACE=0" \
             "ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest" \
             sh -c "ccache -z && make libelash-static elc -j\$(nproc) && ccache -s && \
             make unit-test && make test-e2e-verbose && make test-unparser-verbose && make test-fuzz-1000"
@@ -49,6 +50,7 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             -w "${{ github.workspace }}" \
+            -e EXTRA_CFLAGS="-DELC_SHOW_BACKTRACE=0" \
             "ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest" \
             make archive
 

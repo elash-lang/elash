@@ -1,24 +1,23 @@
 #include <elash/util/dynarena.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 typedef _ElDynArenaChunk Chunk;
 
 #define EL_DYNARENA_CHUNK_DEFAULT_SIZE ((usize)8 * 1024)
 
-bool el_dynarena_init(ElDynArena* arena) {
+void el_dynarena_init(ElDynArena* arena) {
     arena->head = NULL;
     arena->current = NULL;
     arena->offset = 0;
-    return true;
 }
 
 void el_dynarena_free(ElDynArena* arena) {
     Chunk* chunk = arena->head;
     while (chunk != NULL) {
         Chunk* next = chunk->next;
-        free(chunk);
+        el_free(chunk);
         chunk = next;
     }
     arena->head = NULL;
@@ -33,8 +32,7 @@ void el_dynarena_reset(ElDynArena* arena) {
 
 static Chunk* _el_dynarena_alloc_chunk(usize size) {
     usize alloc_size = size + sizeof(Chunk);
-    Chunk* chunk = malloc(alloc_size);
-    if (!chunk) return NULL;
+    Chunk* chunk = el_alloc(alloc_size, 1);
     chunk->next = NULL;
     chunk->size = size;
     return chunk;
@@ -68,7 +66,6 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
     }
 
     Chunk* new_chunk = _el_dynarena_alloc_chunk(chunk_size);
-    if (!new_chunk) return NULL;
 
     if (arena->head == NULL) {
         arena->head = new_chunk;
@@ -105,7 +102,6 @@ ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv) {
     if (sv.len == 0) return (ElStringView) { .data = "", .len = 0 };
 
     char* data = el_dynarena_alloc(arena, sv.len, 1);
-    if (!data) return EL_SV_NULL;
 
     memcpy(data, sv.data, sv.len);
     return el_sv_from_data_and_len(data, sv.len);
@@ -115,7 +111,6 @@ char* el_dynarena_make_cstr(ElDynArena* arena, ElStringView sv) {
     if (el_sv_is_null(sv) || sv.len == 0) return NULL;
 
     char* buf = el_dynarena_alloc(arena, sv.len + 1, 1);
-    if (!buf) return NULL;
 
     memcpy(buf, sv.data, sv.len);
     buf[sv.len] = '\0';

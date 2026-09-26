@@ -1,6 +1,7 @@
 #include <elash/unparser/unparser.h>
 
 #include <elash/lexer/token.h>
+#include <elash/util/assert.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,16 +11,14 @@ void el_unparser_init(ElUnparser* unpar, ElTokenBuf* out, ElDynArena* arena) {
     unpar->arena = arena;
 }
 
-bool el_unparser_push(ElUnparser* unpar, ElTokenType type, ElStringView lexeme) {
+void el_unparser_push(ElUnparser* unpar, ElTokenType type, ElStringView lexeme) {
     ElStringView cloned = el_dynarena_clone_sv(unpar->arena, lexeme);
-    if (el_sv_is_null(cloned) && !el_sv_is_null(lexeme) && lexeme.len > 0) return false;
 
-    ElToken tok = {
+    el_tkbuf_push(unpar->out, (ElToken) {
         .type = type,
         .lexeme = cloned,
         .span = EL_SRCSPAN_NULL,
-    };
-    return el_tkbuf_push(unpar->out, tok);
+    });
 }
 
 // if you're seeing this in 2027 or later,
@@ -28,7 +27,7 @@ bool el_unparser_push(ElUnparser* unpar, ElTokenType type, ElStringView lexeme) 
 //  get ready for the end of the world
 #define BUFSIZE 2026
 
-bool el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, ...) {
+void el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, ...) {
     // NUCLEAR OPTIMIZATION BEGINS HERE
     char buf[BUFSIZE];
 
@@ -37,7 +36,7 @@ bool el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, 
     int n = vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
 
-    if (n < 0) return false;
+    if (n < 0) return;
     if ((usize)n < sizeof(buf)) {
         // unparser_push clones the sv so this is safe.
         return el_unparser_push(unpar, type, el_sv_from_data_and_len(buf, (usize)n));
@@ -45,7 +44,6 @@ bool el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, 
     // NUCLEAR OPTIMIZATION ENDS HERE
 
     char* heap = el_dynarena_alloc(unpar->arena, (usize)n + 1, 1);
-    if (heap == NULL) return false;
 
     // TIL you can call va_start multiple times
     // (this is THEORETICALLY faster than copying
@@ -56,13 +54,13 @@ bool el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, 
     vsnprintf(heap, (usize)n + 1, fmt, args);
     va_end(args);
 
-    return el_tkbuf_push(unpar->out, (ElToken) {
+    el_tkbuf_push(unpar->out, (ElToken) {
         .type = type,
         .lexeme = el_sv_from_data_and_len(heap, (usize)n),
     });
 }
 
-bool el_unparser_push_punct(ElUnparser* unpar, ElTokenType type) {
+void el_unparser_push_punct(ElUnparser* unpar, ElTokenType type) {
     ElStringView lexeme;
     switch (type) {
     case EL_TT_PLUS:               lexeme = EL_SV("+");     break;
@@ -124,12 +122,12 @@ bool el_unparser_push_punct(ElUnparser* unpar, ElTokenType type) {
     case EL_TT_HASH:               lexeme = EL_SV("#");     break;
     case EL_TT_ELLIPSIS:           lexeme = EL_SV("...");   break;
     case EL_TT_EOF:                lexeme = EL_SV_NULL;     break;
-    default:                       return false;
+    default:                       EL_UNREACHABLE("not a punct");
     }
     return el_unparser_push(unpar, type, lexeme);
 }
 
-bool el_unparser_push_kw(ElUnparser* unpar, ElTokenType type) {
+void el_unparser_push_kw(ElUnparser* unpar, ElTokenType type) {
     ElStringView lexeme;
     switch (type) {
     case EL_TT_KW_IF:         lexeme = EL_SV("if");       break;
@@ -160,11 +158,11 @@ bool el_unparser_push_kw(ElUnparser* unpar, ElTokenType type) {
     case EL_TT_TRUE_LITERAL:  lexeme = EL_SV("true");     break;
     case EL_TT_FALSE_LITERAL: lexeme = EL_SV("false");    break;
     case EL_TT_NULL_LITERAL:  lexeme = EL_SV("null");     break;
-    default:                  return false;
+    default:                  EL_UNREACHABLE("not a keyword");
     }
     return el_unparser_push(unpar, type, lexeme);
 }
 
-bool el_unparser_push_ident(ElUnparser* unpar, ElStringView name) {
+void el_unparser_push_ident(ElUnparser* unpar, ElStringView name) {
     return el_unparser_push(unpar, EL_TT_IDENT, name);
 }

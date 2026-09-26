@@ -24,14 +24,11 @@ bool el_pp_init(
         pp->pss_eval      = el_prof_new_sub(prof, EL_SV("Evaluating expressions"));
     }
 
-    if (!el_tkque_init(&pp->pending))
-        return false;
-    if (!el_tkbuf_init(&pp->capture_buf))
-        return false;
+    el_tkque_init(&pp->pending);
+    el_tkbuf_init(&pp->capture_buf);
 
     pp->iarena = EL_DYNARENA_NEW(pp->farena, ElDynArena);
-    if (!el_dynarena_init(pp->iarena))
-        return false;
+    el_dynarena_init(pp->iarena);
 
     _el_pp_push_frame(pp, input, root_doc);
 
@@ -330,7 +327,7 @@ bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
 
         default:
             if (pp->skip_capture)
-                return el_tkbuf_push(&pp->capture_buf, *out_tok);
+                el_tkbuf_push(&pp->capture_buf, *out_tok);
 
             return true;
         }
@@ -413,7 +410,7 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
                 && (pp->block_stack->kind == EL_PP_BLOCK_FUNC
                     || pp->block_stack->kind == EL_PP_BLOCK_WHILE
                     || pp->block_stack->kind == EL_PP_BLOCK_FOR)) {
-                if (!el_tkbuf_push(&pp->capture_buf, input_tok)) return false;
+                el_tkbuf_push(&pp->capture_buf, input_tok);
             }
             continue;
         case EL_TT_WHITESPACE:
@@ -452,9 +449,7 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
         default:
             if (pp->skip_depth > 0) {
                 if (pp->skip_capture) {
-                    if (!el_tkbuf_push(&pp->capture_buf, input_tok)) {
-                        return false;
-                    }
+                    el_tkbuf_push(&pp->capture_buf, input_tok);
                     continue;
                 } else {
                     continue;

@@ -1,29 +1,29 @@
 #include <elash/unparser/unparser.h>
 
-bool _el_unparser_unparse_ident(ElUnparser* unpar, ElAstIdent* ident) {
-    return el_unparser_push_ident(unpar, ident->name);
+void _el_unparse_ident(ElUnparser* unpar, ElAstIdent* ident) {
+    el_unparser_push_ident(unpar, ident->name);
 }
 
-bool _el_unparser_unparse_block(ElUnparser* unpar, ElAstBlockStmt* block) {
-    if (!el_unparser_push_punct(unpar, EL_TT_LBRACE)) return false;
+void _el_unparse_block(ElUnparser* unpar, ElAstBlockStmt* block) {
+    el_unparser_push_punct(unpar, EL_TT_LBRACE);
     for (ElAstStmt* stmt = block->stmts; stmt != NULL; stmt = stmt->next) {
-        if (!el_unparser_unparse_stmt(unpar, stmt)) return false;
+        el_unparse_stmt(unpar, stmt);
     }
-    return el_unparser_push_punct(unpar, EL_TT_RBRACE);
+    el_unparser_push_punct(unpar, EL_TT_RBRACE);
 }
 
-bool _el_unparser_unparse_func_sig(ElUnparser* unpar, ElAstFuncSignature* sig) {
-    if (!el_unparser_unparse_type(unpar, sig->ret_type)) return false;
-    if (!_el_unparser_unparse_ident(unpar, sig->name)) return false;
-    if (!el_unparser_push_punct(unpar, EL_TT_LPAREN)) return false;
+void _el_unparse_func_sig(ElUnparser* unpar, ElAstFuncSignature* sig) {
+    el_unparse_type(unpar, sig->ret_type);
+    _el_unparse_ident(unpar, sig->name);
+    el_unparser_push_punct(unpar, EL_TT_LPAREN);
 
     for (ElAstFuncParam* param = sig->params.head; param != NULL; param = param->next) {
-        if (!el_unparser_unparse_type(unpar, param->type)) return false;
-        if (!_el_unparser_unparse_ident(unpar, param->name)) return false;
+        el_unparse_type(unpar, param->type);
+        _el_unparse_ident(unpar, param->name);
         if (param->next != NULL) {
-            if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
+            el_unparser_push_punct(unpar, EL_TT_COMMA);
         }
     }
 
-    return el_unparser_push_punct(unpar, EL_TT_RPAREN);
+    el_unparser_push_punct(unpar, EL_TT_RPAREN);
 }

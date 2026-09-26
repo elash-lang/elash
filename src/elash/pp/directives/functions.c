@@ -100,7 +100,7 @@ static bool skip_func_signature(ElPreproc* pp) {
     return true;
 }
 
-bool _el_pp_finish_pending_func(ElPreproc* pp) {
+void _el_pp_finish_pending_func(ElPreproc* pp) {
     EL_ASSERT(pp->block_stack != NULL,                   "no active block");
     EL_ASSERT(pp->block_stack->kind == EL_PP_BLOCK_FUNC, "top block is not #func");
 
@@ -124,13 +124,12 @@ bool _el_pp_finish_pending_func(ElPreproc* pp) {
         .body     = body,
     );
 
-    bool ok = el_pp_scope_assign(pp->current_scope, sym->name, sym);
+    el_pp_scope_assign(pp->current_scope, sym->name, sym);
 
     _el_pp_pop_block(pp);
     pp->skip_capture = false;
     pp->skip_depth = 0;
     el_tkbuf_clear(&pp->capture_buf);
-    return ok;
 }
 
 bool _el_pp_handle_func(ElPreproc* pp, ElSourceSpan dspan) {

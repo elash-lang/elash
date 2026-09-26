@@ -1,7 +1,7 @@
 #include <elash/util/ghm.h>
 #include <elash/util/assert.h>
+#include <elash/util/alloc.h>
 
-#include <stdlib.h>
 #include <string.h>
 
 #define INITIAL_CAPACITY 16
@@ -54,7 +54,7 @@ void el_ghm_init(ElGHM* ghm, ElGHMHashFn* hash, ElGHMEqualFn* eql) {
     ghm->count = 0;
     ghm->tombstones = 0;
 
-    ghm->entries = calloc(ghm->capacity, sizeof(Entry));
+    ghm->entries = EL_NEW_ARR_ZEROED(Entry, ghm->capacity);
 
     ghm->hash = hash;
     ghm->eql = eql;
@@ -62,20 +62,15 @@ void el_ghm_init(ElGHM* ghm, ElGHMHashFn* hash, ElGHMEqualFn* eql) {
 
 void el_ghm_free(ElGHM* ghm) {
     if (ghm == NULL) return;
-    free(ghm->entries);
+    el_free(ghm->entries);
 }
 
-static bool resize(ElGHM* ghm) {
+static void resize(ElGHM* ghm) {
     usize old_capacity = ghm->capacity;
     Entry* old_entries = ghm->entries;
 
     ghm->capacity *= 2;
-    ghm->entries = calloc(ghm->capacity, sizeof(Entry));
-    if (ghm->entries == NULL) {
-        ghm->entries = old_entries;
-        ghm->capacity = old_capacity;
-        return false;
-    }
+    ghm->entries = EL_NEW_ARR_ZEROED(Entry, ghm->capacity);
 
     ghm->count = 0;
     ghm->tombstones = 0;
@@ -86,13 +81,12 @@ static bool resize(ElGHM* ghm) {
         }
     }
 
-    free(old_entries);
-    return true;
+    el_free(old_entries);
 }
 
-bool el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
+void el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
     if ((ghm->count + ghm->tombstones) * 4 >= ghm->capacity * 3) {
-        if (!resize(ghm)) return false;
+        resize(ghm);
     }
 
     isize index = find_index(ghm, key, true);
@@ -100,7 +94,7 @@ bool el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
 
     if (ghm->entries[index].state == OCCUPIED) {
         ghm->entries[index].value = value;
-        return true;
+        return;
     }
 
     if (ghm->entries[index].state == TOMBSTONE) {
@@ -111,7 +105,6 @@ bool el_ghm_insert(ElGHM* ghm, const void* key, void* value) {
     ghm->entries[index].value = value;
     ghm->entries[index].state = OCCUPIED;
     ghm->count++;
-    return true;
 }
 
 void* el_ghm_lookup(ElGHM* ghm, const void* key) {

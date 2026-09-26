@@ -1,4 +1,5 @@
 #include <elc/driver/driver.h>
+#include <elc/driver/crash.h>
 
 #include <elash/util/ansi.h>
 
@@ -6,6 +7,8 @@
 #include <elc/cli/argparse.h>
 
 int main(int argc, const char* argv[]) {
+    el_out_of_mem_cb = elc_out_of_mem_cb;
+
     ElcDriver driver;
     if (!elc_driver_init(&driver)) {
         fprintf(stderr, "failed to initialize driver\n");
@@ -19,11 +22,17 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    el_ansi_pref = args.color == ELC_PREF_ALWAYS
-        ? EL_ANSI_ENABLED
-        : args.color == ELC_PREF_AUTO
-            ? EL_ANSI_AUTO
-            : EL_ANSI_DISABLED;
+    // currently auto is equivalent to always, this may change in the future
+    if (args.crash_handlers != ELC_PREF_NEVER) {
+        elc_register_crash_handlers();
+    }
+
+    el_ansi_init(
+        args.color == ELC_PREF_ALWAYS
+            ? EL_ANSI_ENABLED
+            : args.color == ELC_PREF_AUTO
+                ? EL_ANSI_AUTO
+                : EL_ANSI_DISABLED);
 
     if (args.help) {
         // in elash this would be
@@ -34,8 +43,7 @@ int main(int argc, const char* argv[]) {
         return 0;
     }
     if (args.version) {
-        // TODO: actually print the version i guess
-        puts("what do you mean by 'version'?");
+        elc_cli_print_version(stdout);
         return 0;
     }
 

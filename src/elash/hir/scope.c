@@ -1,5 +1,6 @@
 #include <elash/hir/scope.h>
 #include <elash/util/hash.h>
+#include <elash/util/alloc.h>
 
 #include <stdlib.h>
 
@@ -7,39 +8,28 @@
 #define LOAD_FACTOR 0.75
 
 ElScope* el_hir_scope_new(ElScope* parent) {
-    ElScope* scope = malloc(sizeof(ElScope));
-    if (scope == NULL) return NULL;
+    ElScope* scope = EL_NEW(ElScope);
 
     scope->parent = parent;
     scope->capacity = INITIAL_CAPACITY;
     scope->count = 0;
-    scope->entries = calloc(scope->capacity, sizeof(ElScopeEntry));
-
-    if (scope->entries == NULL) {
-        free(scope);
-        return NULL;
-    }
+    scope->entries = EL_NEW_ARR_ZEROED(ElScopeEntry, scope->capacity);
 
     return scope;
 }
 
 void el_hir_scope_free(ElScope* scope) {
     if (scope == NULL) return;
-    free(scope->entries);
-    free(scope);
+    el_free(scope->entries);
+    el_free(scope);
 }
 
-static bool resize(ElScope* scope) {
+static void resize(ElScope* scope) {
     usize old_capacity = scope->capacity;
     ElScopeEntry* old_entries = scope->entries;
 
     scope->capacity *= 2;
-    scope->entries = calloc(scope->capacity, sizeof(ElScopeEntry));
-    if (scope->entries == NULL) {
-        scope->entries = old_entries;
-        scope->capacity = old_capacity;
-        return false;
-    }
+    scope->entries = EL_NEW_ARR_ZEROED(ElScopeEntry, scope->capacity);
 
     scope->count = 0;
     for (usize i = 0; i < old_capacity; i++) {
@@ -48,13 +38,12 @@ static bool resize(ElScope* scope) {
         }
     }
 
-    free(old_entries);
-    return true;
+    el_free(old_entries);
 }
 
 bool el_hir_scope_insert_ex(ElScope* scope, ElStringView name, ElHirSymbol* symbol) {
     if ((double)scope->count / (double)scope->capacity >= LOAD_FACTOR) {
-        if (!resize(scope)) return false;
+        resize(scope);
     }
 
     uhash hash = el_hash_string(name);

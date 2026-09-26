@@ -46,6 +46,7 @@ typedef struct ElcArgs {
 
     ElcOptLevel opt;
     ElcPreference color;
+    ElcPreference crash_handlers;
 
     ElcDiagFormat dformat;
     bool debug;

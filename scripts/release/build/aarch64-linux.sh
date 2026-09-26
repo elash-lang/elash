@@ -13,6 +13,7 @@ make -C "$PROJECT_ROOT" archive -j"$(nproc)" \
     DEP_ROOT_DIR="$PWD/build/dep" \
     OUT_DIR="$PWD/out" \
     \
+    USE_LIB_BACKTRACE=\
     LLVM_CFLAGS="" \
     CFLAGS="-O3 -DNDEBUG -std=c11 -Wall -Wextra -I/usr/aarch64-linux-gnu/include -Iinclude $LLVM_CPP_FLAGS" \
     LLVM_LDFLAGS="-Wl,--start-group /usr/aarch64-linux-gnu/lib/libLLVM*.a -Wl,--end-group -lrt -ldl -lm -lstdc++"

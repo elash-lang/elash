@@ -124,8 +124,8 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
     }
 
     if (capturing) {
-        if (!el_tkbuf_push(&pp->capture_buf, hash)) return false;
-        if (!el_tkbuf_push(&pp->capture_buf, dir))  return false;
+        el_tkbuf_push(&pp->capture_buf, hash);
+        el_tkbuf_push(&pp->capture_buf, dir);
         pp->skip_capture = true;
     }
 

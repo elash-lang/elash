@@ -21,6 +21,7 @@ jobs:
       image: ghcr.io/${{ github.repository_owner }}/elash-ci-x64:latest
     env:
       CC: ccache cc
+      EXTRA_CFLAGS: -DELC_SHOW_BACKTRACE=0
 
     steps:
       - name: Checkout repository
