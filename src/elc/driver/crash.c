@@ -1,5 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
 #include <elc/driver/crash.h>
-
 #include <elash/defs/platform.h>
 
 #if EL_PLATFORM_IS_POSIX
