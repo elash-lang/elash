@@ -41,16 +41,18 @@ else
 endif
 
 ########## version ###########
-ifeq ($(wildcard VERSION),)
-$(error VERSION file not found)
+VERSION_FILE ?= VERSION
+
+ifeq ($(wildcard $(VERSION_FILE)),)
+$(error $(VERSION_FILE) file not found)
 endif
 
 ifeq ($(USE_POSIX_SHELL),yes)
-	VERSION   := $(strip $(shell cat VERSION))
+	VERSION   := $(strip $(shell cat $(VERSION_FILE)))
 	DIST_OS   := $(if $(filter windows,$(PLATFORM)),windows,$(shell uname -s | tr '[:upper:]' '[:lower:]'))
 	DIST_ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
 else
-	VERSION   := $(strip $(shell type VERSION))
+	VERSION   := $(strip $(shell type $(VERSION_FILE)))
 	DIST_OS   := windows
 	DIST_ARCH := $(shell powershell -NoProfile -Command "$$env:PROCESSOR_ARCHITECTURE.ToLower()")
 endif

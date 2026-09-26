@@ -3,6 +3,7 @@ include make/config.mk
 SRC_DIR     := src
 TEST_DIR    := tests
 INCLUDE_DIR := include
+SCRIPTS_DIR := scripts
 
 OBJ_ROOT_DIR := build/$(BUILD)/obj
 DEP_ROOT_DIR := build/$(BUILD)/dep
