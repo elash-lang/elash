@@ -123,13 +123,21 @@ def report_compilation_failure(actual: FinishedResult):
 
     return
 
-def report_failure(name: str, expected: TestExpectation, actual: TestResult):
+def report_failure(case: TestCase, expected: TestExpectation, actual: TestResult):
     if isinstance(actual, TimedOutResult):
-        print_timeout(name)
+        print_timeout(case.name)
         print_info(f'  Timed out during {CLR_BOLD}{actual.stage}{CLR_RESET} stage')
-        return
+    else:
+        print_fail(case.name)
 
-    print_fail(name)
+    print_info(f'  reproduce:')
+    if case.path.is_dir():
+        print_info(f'    elc compile {case.path}/main.eu')
+    else:
+        print_info(f'    elc compile {case.path}')
+
+    if not isinstance(actual, FinishedResult):
+        return
 
     if isinstance(expected, NegativeTestExpectation):
         if actual.stage != 'compilation':
@@ -248,21 +256,21 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
     for case in test_cases:
         tasks.append((case, get_expectation(case)))
 
-    def handle_result(name, expected, actual):
+    def handle_result(case: TestCase, expected: TestExpectation, actual: TestResult | None):
         nonlocal passed_count, failed_count, crashed_count, skipped_count
         if actual is None:
-            print_skip(name)
+            print_skip(case.name)
             skipped_count += 1
         elif isinstance(actual, FinishedResult) and actual.exitcode < 0:
-            print_fail(name)
+            print_fail(case.name)
             print_info(f'  crash: {Signals(-actual.exitcode).name}')
             crashed_count += 1
         elif _is_success(expected, actual):
             if verbose:
-                print_pass(name)
+                print_pass(case.name)
             passed_count += 1
         else:
-            report_failure(name, expected, actual)
+            report_failure(case, expected, actual)
             failed_count += 1
 
     if jobs is None or jobs > 1:
@@ -270,14 +278,15 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
             future_to_test = {}
             for case, expected in tasks:
                 future = executor.submit(run_test_case, elc_bin, work_dir, case, timeouts, elc_bin_mtime)
-                future_to_test[future] = (case.name, expected)
+                future_to_test[future] = (case, expected)
 
             for future in as_completed(future_to_test):
-                name, expected = future_to_test[future]
-                handle_result(name, expected, future.result())
+                case, expected = future_to_test[future]
+                handle_result(case, expected, future.result())
     else:
         for case, expected in tasks:
-            handle_result(case.name, expected, run_test_case(elc_bin, work_dir, case, timeouts, elc_bin_mtime))
+            result = run_test_case(elc_bin, work_dir, case, timeouts, elc_bin_mtime)
+            handle_result(case, expected, result)
 
     tested_count = passed_count + failed_count + crashed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
