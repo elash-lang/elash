@@ -1,0 +1,8 @@
+int main() {
+    wonly struct(const int) a;
+    const struct(wonly int) b;
+    const int[3]wonly c;
+    wonly int[3]const d;
+
+    return 0;
+}

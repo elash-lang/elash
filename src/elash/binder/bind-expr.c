@@ -7,6 +7,9 @@
 #include <elash/hir/tree/expr.h>
 #include <elash/hir/type/prim.h>
 #include <elash/hir/type/opt.h>
+#include <elash/hir/type/ref.h>
+#include <elash/hir/type/slice.h>
+#include <elash/hir/type/raw-slice.h>
 #include <elash/hir/tree/expr/intr.h>
 #include <elash/ast/tree/toi.h>
 
@@ -32,6 +35,7 @@ static bool is_distinct_related(ElHirType* a, ElHirType* b) {
 static bool is_null_lit(const ElHirExpr* expr) {
     return expr->kind == EL_HIR_EXPR_LITERAL && expr->as.literal.kind == EL_HIR_LITERAL_NULL;
 }
+
 
 static bool types_opt_base_match(const ElHirType* opt, const ElHirType* other) {
     if (opt->kind != EL_HIR_TYPE_OPT) return false;
@@ -226,7 +230,8 @@ static ElHirExpr* bind_bin(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
 
-        ElHirType* type_to_check = el_hir_type_unwrap(left->type);
+        ElHirType* container = left->type;
+        ElHirType* type_to_check = el_hir_type_unwrap(container);
 
         switch (type_to_check->kind) {
         case EL_HIR_TYPE_ARRAY:   type = type_to_check->as.array.base;   break;
@@ -234,6 +239,7 @@ static ElHirExpr* bind_bin(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
         case EL_HIR_TYPE_RWSLICE: type = type_to_check->as.rwslice.base; break;
         default:                  REPORT_NON_INDEXABLE;                  break;
         }
+        type = _el_binder_project_mut(binder, container, type);
     }
 
     return el_hir_new_bin_expr(binder->arena, in->span, type, bin->op, left, right);
@@ -268,7 +274,7 @@ static ElHirExpr* bind_unary(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* un
                 unary->operand->span, "operand of optional unwrap operator must be an optional"
             );
         }
-        type = operand_ty->as.opt.base;
+        type = _el_binder_project_mut(binder, operand->type, operand_ty->as.opt.base);
     } else if (type == NULL){
         if (unary->op == EL_UNARY_OP_DEREF)
             return el_diag_report(
@@ -453,7 +459,8 @@ static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* 
     ElHirExpr* expr = el_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
-    ElHirType* type = expr->type;
+    ElHirType* parent = expr->type;
+    ElHirType* type = parent;
     if (type != NULL) type = el_hir_type_unwrap(type);
 
     if (member->is_optional) {
@@ -463,7 +470,8 @@ static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* 
                 member->expr->span, "optional member access requires an optional operand"
             );
         }
-        type = el_hir_type_unwrap(type->as.opt.base);
+        parent = _el_binder_project_mut(binder, expr->type, type->as.opt.base);
+        type = el_hir_type_unwrap(parent);
     }
 
     if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
@@ -496,21 +504,21 @@ static ElHirExpr* bind_member(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* 
         );
     }
 
-    if (member->is_optional) {
-        ElHirType* field_type = stype->fields[field_index].type;
+    ElHirType* field_type = _el_binder_project_mut(binder, parent, stype->fields[field_index].type);
 
+    if (member->is_optional) {
         // expr ?> expr!.field
         ElHirType* result_type = el_hir_new_opt_type(binder->arena, field_type);
         return el_hir_new_bin_expr(binder->arena, in->span, result_type, EL_BIN_OP_OPT_MAP, expr,
                 el_hir_new_member_expr(
                     binder->arena, in->span, field_type, el_hir_new_unary_expr(
-                        binder->arena, in->span, expr->type->as.opt.base, EL_UNARY_OP_OPT_UNWRAP, expr),
+                        binder->arena, in->span, parent, EL_UNARY_OP_OPT_UNWRAP, expr),
             member->name, field_index
         ));
     }
 
     return el_hir_new_member_expr(
-        binder->arena, in->span, stype->fields[field_index].type,
+        binder->arena, in->span, field_type,
         expr, member->name, field_index
     );
 }
@@ -520,7 +528,8 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
     ElHirExpr* expr = el_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 
-    ElHirType* type = expr->type;
+    ElHirType* parent = expr->type;
+    ElHirType* type = parent;
     if (type != NULL) type = el_hir_type_unwrap(type);
 
     if (tmember->is_optional) {
@@ -530,7 +539,8 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
                 tmember->expr->span, "optional member access requires an optional operand"
             );
         }
-        type = el_hir_type_unwrap(type->as.opt.base);
+        parent = _el_binder_project_mut(binder, expr->type, type->as.opt.base);
+        type = el_hir_type_unwrap(parent);
     }
 
     if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
@@ -563,8 +573,9 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
         return NULL;
     }
 
+    ElHirType* elem_type = _el_binder_project_mut(binder, parent, ttype->elements[tmember->index]);
+
     if (tmember->is_optional) {
-        ElHirType* elem_type   = ttype->elements[tmember->index];
         ElHirType* result_type = el_hir_new_opt_type(binder->arena, elem_type);
 
         // expr ?> expr!.index
@@ -572,14 +583,14 @@ static ElHirExpr* bind_tmember(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr
             binder->arena, in->span, result_type, EL_BIN_OP_OPT_MAP, expr,
                 el_hir_new_tmember_expr(
                     binder->arena, in->span, elem_type, el_hir_new_unary_expr(
-                        binder->arena, in->span, type, EL_UNARY_OP_OPT_UNWRAP, expr),
+                        binder->arena, in->span, parent, EL_UNARY_OP_OPT_UNWRAP, expr),
                 tmember->index
             )
         );
     }
 
     return el_hir_new_tmember_expr(
-        binder->arena, in->span, ttype->elements[tmember->index],
+        binder->arena, in->span, elem_type,
         expr, tmember->index
     );
 }

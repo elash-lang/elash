@@ -35,6 +35,10 @@ usize _el_binder_alignof(ElBinder* binder, ElHirType* type);
 ElScope* _el_binder_push_scope(ElBinder* binder);
 ElScope* _el_binder_pop_scope(ElBinder* binder);
 
+//////////////// mutability ////////////////////
+ElHirType* _el_binder_project_mut(ElBinder* binder, ElHirType* parent, ElHirType* member);
+bool _el_binder_type_has_mut_conflict(const ElHirType* type);
+
 ///////////////// analysis /////////////////////
 typedef enum Redundancy {
     REDUNDANCY_NONE,    //< expressions with side effects;            i.e. foo();

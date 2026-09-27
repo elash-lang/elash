@@ -10,8 +10,12 @@ int sumTwoFirstElements(const int[] s) {
 
 typedef Integer as int;
 
+typedef Cell as struct {
+    int& r;
+};
+
 int main() {
-    // --- scalar const ---
+    /////////////// scalars /////////////
     const uint n = 10;
     if (n != 10)
         return 1;
@@ -52,60 +56,79 @@ int main() {
     if (carr[0] != 1 || carr[2] != 3)
         return 9;
 
+    carr = { 4, 5, 6 };
+    if (carr[0] != 4 || carr[2] != 6)
+        return 10;
+
     int[3] mutArr = carr;
     mutArr[0] = 9;
-    if (mutArr[0] != 9 || carr[0] != 1)
-        return 10;
+    if (mutArr[0] != 9 || carr[0] != 4)
+        return 11;
+
+    struct(const int, int) pair = { .0 = 1, .1 = 2 };
+    pair = { .0 = 10, .1 = 20 };
+    if (pair.0 != 10 || pair.1 != 20)
+        return 12;
+
+    pair.1 = 30;
+    if (pair.1 != 30)
+        return 13;
 
     ////////////// slices //////////////
     int[3] buf = { 10, 20, 30 };
     const int[] csl = buf;
     if (csl[1] != 20)
-        return 11;
+        return 14;
     if (sumTwoFirstElements(csl) != 30)
-        return 12;
+        return 15;
 
     const int[&] crw = buf;
     if (crw[2] != 30)
-        return 13;
+        return 16;
 
     if (sumTwoFirstElements(buf) != 30)
-        return 14;
+        return 17;
 
     ///////// string literals //////////
     const char[5] hello = "Hello";
     if (!streql(hello, "Hello"))
-        return 15;
+        return 18;
 
     char[5] copy = hello;
     copy[0] = 'Y';
     if (!streql(copy, "Yello"))
-        return 16;
+        return 19;
 
     const char[] cs = "Hi";
     if (!streql(cs, "Hi"))
-        return 17;
+        return 20;
 
     /////////// distinct types ///////////
     const Integer integer = 100;
     if ((integer as int) != 100)
-        return 18;
+        return 21;
 
     Integer mut = integer;
 
     mut = 50;
     if (mut != 50 || integer != 100)
-        return 19;
+        return 22;
 
     const Integer& mref = &integer;
     if ((mref^ as int) != 100)
-        return 20;
+        return 23;
 
     int foo = 3;
     int& fooRef = &foo;
     const int& fooConstRef = fooRef;
     if (fooConstRef^ != 3)
-        return 21;
+        return 24;
+
+    // the deep const semantics
+    int cellVal = 7;
+    const Cell cell = { .r = &cellVal };
+    if (cell.r^ != 7)
+        return 28;
 
     return 0;
 }

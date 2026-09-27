@@ -63,6 +63,9 @@ ElHirType*       el_hir_type_qualify(ElDynArena* arena, ElHirType* type, ElMutab
 bool el_hir_type_mut_compatible(const ElHirType* from, const ElHirType* to);
 bool el_hir_type_compatible(const ElHirType* from, const ElHirType* to);
 
+bool el_hir_type_is_writable(const ElHirType* type);
+bool el_hir_type_is_readable(const ElHirType* type);
+
 /// Unwraps qualifiers
 /// Examples:
 ///   const int -> int

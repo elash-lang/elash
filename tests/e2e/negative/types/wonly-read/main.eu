@@ -3,5 +3,20 @@ int main() {
     wonly char& ref = &c;
 
     char c2 = ref^;
+
+    wonly struct(int) outer = { .0 = 1 };
+    int a = outer.0;
+
+    struct(wonly int) nested = { .0 = 1 };
+    int b = nested;
+    int c3 = nested.0;
+
+    int[3] buf = { 1, 2, 3 };
+    int[] wonly wsl = buf;
+    int d = wsl[0];
+
+    wonly int[3] warr = { 1, 2, 3 };
+    int e = warr[0];
+
     return 0;
 }

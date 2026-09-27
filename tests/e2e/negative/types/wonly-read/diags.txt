@@ -1,1 +1,1 @@
-5:error[sema.write-only]
+5,8,11,12,16,19:error[sema.write-only]

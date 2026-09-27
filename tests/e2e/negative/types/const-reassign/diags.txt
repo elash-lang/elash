@@ -1,1 +1,17 @@
-3,6,9,10:error[sema.immutable]
+13,17,21:error[sema.immutable]: cannot modify immutable value of type 'const uint'
+
+26:error[sema.immutable]: cannot modify immutable value of type 'const int'
+22:error[sema.immutable]: cannot modify immutable value of type 'const const uint&'
+30:error[sema.immutable]: cannot modify immutable value of type 'const int'
+31:error[sema.immutable]: cannot modify immutable value of type 'const struct(int)'
+36:error[sema.immutable]: cannot modify immutable value of type 'const const int&'
+
+39,35,54,58,43:error[sema.immutable]: cannot modify immutable value of type 'const int'
+47:error[sema.immutable]: cannot modify immutable value of type 'const int[3]'
+
+48,63:error[sema.immutable]: cannot modify immutable value of type 'const int'
+59:error[sema.immutable]: cannot modify immutable value of type 'const int[]'
+
+67:error[sema.immutable]: cannot modify immutable value of type 'const int'
+68:error[sema.immutable]: cannot modify immutable value of type 'const int?'
+

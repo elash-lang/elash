@@ -129,7 +129,7 @@ Test(el_parser_happy, parse_decl_func) {
 
 Test(el_parser_happy, parse_alias_array_mut_suffixes) {
     ElDiagEngine diag;
-    ElParser parser = p("alias A = int[3]const & wonly;", &diag);
+    ElParser parser = p("alias A = int[3] const & wonly;", &diag);
     ElAstDecl* decl = el_parse_decl(&parser);
     cr_assert_eq(diag.summary.total_errors, 0);
 

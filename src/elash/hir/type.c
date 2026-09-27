@@ -123,7 +123,7 @@ void el_hir_format_type_impl(const ElHirType* type, void (*write)(const char*, v
         write("}", ctx);
         return;
     case EL_HIR_TYPE_TUPLE:
-        write("(", ctx);
+        write("struct(", ctx);
         for (usize i = 0; i < type->as.tuple.count; i++) {
             el_hir_format_type_impl(type->as.tuple.elements[i], write, ctx);
             if (i + 1 < type->as.tuple.count) write(", ", ctx);
@@ -308,8 +308,67 @@ bool el_hir_type_mut_compatible(const ElHirType* from, const ElHirType* to) {
     case EL_HIR_TYPE_SLICE:   return el_hir_type_mut_compatible(from->as.slice.base, to->as.slice.base);
     case EL_HIR_TYPE_RWSLICE: return el_hir_type_mut_compatible(from->as.rwslice.base, to->as.rwslice.base);
     case EL_HIR_TYPE_ARRAY:   return el_hir_type_mut_compatible(from->as.array.base, to->as.array.base);
-    default:                  return true;
+
+    case EL_HIR_TYPE_STRUCT:
+        EL_ASSERT(from->as.struct_.count != to->as.struct_.count,
+                  "invalid arguments passed");
+
+        for (usize i = 0; i < from->as.struct_.count; i++) {
+            if (!el_hir_type_mut_compatible(from->as.struct_.fields[i].type, to->as.struct_.fields[i].type)) {
+                return false;
+            }
+        }
+        return true;
+
+    case EL_HIR_TYPE_TUPLE:
+        EL_ASSERT(from->as.tuple.count != to->as.tuple.count,
+                  "invalid arguments passed");
+
+        for (usize i = 0; i < from->as.tuple.count; i++) {
+            if (!el_hir_type_mut_compatible(from->as.tuple.elements[i], to->as.tuple.elements[i])) {
+                return false;
+            }
+        }
+        return true;
+
+    default:
+        return true;
     }
+}
+
+static bool type_has_mut(const ElHirType* type, ElMutabilitySpec mut) {
+    if (type == NULL) return false;
+    if (el_hir_type_mut(type) == mut) return true;
+
+    type = el_hir_type_unwrap((ElHirType*)type);
+    if (type == NULL) return false;
+
+    switch (type->kind) {
+    case EL_HIR_TYPE_ARRAY:
+        return type_has_mut(type->as.array.base, mut);
+    case EL_HIR_TYPE_TUPLE:
+        for (usize i = 0; i < type->as.tuple.count; i++) {
+            if (type_has_mut(type->as.tuple.elements[i], mut))
+                return true;
+        }
+        return false;
+    case EL_HIR_TYPE_STRUCT:
+        for (usize i = 0; i < type->as.struct_.count; i++) {
+            if (type_has_mut(type->as.struct_.fields[i].type, mut))
+                return true;
+        }
+        return false;
+    default:
+        return false;
+    }
+}
+
+bool el_hir_type_is_writable(const ElHirType* type) {
+    return el_hir_type_mut(type) != EL_MUTSPEC_CONST;
+}
+
+bool el_hir_type_is_readable(const ElHirType* type) {
+    return !type_has_mut(type, EL_MUTSPEC_WONLY);
 }
 
 bool el_hir_type_compatible(const ElHirType* from, const ElHirType* to) {

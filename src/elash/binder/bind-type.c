@@ -171,7 +171,15 @@ static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
         EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, in->kind);
     }
 
-    return el_hir_type_qualify(binder->arena, result, in->mut);
+    result = el_hir_type_qualify(binder->arena, result, in->mut);
+    if (result != NULL && _el_binder_type_has_mut_conflict(result)) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.mut-conflict",
+            in->span, "type '${type}' mixes const and wonly on the same data",
+            EL_DIAG_TYPE("type", result),
+        );
+    }
+    return result;
 }
 
 

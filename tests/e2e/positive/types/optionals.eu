@@ -59,5 +59,9 @@ int main() {
     if (xyz != 100)
         return 14;
 
+    int? const frozen = 55;
+    if (frozen! != 55)
+        return 15;
+
     return 0;
 }

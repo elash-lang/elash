@@ -1,13 +1,71 @@
-int main() {
-    const uint foo = 10;
-    foo = 20;
+typedef Pair as struct {
+    const int a;
+    int b;
+};
 
+typedef Storage as struct {
+    int& ref;
+};
+
+int main() {
+    //////////// basic ////////////
+    const uint foo = 10;
+    foo = 20;              // DISALLOWED: the value is const so it cannot be reassigned
+
+    ////////// references //////////
     const uint& ref = &foo;
-    ref^ = 30;
+    ref^ = 30;             // DISALLOWED: writing through const pointee
+    ref  = &foo;           // ALLOWED: rebinding a non-const reference binding
 
     const uint& const ref2 = &ref^;
-    ref2^ = 40;
-    ref2  = &foo;
+    ref2^ = 40;            // DISALLOWED: writing through const pointee
+    ref2  = &foo;          // DISALLOWED: rebinding a const reference binding
+
+    //////////// structs ////////////
+    struct(const int) nested = { .0 = 10 };
+    nested.0 = 30;         // DISALLOWED: const field write
+    nested = { .0 = 30 };  // ALLOWED: whole reassign with nested const
+
+    const struct(int) outer = { .0 = 123 };
+    outer.0 = 321;         // DISALLOWED: reassigning fields of a const struct
+    outer = { .0 = 999 };  // DISALLOWED: reassignign the entire const struct
+
+    int x = 10;
+    const Storage storage = { .ref = &x };
+    storage.ref^ = 47;     // DISALLOWED: const struct makes all refs pointees const too
+    storage.ref = &x;      // DISALLOWED: const struct also makes the ref field binding immutable
+
+    Pair p = { .a = 1, .b = 2 };
+    p.a = 5;               // DISALLOWED: the field is declared as const in the struct
+
+    //////////// arrays /////////////
+    const int[3] celem = { 1, 2, 3 };
+    celem[1] = 9;          // DISALLOWED: const elements are immutable
+    celem = { 9, 2, 1 };   // ALLOWED: the elements are const, not the array itself
+
+    int[3] const carr = { 1, 2, 3 };
+    carr = { 9, 8, 7 };    // DISALLOWED: the array is const so it cannot be reassigned
+    carr[0] = 9;           // DISALLOWED: const semantics are deep, elements are immutable too
+
+    ///////////// slices /////////////
+    int[3] buf = { 1, 2, 3 };
+
+    const int[] sce = buf;
+    sce[0] = 9;            // DISALLOWED: const elements are immutable
+    sce    = buf;          // ALLOWED: the elements are const, not the slice itself
+
+    int[] const csl = buf;
+    csl[0] = 9;            // DISALLOWED: const semantics are deep, elements are immutable too
+    csl = buf;             // DISALLOWED: the slice itself is const so it cannot be reassigned
+
+    //////////// optionals ////////////
+    const int? consto = 1;
+    consto! = 2;           // DISALLOWED: the optional underlying value is const so it cannot be reassigned
+    consto  = 3;           // ALLOWED: only the underlying value is const, not the optional itself
+
+    int? const oconst = 1;
+    oconst! = 2;           // DISALLOWED: const semantics are deep, unwrap of a const optionals yields const lvalue
+    oconst  = 3;           // DISALLOWED: the entire optional is const so it cannot be reassigned
 
     return 0;
 }
