@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-ElOutOfMemCb* el_out_of_mem_cb = el_default_out_of_mem_cb;
+_Atomic(ElOutOfMemCb*) el_out_of_mem_cb = el_default_out_of_mem_cb;
 
 void el_default_out_of_mem_cb(ElSourceLocInfo locinfo) {
     fprintf(stderr, "out of memory at %s:%u in %s\n",

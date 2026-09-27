@@ -6,7 +6,7 @@
 typedef void ElOutOfMemCb(ElSourceLocInfo locinfo);
 
 ElOutOfMemCb el_default_out_of_mem_cb;
-extern ElOutOfMemCb* el_out_of_mem_cb;
+extern _Atomic(ElOutOfMemCb*) el_out_of_mem_cb;
 
 #define EL_OUT_OF_MEM() \
     el_out_of_mem_cb(EL_SRCLOC_INFO)

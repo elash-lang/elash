@@ -8,6 +8,7 @@
 
 #include <elash/util/todo.h>
 #include <elash/util/ansi.h>
+#include <elash/defs/attr.h>
 
 #include <elash/version.h>
 
@@ -184,9 +185,17 @@ static void handler(int sig, siginfo_t *info, void *ucontext) {
     _exit(SIGNAL_BASE + sig);
 }
 
-// theoretically we can use non-async-safe functions here because the oom handler is
-// not triggered by a signal but all helpers in this file are designed to be used this way.
+
+EL_ATTR_NORETURN
+static void oom_terminate(ElSourceLocInfo locinfo) {
+    (void) locinfo;
+    _exit(SIGNAL_BASE + SIGKILL);
+}
+
 void elc_out_of_mem_cb(ElSourceLocInfo locinfo) {
+    // first change the out of memory callback to oom_terminate so we won't trigger infinite recursion
+    el_out_of_mem_cb = oom_terminate;
+
     print_ice_header();
 
     print_bold_label_f(stderr, "Out of memory");
@@ -201,9 +210,12 @@ void elc_out_of_mem_cb(ElSourceLocInfo locinfo) {
     print_bold_label_f(stderr, "  Function");
     fprintf(stderr, "%s\n", locinfo.func);
 
+    // this function allocates memory, but calling it here should be safe anyway.
+    // if malloc fails again, it will simply trigger the new handler which is oom_terminate.
+    // so, nothing bad will happen, the backtrace and environment just won't be printed
     print_env_and_backtrace();
 
-    _exit(SIGNAL_BASE + SIGKILL);
+    oom_terminate(locinfo);
 }
 
 #define CRASH_STACK_SIZE (usize)(1024 * 12)
