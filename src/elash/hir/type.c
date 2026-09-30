@@ -409,3 +409,11 @@ bool el_hir_type_is_incomplete(const ElHirType* type) {
         || type->kind == EL_HIR_TYPE_FUNC
         || (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_HIR_PRIMTYPE_VOID);
 }
+
+bool el_hir_type_is_view(const ElHirType* type) {
+    type = el_hir_type_canonical((ElHirType*)type);
+    return type != NULL
+        && (type->kind == EL_HIR_TYPE_REF
+         || type->kind == EL_HIR_TYPE_SLICE
+         || type->kind == EL_HIR_TYPE_RWSLICE);
+}

@@ -80,3 +80,4 @@ ElHirType* el_hir_type_canonical(ElHirType* type);
 ElHirType* el_hir_type_unwrap(ElHirType* type);
 
 bool el_hir_type_is_incomplete(const ElHirType* type);
+bool el_hir_type_is_view(const ElHirType* type);

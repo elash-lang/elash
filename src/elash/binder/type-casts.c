@@ -37,17 +37,8 @@ static inline bool is_distinct_conv(ElHirType* from, ElHirType* to) {
             (to->kind == EL_HIR_TYPE_DISTINCT && type_eql(to->as.distinct.orig, from));
 }
 
-// types that point to some data
-static bool is_view_type(const ElHirType* type) {
-    type = el_hir_type_canonical((ElHirType*)type);
-    return type != NULL
-        && (type->kind == EL_HIR_TYPE_REF
-         || type->kind == EL_HIR_TYPE_SLICE
-         || type->kind == EL_HIR_TYPE_RWSLICE);
-}
-
 static ElHirExpr* cast_quals_only(ElBinder* binder, ElHirExpr* expr, ElHirType* from, ElHirType* to) {
-    if (is_view_type(from) || is_view_type(to)) {
+    if (el_hir_type_is_view(from) || el_hir_type_is_view(to)) {
         if (!type_compatible(from, to))
             return NULL;
     } else if (!type_eql_unqual(from, to)) {
@@ -348,8 +339,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     ElHirExpr* quals = cast_quals_only(binder, expr, from, to);
     if (quals != NULL) return quals;
 
-    // View types that matched shape but failed mutability — don't fall through.
-    if ((is_view_type(from) || is_view_type(to))
+    if ((el_hir_type_is_view(from) || el_hir_type_is_view(to))
         && type_eql_unqual(from, to)
         && !mut_compatible(from, to)) {
         el_diag_report(

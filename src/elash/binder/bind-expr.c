@@ -36,7 +36,6 @@ static bool is_null_lit(const ElHirExpr* expr) {
     return expr->kind == EL_HIR_EXPR_LITERAL && expr->as.literal.kind == EL_HIR_LITERAL_NULL;
 }
 
-
 static bool types_opt_base_match(const ElHirType* opt, const ElHirType* other) {
     if (opt->kind != EL_HIR_TYPE_OPT) return false;
 
@@ -149,6 +148,7 @@ static ElHirExpr* bind_optional_bin_op(ElBinder* binder, ElAstExpr* in, ElAstBin
     return el_hir_new_bin_expr(binder->arena, in->span, result_type, bin->op, left, right);
 }
 
+
 static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr** left, ElHirExpr** right) {
     ElHirType* type = (*left)->type;
 
@@ -167,6 +167,12 @@ static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* b
             else
                 (*left) = _el_binder_implicit_cast(binder, bin->left->span, *left, (*right)->type);
 
+            if (*left == NULL || *right == NULL) return NULL;
+            type = (*left)->type;
+        } else if (el_hir_type_eql_unqual((*left)->type, (*right)->type) && !el_hir_type_is_view((*left)->type)) {
+            ElHirType* common = el_hir_type_canonical((*left)->type);
+            (*left) = _el_binder_implicit_cast(binder, bin->left->span, *left, common);
+            (*right) = _el_binder_implicit_cast(binder, bin->right->span, *right, common);
             if (*left == NULL || *right == NULL) return NULL;
             type = (*left)->type;
         }
@@ -218,7 +224,12 @@ static ElHirExpr* bind_bin(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin) {
             type = binder->builtins->type_bool;
         } else {
             type = bind_arith_op(binder, in, bin, &left, &right);
-            if (left == NULL || right == NULL) return NULL;
+            if (left == NULL || right == NULL) {
+                return NULL;
+            }
+            if (type == NULL && (left->type != NULL || right->type != NULL)) {
+                return NULL;
+            }
         }
     } else {
         IMPLICIT_CAST_IF_NEEDED(right, bin->right->span, binder->builtins->type_usize);
