@@ -1,3 +1,4 @@
+#include "elash/lowerer/lowerer.h"
 #include "lowerer-internals.h"
 
 #include <elash/util/assert.h>
@@ -54,7 +55,7 @@ static void lower_continue(ElLowerer* lw, ElHirContinueStmt* node) {
     emit_jmp(lw, lw->continue_target_id);
 }
 
-static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
+static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_) {
     uint32_t cond_id = new_block_id(lw);
     uint32_t body_id = new_block_id(lw);
     uint32_t exit_id = new_block_id(lw);
@@ -68,14 +69,16 @@ static void lower_while(ElLowerer* lw, ElHirWhileStmt* while_stmt) {
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = cond_id;
-    ElMirValue* cond = el_lower_expr(lw, while_stmt->cond);
+    ElMirValue* cond = el_lower_expr(lw, while_->cond);
 
     emit_jmpif(lw, cond, body_id, exit_id);
 
     el_lowerer_emit_block(lw, lw->current_block_id);
 
     lw->current_block_id = body_id;
-    el_lower_stmt(lw, while_stmt->body);
+    el_lower_stmt(lw, while_->body);
+    if (while_->post != NULL)
+        el_lower_stmt(lw, while_->post);
 
     if (!el_lowerer_has_terminator(lw)) {
         emit_jmp(lw, cond_id);

@@ -14,6 +14,7 @@ bool _el_parser_lookahead_skip_type(ElParser* parser, usize* idx);
 bool _el_parser_is_type_literal(ElParser* parser);
 
 ElAstStmt*  _el_parse_block(ElParser* parser, ElToken lbrace_tok);
+ElAstStmt*  _el_parse_stmt_ex(ElParser* parser, ElTokenType terminator);
 ElAstIdent* _el_parse_ident(ElParser* parser);
 ElAstType*  _el_parse_type(ElParser* parser);
 ElAstType*  _el_parse_type_suffixes(ElParser* parser, ElAstType* type);

@@ -1,4 +1,5 @@
 #include "binder-internals.h"
+#include "elash/binder/binder.h"
 
 #include <elash/diag/engine.h>
 #include <elash/util/assert.h>
@@ -124,10 +125,10 @@ static ElHirStmt* bind_if(ElBinder* binder, ElAstStmt* in, ElAstIfStmt* if_) {
     bool has_init = if_->init != NULL;
     if (has_init) _el_binder_push_scope(binder);
 
-    ElHirStmt* init_stmt = NULL;
+    ElHirStmt* init = NULL;
     if (has_init) {
-        init_stmt = el_bind_stmt(binder, if_->init);
-        if (init_stmt == NULL) goto e1;
+        init = el_bind_stmt(binder, if_->init);
+        if (init == NULL) goto e1;
     }
 
     ElHirExpr* cond = el_bind_expr(binder, if_->cond);
@@ -157,7 +158,7 @@ static ElHirStmt* bind_if(ElBinder* binder, ElAstStmt* in, ElAstIfStmt* if_) {
     // we perform desugaring directly here so we don't need to add any
     // additional logic to the lowerer and new fields to the hir structures
     ElHirStmt *head = NULL, *tail = NULL;
-    el_hir_stmt_list_append(&head, &tail, init_stmt);
+    el_hir_stmt_list_append(&head, &tail, init);
     el_hir_stmt_list_append(&head, &tail, if_stmt);
     return el_hir_new_block_stmt(binder->arena, in->span, head);
 
@@ -171,10 +172,16 @@ static ElHirStmt* bind_while(ElBinder* binder, ElAstStmt* in, ElAstWhileStmt* wh
     bool has_init = while_->init != NULL;
     if (has_init) _el_binder_push_scope(binder);
 
-    ElHirStmt* init_stmt = NULL;
+    ElHirStmt* init = NULL;
     if (has_init) {
-        init_stmt = el_bind_stmt(binder, while_->init);
-        if (init_stmt == NULL) goto e1;
+        init = el_bind_stmt(binder, while_->init);
+        if (init == NULL) goto e1;
+    }
+
+    ElHirStmt* post = NULL;
+    if (while_->post != NULL) {
+        post = el_bind_stmt(binder, while_->post);
+        if (post == NULL) goto e1;
     }
 
     binder->loop_depth++;
@@ -190,11 +197,11 @@ static ElHirStmt* bind_while(ElBinder* binder, ElAstStmt* in, ElAstWhileStmt* wh
     binder->loop_depth--;
     if (has_init) _el_binder_pop_scope(binder);
 
-    ElHirStmt* while_stmt = el_hir_new_while_stmt(binder->arena, in->span, cond, body);
+    ElHirStmt* while_stmt = el_hir_new_while_stmt(binder->arena, in->span, cond, body, post);
     if (!has_init) return while_stmt;
 
     ElHirStmt *head = NULL, *tail = NULL;
-    el_hir_stmt_list_append(&head, &tail, init_stmt);
+    el_hir_stmt_list_append(&head, &tail, init);
     el_hir_stmt_list_append(&head, &tail, while_stmt);
     return el_hir_new_block_stmt(binder->arena, in->span, head);
 

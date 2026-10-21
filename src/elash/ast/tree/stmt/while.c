@@ -2,7 +2,7 @@
 
 ElAstStmt* el_ast_new_while_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElAstStmt* init, ElAstExpr* cond, ElAstStmt* body
+    ElAstStmt* init, ElAstExpr* cond, ElAstStmt* body, ElAstStmt* post
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstStmt, {
         .type = EL_AST_STMT_WHILE,
@@ -12,6 +12,7 @@ ElAstStmt* el_ast_new_while_stmt(
             .init = init,
             .cond = cond,
             .body = body,
+            .post = post,
         },
     });
 }

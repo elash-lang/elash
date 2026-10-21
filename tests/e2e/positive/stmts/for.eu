@@ -1,0 +1,24 @@
+bool unset(bool& flag) {
+    bool value = flag^;
+    flag^ = false;
+    return value;
+}
+
+int main() {
+    int counter = 0;
+    for (uint i = 0; i < 10; ++i)
+        counter += 2;
+
+    if (counter != 20)
+        return 1;
+
+    for (counter > 0; --counter) {}
+    if (counter != 0)
+        return 2;
+
+    for (bool flag = true; unset(&flag); flag = true) {
+        if (++counter == 10) break;
+    }
+
+    return 0;
+}

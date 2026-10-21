@@ -9,6 +9,10 @@ typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirWhileStmt {
     ElHirExpr* cond;
     ElHirStmt* body;
+    ElHirStmt* post;
 } ElHirWhileStmt;
 
-ElHirStmt* el_hir_new_while_stmt(ElDynArena* arena, ElSourceSpan span, ElHirExpr* cond, ElHirStmt* body);
+ElHirStmt* el_hir_new_while_stmt(
+    ElDynArena* arena, ElSourceSpan span,
+    ElHirExpr* cond, ElHirStmt* body, ElHirStmt* post
+);

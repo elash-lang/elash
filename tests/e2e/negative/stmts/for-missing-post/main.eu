@@ -1,0 +1,6 @@
+int main() {
+    for (uint i = 0; ++i < 10;) {
+        break;
+    }
+    return 0;
+}
