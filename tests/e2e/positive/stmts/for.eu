@@ -1,7 +1,8 @@
 bool unset(bool& flag) {
-    bool value = flag^;
-    flag^ = false;
-    return value;
+    //bool value = flag^;
+    //flag^ = false;
+    //return value;
+    return exchange(flag^, false);
 }
 
 int main() {

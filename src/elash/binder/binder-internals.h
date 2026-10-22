@@ -57,6 +57,9 @@ typedef ElHirExpr* BuiltinHandler(ElBinder* binder, ElAstExpr* in, ElAstCallExpr
 
 BuiltinHandler _el_bind_len_call;
 BuiltinHandler _el_bind_mkslice_call;
+BuiltinHandler _el_bind_exchange_call;
 
 BuiltinHandler _el_bind_sizeof;
 BuiltinHandler _el_bind_alignof;
+
+bool _el_binder_is_lvalue(ElHirExpr* expr);

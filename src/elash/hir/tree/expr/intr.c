@@ -55,6 +55,19 @@ ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHi
     });
 }
 
+ElHirExpr* el_hir_new_exchange_intr(ElDynArena* arena, ElSourceSpan span, ElHirExpr* dest, ElHirExpr* value) {
+    EL_ASSERT(dest != NULL && value != NULL, "exchange operands must not be null");
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
+        .kind = EL_HIR_EXPR_INTR,
+        .type = dest->type,
+        .span = span,
+        .as.intr = {
+            .kind = EL_HIR_INTR_EXCHANGE,
+            .params.exchange = { .dest = dest, .value = value },
+        },
+    });
+}
+
 ElHirExpr* el_hir_new_null_opt_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* opt_type) {
      return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,

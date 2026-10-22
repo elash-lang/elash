@@ -239,6 +239,14 @@ static ElMirValue* lower_intr(ElLowerer* lw, ElHirExpr* hir) {
         ElMirValue* fields[] = { data, len };
         return _el_lowerer_make_tuple(lw, slice_type, fields);
     }
+    case EL_HIR_INTR_EXCHANGE: {
+        ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir->as.intr.params.exchange.dest);
+        ElMirType* val_type = el_tcache_get_mir(lw->tcache, hir->type);
+        ElMirValue* old = emit_load(lw, val_type, ptr);
+        ElMirValue* new_val = el_lower_expr(lw, hir->as.intr.params.exchange.value);
+        emit_store(lw, ptr, new_val);
+        return old;
+    }
 
     case EL_HIR_INTR_SOME_OPT:
         return _el_lowerer_make_some_opt(

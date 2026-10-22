@@ -1,0 +1,20 @@
+int main() {
+    char t1 = 'X', t2 = 'Y';
+    if (t1 != 'X' || t2 != 'Y')
+        return 1;
+
+    t1 = exchange(t2, 'Z');
+    if (t1 != 'Y' || t2 != 'Z')
+        return 2;
+
+    int[3] arr = { 1, 2, 3 };
+    int[3] old = exchange(arr, { 3, 2, 1 });
+
+    if (old[0] != 1 || old[1] != 2 || old[2] != 3)
+        return 3;
+
+    if (arr[0] != 3 || arr[1] != 2 || arr[2] != 1)
+        return 4;
+
+    return 0;
+}

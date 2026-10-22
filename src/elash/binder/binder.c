@@ -71,6 +71,7 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
 
     register_builtin_func(binder, EL_SV("len"), EL_BUILTIN_LEN);
     register_builtin_func(binder, EL_SV("mkslice"), EL_BUILTIN_MKSLICE);
+    register_builtin_func(binder, EL_SV("exchange"), EL_BUILTIN_EXCHANGE);
 
     register_builtin_func(binder, EL_SV("sizeof"), EL_BUILTIN_SIZEOF);
     register_builtin_func(binder, EL_SV("alignof"), EL_BUILTIN_ALIGNOF);

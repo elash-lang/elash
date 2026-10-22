@@ -6,6 +6,7 @@
 typedef enum ElBuiltinKind {
     EL_BUILTIN_LEN,
     EL_BUILTIN_MKSLICE,
+    EL_BUILTIN_EXCHANGE,
 
     EL_BUILTIN_SIZEOF,
     EL_BUILTIN_ALIGNOF,

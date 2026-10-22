@@ -43,6 +43,8 @@ ElHirExpr* el_bind_builtin_call(
         return _el_bind_len_call(binder, in, call);
     case EL_BUILTIN_MKSLICE:
         return _el_bind_mkslice_call(binder, in, call);
+    case EL_BUILTIN_EXCHANGE:
+        return _el_bind_exchange_call(binder, in, call);
     case EL_BUILTIN_SIZEOF:
         return _el_bind_sizeof(binder, in, call);
     case EL_BUILTIN_ALIGNOF:
