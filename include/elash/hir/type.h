@@ -1,7 +1,9 @@
 #pragma once
 
 #include <elash/sema/mutability.h>
+#include <elash/util/generic.h>
 #include <elash/util/strbuf.h>
+
 #include <stdio.h>
 
 #include "type/opt.h"
@@ -69,7 +71,7 @@ bool el_hir_type_is_readable(const ElHirType* type);
 /// Unwraps qualifiers
 /// Examples:
 ///   const int -> int
-ElHirType* el_hir_type_canonical(ElHirType* type);
+const ElHirType* _el_hir_type_canonical_impl(const ElHirType* type);
 
 /// Unwraps qualifiers then distincts
 /// Examples:
@@ -77,7 +79,13 @@ ElHirType* el_hir_type_canonical(ElHirType* type);
 ///   el_hir_type_unwrap(const Int)  -> int
 ///   el_hir_type_unwrap(wonly Int&) -> wonly Int&
 ///   el_hir_type_unwrap(Int& const) -> Int&
-ElHirType* el_hir_type_unwrap(ElHirType* type);
+const ElHirType* _el_hir_type_unwrap_impl(const ElHirType* type);
+
+#define el_hir_type_canonical(type) \
+    EL_CONST_GENERIC(type, ElHirType, _el_hir_type_canonical_impl(type))
+
+#define el_hir_type_unwrap(type)                                  \
+    EL_CONST_GENERIC(type, ElHirType, _el_hir_type_unwrap_impl(type))
 
 bool el_hir_type_is_incomplete(const ElHirType* type);
 bool el_hir_type_is_view(const ElHirType* type);

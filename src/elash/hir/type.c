@@ -340,7 +340,7 @@ static bool type_has_mut(const ElHirType* type, ElMutabilitySpec mut) {
     if (type == NULL) return false;
     if (el_hir_type_mut(type) == mut) return true;
 
-    type = el_hir_type_unwrap((ElHirType*)type);
+    type = el_hir_type_unwrap(type);
     if (type == NULL) return false;
 
     switch (type->kind) {
@@ -384,15 +384,15 @@ ElHirType* el_hir_type_qualify(ElDynArena* arena, ElHirType* type, ElMutabilityS
     return el_hir_new_qual_type(arena, el_hir_type_canonical(type), mut);
 }
 
-ElHirType* el_hir_type_canonical(ElHirType* type) {
+const ElHirType* _el_hir_type_canonical_impl(const ElHirType* type) {
     while (type != NULL && type->kind == EL_HIR_TYPE_QUAL)
         type = type->as.qual.base;
 
     return type;
 }
 
-ElHirType* el_hir_type_unwrap(ElHirType* type) {
-    type = el_hir_type_canonical(type);
+const ElHirType* _el_hir_type_unwrap_impl(const ElHirType* type) {
+    type = _el_hir_type_canonical_impl(type);
 
     while (type != NULL && type->kind == EL_HIR_TYPE_DISTINCT) {
         if (type->as.distinct.orig == NULL)
@@ -404,14 +404,14 @@ ElHirType* el_hir_type_unwrap(ElHirType* type) {
 }
 
 bool el_hir_type_is_incomplete(const ElHirType* type) {
-    type = el_hir_type_unwrap((ElHirType*)type);
+    type = el_hir_type_unwrap(type);
     return type->kind == EL_HIR_TYPE_DISTINCT
         || type->kind == EL_HIR_TYPE_FUNC
         || (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_HIR_PRIMTYPE_VOID);
 }
 
 bool el_hir_type_is_view(const ElHirType* type) {
-    type = el_hir_type_canonical((ElHirType*)type);
+    type = el_hir_type_canonical(type);
     return type != NULL
         && (type->kind == EL_HIR_TYPE_REF
          || type->kind == EL_HIR_TYPE_SLICE
