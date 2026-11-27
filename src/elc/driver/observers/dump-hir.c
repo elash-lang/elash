@@ -22,7 +22,7 @@ void elc_dump_hir_observer_exec(
     FILE* out = el_open_ofile(path, &needs_closing);
 
     ElWriter writer = el_file_writer(out);
-    el_hir_dump_module(artifact->as.hir, 0, &writer);
+    el_hir_dump_module(artifact->as.hir, 0, writer);
 
     if (needs_closing) fclose(out);
 }

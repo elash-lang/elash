@@ -47,7 +47,7 @@ static void dump_diag_meta(const ElDiagMetaEntry* entry, FILE* out) {
         ElStringBuf sb;
         el_strbuf_init(&sb);
         ElWriter writer = el_sb_writer(&sb);
-        el_hir_dump_type(entry->as.type, &writer);
+        el_hir_dump_type(entry->as.type, writer);
         el_json_write_string(out, el_strbuf_view(&sb));
         el_strbuf_destroy(&sb);
         return;

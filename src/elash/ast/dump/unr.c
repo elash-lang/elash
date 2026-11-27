@@ -5,7 +5,7 @@
 #include <elash/defs/sv.h>
 #include <elash/util/assert.h>
 
-void el_ast_dump_unr(ElAstUnr* node, usize indent, ElWriter* out) {
+void el_ast_dump_unr(ElAstUnr* node, usize indent, ElWriter out) {
     el_ast_dump_print_indent(indent, out);
     switch (node->kind) {
     case EL_AST_UNR_IDENT:

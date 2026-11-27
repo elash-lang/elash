@@ -8,7 +8,7 @@
 #include <elash/hir/type.h>
 #include <elash/util/assert.h>
 
-static void el_hir_dump_func_sig(ElHirSymbol* symbol, usize indent, ElWriter* out, const char* prefix) {
+static void el_hir_dump_func_sig(ElHirSymbol* symbol, usize indent, ElWriter out, const char* prefix) {
     ElHirFuncSymbol* sym = &symbol->as.func;
 
     el_hir_dump_print_indent(indent, out);
@@ -29,7 +29,7 @@ static void el_hir_dump_func_sig(ElHirSymbol* symbol, usize indent, ElWriter* ou
     el_write_char(out, ')');
 }
 
-void el_hir_dump_decl(ElHirDecl* node, usize indent, ElWriter* out) {
+void el_hir_dump_decl(ElHirDecl* node, usize indent, ElWriter out) {
     switch (node->kind) {
     case EL_HIR_DECL_NONE:
         break;

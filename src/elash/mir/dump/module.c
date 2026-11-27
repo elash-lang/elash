@@ -1,7 +1,7 @@
 #include <elash/mir/dump/module.h>
 #include <elash/mir/dump/func.h>
 
-void el_mir_dump_module(const ElMirModule* mod, ElWriter* out) {
+void el_mir_dump_module(const ElMirModule* mod, ElWriter out) {
     if (mod == NULL) return;
 
     for (ElMirFunc* func = mod->first_func; func; func = func->next) {

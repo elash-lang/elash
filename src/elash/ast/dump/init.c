@@ -6,7 +6,7 @@
 
 #include <elash/util/assert.h>
 
-static void el_ast_dump_desig(ElAstDesignator* desig, ElWriter* out) {
+static void el_ast_dump_desig(ElAstDesignator* desig, ElWriter out) {
     switch (desig->kind) {
     case EL_AST_DESIGNATOR_MEMBER:
         el_writef(out, ".%.*s", (int)desig->as.member.len, desig->as.member.data);
@@ -20,7 +20,7 @@ static void el_ast_dump_desig(ElAstDesignator* desig, ElWriter* out) {
     }
 }
 
-void el_ast_dump_init(ElAstInit* init, usize indent, ElWriter* out) {
+void el_ast_dump_init(ElAstInit* init, usize indent, ElWriter out) {
     switch (init->kind) {
     case EL_AST_INIT_EXPR:
         return el_ast_dump_expr(init->expr, indent, out);

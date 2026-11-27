@@ -12,7 +12,7 @@ static void _el_diag_render_meta_value(const ElDiagMetaEntry* entry, ElStringBuf
     case EL_DIAG_META_STR:
         return el_strbuf_append(out, entry->as.string);
     case EL_DIAG_META_TYPE:
-        return el_hir_dump_type(entry->as.type, &writer);
+            return el_hir_dump_type(entry->as.type, writer);
     case EL_DIAG_META_TOK:
         return el_strbuf_append(out,
                 el_token_type_format(entry->as.token.type));

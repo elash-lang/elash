@@ -24,7 +24,7 @@ void elc_dump_mir_observer_exec(
     }
 
     ElWriter writer = el_file_writer(out);
-    el_mir_dump_module(artifact->as.mir, &writer);
+    el_mir_dump_module(artifact->as.mir, writer);
 
     if (out != stdout) fclose(out);
 }

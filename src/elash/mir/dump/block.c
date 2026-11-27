@@ -2,7 +2,7 @@
 #include <elash/mir/dump/instr.h>
 #include <inttypes.h>
 
-void el_mir_dump_block(const ElMirBlock* block, usize indent, ElWriter* out) {
+void el_mir_dump_block(const ElMirBlock* block, usize indent, ElWriter out) {
     if (block == NULL) return;
 
     for (usize i = 0; i < indent; ++i) el_write_char(out, ' ');

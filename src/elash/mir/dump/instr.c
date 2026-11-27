@@ -4,7 +4,7 @@
 #include <elash/sema/bin-op.h>
 #include <elash/defs/sv.h>
 
-void el_mir_dump_instr(const ElMirInstr* instr, usize indent, ElWriter* out) {
+void el_mir_dump_instr(const ElMirInstr* instr, usize indent, ElWriter out) {
     if (instr == NULL) return;
 
     for (usize i = 0; i < indent; ++i) el_write_char(out, ' ');

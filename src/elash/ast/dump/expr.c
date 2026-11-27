@@ -8,7 +8,7 @@
 #include <elash/ast/dump/toi.h>
 #include <inttypes.h>
 
-void el_ast_dump_expr_lit(ElAstLiteral* lit, usize indent, ElWriter* out) {
+void el_ast_dump_expr_lit(ElAstLiteral* lit, usize indent, ElWriter out) {
     el_ast_dump_print_indent(indent, out);
     switch (lit->kind) {
     case EL_AST_LIT_BOOL:
@@ -35,12 +35,12 @@ void el_ast_dump_expr_lit(ElAstLiteral* lit, usize indent, ElWriter* out) {
     }
 }
 
-void el_ast_dump_expr_ident(ElAstIdent* node, usize indent, ElWriter* out) {
+void el_ast_dump_expr_ident(ElAstIdent* node, usize indent, ElWriter out) {
     el_ast_dump_print_indent(indent, out);
     el_writef(out, "IdentExpr(\""EL_SV_FMT"\")\n", EL_SV_FARG(node->name));
 }
 
-void el_ast_dump_expr(ElAstExpr* node, usize indent, ElWriter* out) {
+void el_ast_dump_expr(ElAstExpr* node, usize indent, ElWriter out) {
     switch (node->type) {
     case EL_AST_EXPR_BINARY: {
         ElStringView op = el_bin_op_to_string(node->as.binary.op);

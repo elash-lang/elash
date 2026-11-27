@@ -23,7 +23,7 @@ void elc_dump_ast_observer_exec(
     FILE* out = el_open_ofile(path, &needs_closing);
 
     ElWriter writer = el_file_writer(out);
-    el_ast_dump_module(artifact->as.ast, 0, &writer);
+    el_ast_dump_module(artifact->as.ast, 0, writer);
 
     if (needs_closing) fclose(out);
 }

@@ -7,7 +7,7 @@
 #include <elash/ast/dump/init.h>
 #include <elash/util/assert.h>
 
-static void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, ElWriter* out, const char* node_name) {
+static void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, ElWriter out, const char* node_name) {
     el_ast_dump_print_indent(indent, out);
     el_writef(out, "%s(\""EL_SV_FMT"\"):\n", node_name, EL_SV_FARG(sig->name->name));
 
@@ -27,7 +27,7 @@ static void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, El
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): ok.
-void el_ast_dump_decl(ElAstDecl* node, usize indent, ElWriter* out) {
+void el_ast_dump_decl(ElAstDecl* node, usize indent, ElWriter out) {
     switch (node->type) {
     case EL_AST_DECL_TYPEDEF:
         el_ast_dump_print_indent(indent, out);

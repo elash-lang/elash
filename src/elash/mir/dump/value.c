@@ -5,7 +5,7 @@
 
 #include <inttypes.h>
 
-void el_mir_dump_value(const ElMirValue* value, ElWriter* out) {
+void el_mir_dump_value(const ElMirValue* value, ElWriter out) {
     switch (value->kind) {
     case EL_MIR_VAL_REG:
         el_writef(out, "%%r%"PRIu32, value->as.reg.id);

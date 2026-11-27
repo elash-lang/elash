@@ -4,4 +4,4 @@
 #include <elash/defs/int-types.h>
 #include <elash/util/writer.h>
 
-void el_mir_dump_instr(const ElMirInstr* instr, usize indent, ElWriter* out);
+void el_mir_dump_instr(const ElMirInstr* instr, usize indent, ElWriter out);

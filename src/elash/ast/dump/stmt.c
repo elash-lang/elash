@@ -8,7 +8,7 @@
 
 #include <elash/ast/dump/decl.h>
 
-void el_ast_dump_stmt(ElAstStmt* node, usize indent, ElWriter* out) {
+void el_ast_dump_stmt(ElAstStmt* node, usize indent, ElWriter out) {
     switch (node->type) {
     case EL_AST_STMT_EXPR:
         el_ast_dump_print_indent(indent, out);

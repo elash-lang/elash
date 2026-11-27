@@ -8,7 +8,7 @@
 
 #include <elash/util/assert.h>
 
-void el_hir_dump_stmt(ElHirStmt* node, usize indent, ElWriter* out) {
+void el_hir_dump_stmt(ElHirStmt* node, usize indent, ElWriter out) {
     switch (node->kind) {
     case EL_HIR_STMT_EXPR:
         el_hir_dump_expr(node->as.expr, indent, out);

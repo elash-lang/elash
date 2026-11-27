@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-static void format_mut(ElMutabilitySpec mut, ElWriter* out) {
+static void format_mut(ElMutabilitySpec mut, ElWriter out) {
     switch (mut) {
     case EL_MUTSPEC_DEFAULT: return;
     case EL_MUTSPEC_CONST:   el_swrite(out, "const "); return;
@@ -14,7 +14,7 @@ static void format_mut(ElMutabilitySpec mut, ElWriter* out) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
-void el_hir_dump_type(const ElHirType* type, ElWriter* out) {
+void el_hir_dump_type(const ElHirType* type, ElWriter out) {
     switch (type->kind) {
     case EL_HIR_TYPE_QUAL:
         format_mut(type->as.qual.mut, out);

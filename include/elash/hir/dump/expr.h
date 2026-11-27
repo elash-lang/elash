@@ -5,4 +5,4 @@
 
 typedef struct ElHirExpr ElHirExpr;
 
-void el_hir_dump_expr(ElHirExpr* node, usize indent, ElWriter* out);
+void el_hir_dump_expr(ElHirExpr* node, usize indent, ElWriter out);

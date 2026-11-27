@@ -6,7 +6,7 @@
 #include <elash/ast/tree/toi.h>
 #include <elash/util/assert.h>
 
-void el_ast_dump_type_or_init(ElAstToI* node, usize indent, ElWriter* out) {
+void el_ast_dump_type_or_init(ElAstToI* node, usize indent, ElWriter out) {
     el_ast_dump_print_indent(indent, out);
     switch (node->kind) {
     case EL_AST_TOI_TYPE:

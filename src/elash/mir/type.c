@@ -2,7 +2,7 @@
 #include <elash/util/hash.h>
 #include <elash/util/assert.h>
 
-void el_mir_dump_type(const ElMirType* type, ElWriter* out) {
+void el_mir_dump_type(const ElMirType* type, ElWriter out) {
     switch (type->kind) {
     case EL_MIR_TYPE_VOID:
         el_swrite(out, "void");

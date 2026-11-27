@@ -5,4 +5,4 @@
 
 typedef struct ElAstToI ElAstToI;
 
-void el_ast_dump_type_or_init(ElAstToI* node, usize indent, ElWriter* out);
+void el_ast_dump_type_or_init(ElAstToI* node, usize indent, ElWriter out);

@@ -4,4 +4,4 @@
 
 typedef struct ElHirSymbol ElHirSymbol;
 
-void el_dump_symbol(ElHirSymbol* symbol, ElWriter* out);
+void el_dump_symbol(ElHirSymbol* symbol, ElWriter out);

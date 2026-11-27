@@ -12,7 +12,7 @@
 #include <inttypes.h>
 #include <elash/defs/sv.h>
 
-void dump_constant(ElHirExpr* node, ElHirType* type, ElWriter* out) {
+void dump_constant(ElHirExpr* node, ElHirType* type, ElWriter out) {
     type = el_hir_type_canonical(type);
     if (type->kind == EL_HIR_TYPE_PRIM) {
         switch (type->as.prim.kind) {
@@ -41,7 +41,7 @@ void dump_constant(ElHirExpr* node, ElHirType* type, ElWriter* out) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat, so it's ok.
-void el_hir_dump_expr(ElHirExpr* node, usize indent, ElWriter* out) {
+void el_hir_dump_expr(ElHirExpr* node, usize indent, ElWriter out) {
     el_hir_dump_print_indent(indent, out);
     el_write_char(out, '(');
 

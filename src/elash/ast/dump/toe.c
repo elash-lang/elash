@@ -6,7 +6,7 @@
 #include <elash/ast/tree/toe.h>
 #include <elash/util/assert.h>
 
-void el_ast_dump_type_or_expr(ElAstToE* node, usize indent, ElWriter* out) {
+void el_ast_dump_type_or_expr(ElAstToE* node, usize indent, ElWriter out) {
     el_ast_dump_print_indent(indent, out);
     switch (node->kind) {
     case EL_AST_TOE_TYPE:

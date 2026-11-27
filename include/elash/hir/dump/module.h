@@ -5,4 +5,4 @@
 
 typedef struct ElHirModule ElHirModule;
 
-void el_hir_dump_module(ElHirModule* module, usize indent, ElWriter* out);
+void el_hir_dump_module(ElHirModule* module, usize indent, ElWriter out);

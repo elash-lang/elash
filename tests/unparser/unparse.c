@@ -58,15 +58,13 @@ int main(int argc, char** argv) {
     ElAstModule* repro = el_parse_module(&parser);
     el_parser_destroy(&parser);
 
-    ElWriter stderr_ = el_file_writer(stderr);
-
     // this is ignored anyway if the test passes,
     // so let's print it for debugging purposes
     fputs("orig:\n", stderr);
-    el_ast_dump_module(orig, 2, &stderr_);
+    el_ast_dump_module(orig, 2, el_stderr());
     fputs("\n", stderr);
     fputs("repro:\n", stderr);
-    el_ast_dump_module(repro, 2, &stderr_);
+    el_ast_dump_module(repro, 2, el_stderr());
 
     int result = el_ast_equal_module(orig, repro) ? 0 : 1;
 

@@ -48,7 +48,7 @@ struct ElHirType {
     } as;
 };
 
-void el_hir_dump_type(const ElHirType* type, ElWriter* out);
+void el_hir_dump_type(const ElHirType* type, ElWriter out);
 
 bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs);
 bool el_hir_type_eql_unqual(const ElHirType* lhs, const ElHirType* rhs);

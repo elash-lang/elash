@@ -7,7 +7,7 @@
 
 #include <inttypes.h>
 
-void el_mir_dump_func(const ElMirFunc* func, usize indent, ElWriter* out) {
+void el_mir_dump_func(const ElMirFunc* func, usize indent, ElWriter out) {
     if (func == NULL) return;
 
     for (usize i = 0; i < indent; ++i) el_write_char(out, ' ');

@@ -34,7 +34,7 @@ struct ElMirType {
     } as;
 };
 
-void el_mir_dump_type(const ElMirType* type, ElWriter* out);
+void el_mir_dump_type(const ElMirType* type, ElWriter out);
 
 bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs);
 uhash el_mir_type_hash(const ElMirType* type);

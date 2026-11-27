@@ -37,4 +37,4 @@ ElMirSymbol* el_mir_new_var_symbol(ElDynArena* arena, uint32_t id, ElStringView 
 ElMirSymbol* el_mir_new_func_symbol(
     ElDynArena* arena, uint32_t id, ElStringView name, ElMirType* ret_type, ElMirSymbol** params, usize param_count
 );
-void el_mir_dump_symbol(const ElMirSymbol* symbol, ElWriter* out);
+void el_mir_dump_symbol(const ElMirSymbol* symbol, ElWriter out);
