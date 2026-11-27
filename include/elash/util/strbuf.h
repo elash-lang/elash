@@ -3,6 +3,8 @@
 #include <elash/defs/sv.h>
 #include <elash/defs/attr.h>
 
+#include <stdarg.h>
+
 typedef struct ElStringBuf {
     char* data;
     usize len;
@@ -32,6 +34,7 @@ void el_strbuf_append(ElStringBuf* sb, ElStringView sv);
 void el_strbuf_append_char(ElStringBuf* sb, char c);
 
 void el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) EL_ATTR_PRINTF_LIKE(2, 3);
+void el_strbuf_appendvf(ElStringBuf* sb, const char* fmt, va_list args);
 
 #define EL_STRBUF_APPEND(sb, text) el_strbuf_append(sb, EL_SV(text))
 

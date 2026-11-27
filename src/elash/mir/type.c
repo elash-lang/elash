@@ -2,73 +2,52 @@
 #include <elash/util/hash.h>
 #include <elash/util/assert.h>
 
-static void stdio_wrapper(const char* s, void* ctx) {
-    fputs(s, (FILE*)ctx);
-}
-static void strbuf_wrapper(const char* s, void* ctx) {
-    el_strbuf_append_cstr((ElStringBuf*)ctx, s);
-}
-
-void el_mir_dump_type(const ElMirType* type, FILE* out) {
-    el_mir_format_type_internal(type, stdio_wrapper, out);
-}
-void el_mir_format_type(const ElMirType* type, ElStringBuf* sb) {
-    el_mir_format_type_internal(type, strbuf_wrapper, sb);
-}
-
-static inline void writeint(usize val, void (*write)(const char*, void*), void* ctx) {
-    char buf[31]; // NOLINT(readability-magic-numbers)
-    snprintf(buf, sizeof buf, "%zu", val);
-    write(buf, ctx);
-}
-
-void el_mir_format_type_internal(const ElMirType* type, void (*write)(const char*, void*), void* ctx) {
+void el_mir_dump_type(const ElMirType* type, ElWriter out) {
     switch (type->kind) {
     case EL_MIR_TYPE_VOID:
-        write("void", ctx);
+        el_swrite(out, "void");
         return;
     case EL_MIR_TYPE_INT:
         if (type->as.integer.width == 1) {
-            write("bool", ctx);
+            el_swrite(out, "bool");
         } else {
-            if (!type->as.integer.is_signed) {
-                write("uint", ctx);
-            } else {
-                write("int", ctx);
-            }
-            writeint(type->as.integer.width, write, ctx);
+            el_writef(out, "%s%zu",
+                !type->as.integer.is_signed
+                    ? "uint"
+                    : "int",
+                (usize)type->as.integer.width
+            );
         }
         return;
     case EL_MIR_TYPE_FLOAT:
-        write("float", ctx);
-        writeint(type->as.float_.width, write, ctx);
+        el_writef(out, "float%zu", (usize)type->as.float_.width);
         return;
     case EL_MIR_TYPE_PTR:
-        el_mir_format_type_internal(type->as.ptr.base, write, ctx);
-        write("*", ctx);
+        el_mir_dump_type(type->as.ptr.base, out);
+        el_write_char(out, '*');
         return;
     case EL_MIR_TYPE_ARRAY:
-        el_mir_format_type_internal(type->as.array.base, write, ctx);
-        write("[", ctx);
-        writeint(type->as.array.size, write, ctx);
-        write("]", ctx);
+        el_mir_dump_type(type->as.array.base, out);
+        el_write_char(out, '[');
+        el_writef(out, "%zu", type->as.array.size);
+        el_write_char(out, ']');
         return;
     case EL_MIR_TYPE_TUPLE:
-        write("{ ", ctx);
+        el_swrite(out, "{ ");
         for (usize i = 0; i < type->as.tuple.item_count; ++i) {
-            el_mir_format_type_internal(type->as.tuple.items[i], write, ctx);
-            if (i + 1 < type->as.tuple.item_count) write(", ", ctx);
+            el_mir_dump_type(type->as.tuple.items[i], out);
+            if (i + 1 < type->as.tuple.item_count) el_swrite(out, ", ");
         }
-        write(" }", ctx);
+        el_swrite(out, " }");
         return;
     case EL_MIR_TYPE_FUNC:
-        el_mir_format_type_internal(type->as.func.ret_type, write, ctx);
-        write("(", ctx);
+        el_mir_dump_type(type->as.func.ret_type, out);
+        el_write_char(out, '(');
         for (usize i = 0; i < type->as.func.param_count; i++) {
-            el_mir_format_type_internal(type->as.func.params[i], write, ctx);
-            if (i + 1 < type->as.func.param_count) write(", ", ctx);
+            el_mir_dump_type(type->as.func.params[i], out);
+            if (i + 1 < type->as.func.param_count) el_swrite(out, ", ");
         }
-        write(")", ctx);
+        el_write_char(out, ')');
         return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElMirTypeKind, type->kind);

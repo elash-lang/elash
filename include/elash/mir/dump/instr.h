@@ -2,6 +2,6 @@
 
 #include <elash/mir/instr.h>
 #include <elash/defs/int-types.h>
-#include <stdio.h>
+#include <elash/util/writer.h>
 
-void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out);
+void el_mir_dump_instr(const ElMirInstr* instr, usize indent, ElWriter out);

@@ -1,3 +1,4 @@
+#include "elash/util/writer.h"
 #include <elash/defs/int-types.h>
 #include <elash/util/dynarena.h>
 
@@ -60,10 +61,10 @@ int main(int argc, char** argv) {
     // this is ignored anyway if the test passes,
     // so let's print it for debugging purposes
     fputs("orig:\n", stderr);
-    el_ast_dump_module(orig, 2, stderr);
+    el_ast_dump_module(orig, 2, el_stderr());
     fputs("\n", stderr);
     fputs("repro:\n", stderr);
-    el_ast_dump_module(repro, 2, stderr);
+    el_ast_dump_module(repro, 2, el_stderr());
 
     int result = el_ast_equal_module(orig, repro) ? 0 : 1;
 

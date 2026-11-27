@@ -2,6 +2,7 @@
 #include <elash/ast/dump/module.h>
 
 #include <elash/util/fopen.h>
+#include <elash/util/writer.h>
 #include <stdio.h>
 
 void elc_dump_ast_observer_exec(
@@ -21,7 +22,8 @@ void elc_dump_ast_observer_exec(
     bool needs_closing;
     FILE* out = el_open_ofile(path, &needs_closing);
 
-    el_ast_dump_module(artifact->as.ast, 0, out);
+    ElWriter writer = el_file_writer(out);
+    el_ast_dump_module(artifact->as.ast, 0, writer);
 
     if (needs_closing) fclose(out);
 }

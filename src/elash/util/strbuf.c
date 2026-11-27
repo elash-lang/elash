@@ -108,19 +108,26 @@ void el_strbuf_append_char(ElStringBuf* sb, char c) {
     sb->len += 1;
 }
 
-void el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    int needed = vsnprintf(NULL, 0, fmt, args);
-    va_end(args);
+void el_strbuf_appendvf(ElStringBuf* sb, const char* fmt, va_list args) {
+    va_list args_copy;
+    va_copy(args_copy, args);
+    int needed = vsnprintf(NULL, 0, fmt, args_copy);
+    va_end(args_copy);
 
     if (needed <= 0) return;
 
-    el_strbuf_reserve(sb, sb->len + needed + 1);
+    el_strbuf_reserve(sb, sb->len + (usize)needed + 1);
 
+    va_copy(args_copy, args);
+    vsnprintf(sb->data + sb->len, (usize)needed + 1, fmt, args_copy);
+    va_end(args_copy);
+
+    sb->len += (usize)needed;
+}
+
+void el_strbuf_appendf(ElStringBuf* sb, const char* fmt, ...) {
+    va_list args;
     va_start(args, fmt);
-    vsnprintf(sb->data + sb->len, needed + 1, fmt, args);
+    el_strbuf_appendvf(sb, fmt, args);
     va_end(args);
-
-    sb->len += needed;
 }

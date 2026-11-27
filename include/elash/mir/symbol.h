@@ -3,6 +3,7 @@
 #include <elash/defs/sv.h>
 #include <elash/mir/type.h>
 #include <elash/util/dynarena.h>
+#include <elash/util/writer.h>
 
 typedef enum ElMirSymbolKind {
     EL_MIR_SYM_VAR,
@@ -36,4 +37,4 @@ ElMirSymbol* el_mir_new_var_symbol(ElDynArena* arena, uint32_t id, ElStringView 
 ElMirSymbol* el_mir_new_func_symbol(
     ElDynArena* arena, uint32_t id, ElStringView name, ElMirType* ret_type, ElMirSymbol** params, usize param_count
 );
-void el_mir_dump_symbol(const ElMirSymbol* symbol, FILE* out);
+void el_mir_dump_symbol(const ElMirSymbol* symbol, ElWriter out);

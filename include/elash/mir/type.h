@@ -1,11 +1,8 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
-#include <elash/util/strbuf.h>
+#include <elash/util/writer.h>
 #include <elash/defs/int-types.h>
-
-#include <stdbool.h>
-#include <stdio.h>
 
 #include "type/int.h"
 #include "type/float.h"
@@ -37,9 +34,7 @@ struct ElMirType {
     } as;
 };
 
-void el_mir_format_type_internal(const ElMirType* type, void (*write)(const char*, void*), void* ctx);
-void el_mir_dump_type(const ElMirType* type, FILE* out);
-void el_mir_format_type(const ElMirType* type, ElStringBuf* sb);
+void el_mir_dump_type(const ElMirType* type, ElWriter out);
 
 bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs);
 uhash el_mir_type_hash(const ElMirType* type);

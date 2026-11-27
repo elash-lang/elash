@@ -1,6 +1,6 @@
 #pragma once
 
 #include <elash/defs/int-types.h>
-#include <stdio.h>
+#include <elash/util/writer.h>
 
-void el_ast_dump_print_indent(usize indent, FILE* out);
+void el_ast_dump_print_indent(usize indent, ElWriter out);

@@ -7,26 +7,26 @@
 
 #include <inttypes.h>
 
-void el_mir_dump_func(const ElMirFunc* func, usize indent, FILE* out) {
+void el_mir_dump_func(const ElMirFunc* func, usize indent, ElWriter out) {
     if (func == NULL) return;
 
-    for (usize i = 0; i < indent; ++i) fputs(" ", out);
+    for (usize i = 0; i < indent; ++i) el_write_char(out, ' ');
 
-    fputs("define ", out);
+    el_swrite(out, "define ");
     el_mir_dump_type(func->symbol->as.func.type->as.func.ret_type, out);
-    fputc(' ', out);
-    fprintf(out, EL_SV_FMT "(", EL_SV_FARG(func->symbol->name));
+    el_write_char(out, ' ');
+    el_writef(out, EL_SV_FMT "(", EL_SV_FARG(func->symbol->name));
 
     for (uint32_t i = 0; i < func->arg_count; ++i) {
-        if (i > 0) fputs(", ", out);
+        if (i > 0) el_swrite(out, ", ");
         el_mir_dump_value(func->args[i], out);
     }
-    fputs(") {\n", out);
+    el_swrite(out, ") {\n");
 
     for (ElMirBlock* block = func->first_block; block; block = block->next) {
         el_mir_dump_block(block, indent, out);
     }
 
-    for (usize i = 0; i < indent; ++i) fputs(" ", out);
-    fputs("}\n", out);
+    for (usize i = 0; i < indent; ++i) el_write_char(out, ' ');
+    el_swrite(out, "}\n");
 }

@@ -33,6 +33,6 @@ ElMirSymbol* el_mir_new_func_symbol(
     return sym;
 }
 
-void el_mir_dump_symbol(const ElMirSymbol* symbol, FILE* out) {
-    fprintf(out, EL_SV_FMT"#%u", EL_SV_FARG(symbol->name), symbol->id);
+void el_mir_dump_symbol(const ElMirSymbol* symbol, ElWriter out) {
+    el_writef(out, EL_SV_FMT"#%u", EL_SV_FARG(symbol->name), symbol->id);
 }

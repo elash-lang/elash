@@ -2,9 +2,7 @@
 
 #include <elash/sema/mutability.h>
 #include <elash/util/generic.h>
-#include <elash/util/strbuf.h>
-
-#include <stdio.h>
+#include <elash/util/writer.h>
 
 #include "type/opt.h"
 #include "type/ref.h"
@@ -50,10 +48,7 @@ struct ElHirType {
     } as;
 };
 
-void el_hir_format_type_impl(const ElHirType* type, void (*write)(const char*, void*), void* ctx);
-
-void el_hir_dump_type(const ElHirType* type, FILE* out);
-void el_hir_format_type(const ElHirType* type, ElStringBuf* sb);
+void el_hir_dump_type(const ElHirType* type, ElWriter out);
 
 bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs);
 bool el_hir_type_eql_unqual(const ElHirType* lhs, const ElHirType* rhs);

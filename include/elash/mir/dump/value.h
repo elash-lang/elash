@@ -1,6 +1,6 @@
 #pragma once
 
 #include <elash/mir/value.h>
-#include <stdio.h>
+#include <elash/util/writer.h>
 
-void el_mir_dump_value(const ElMirValue* value, FILE* out);
+void el_mir_dump_value(const ElMirValue* value, ElWriter out);
