@@ -3,13 +3,13 @@
 ## Language Features
 ### Statements
 - [x] Init-statements in `if` and `while`
-- [ ] Add `for (init; cond; post)` loop
+- [x] Add `for (init; cond; post)` loop
 - [x] Initializers as `return` values
 - [x] Warn when the result or an expression without side effects is ignored
 - [ ] Support `if case` and `while case` for optionals
 
 ### Declarations
-- [ ] Support unnamed function params in declarations
+- [x] Support unnamed function params in declarations
 - [x] Multiple declarators in a single declaration (comma separated, e.g. `int x, y;`)
 - [x] Forward-declared typedefs / opaque types (e.g. `typedef Name;`), better incomplete types semantics
 
