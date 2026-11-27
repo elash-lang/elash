@@ -4,131 +4,102 @@
 
 #include <stdint.h>
 
-static void stdio_wrapper(const char* pointer_to_const_char, void* pointer_to_void) {
-    fputs(pointer_to_const_char, (FILE*) pointer_to_void);
-}
-static void strbuf_wrapper(const char* pointer_to_const_char, void* pointer_to_void) {
-    el_strbuf_append_cstr((ElStringBuf*) pointer_to_void, pointer_to_const_char);
-}
-
-void el_hir_dump_type(const ElHirType* type, FILE* out) {
-    el_hir_format_type_impl(type, stdio_wrapper, out);
-}
-void el_hir_format_type(const ElHirType* type, ElStringBuf* sb) {
-    el_hir_format_type_impl(type, strbuf_wrapper, sb);
-}
-
-static inline void writeint(usize tuff, void (*write)(const char*, void*), void* ctx) {
-    char tuff_buff[31]; // NOLINT(readability-magic-numbers)
-    snprintf(tuff_buff, sizeof tuff_buff, "%zu", tuff);
-    write(tuff_buff, ctx);
-}
-
-static void format_mut(ElMutabilitySpec mut, void (*write)(const char*, void*), void* ctx) {
+static void format_mut(ElMutabilitySpec mut, ElWriter* out) {
     switch (mut) {
     case EL_MUTSPEC_DEFAULT: return;
-    case EL_MUTSPEC_CONST:   write("const ", ctx); return;
-    case EL_MUTSPEC_WONLY:   write("wonly ", ctx); return;
+    case EL_MUTSPEC_CONST:   el_swrite(out, "const "); return;
+    case EL_MUTSPEC_WONLY:   el_swrite(out, "wonly "); return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElMutabilitySpec, mut);
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat
-void el_hir_format_type_impl(const ElHirType* type, void (*write)(const char*, void*), void* ctx) {
+void el_hir_dump_type(const ElHirType* type, ElWriter* out) {
     switch (type->kind) {
     case EL_HIR_TYPE_QUAL:
-        format_mut(type->as.qual.mut, write, ctx);
-        el_hir_format_type_impl(type->as.qual.base, write, ctx);
+        format_mut(type->as.qual.mut, out);
+        el_hir_dump_type(type->as.qual.base, out);
         return;
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
-        case EL_HIR_PRIMTYPE_VOID: write("void", ctx); return;
-        case EL_HIR_PRIMTYPE_BOOL: write("bool", ctx); return;
+        case EL_HIR_PRIMTYPE_VOID: el_swrite(out, "void"); return;
+        case EL_HIR_PRIMTYPE_BOOL: el_swrite(out, "bool"); return;
         case EL_HIR_PRIMTYPE_INT:
-            write((const char* const [][2]) {
-                [EL_HIR_IWIDTH_NATIVE]    = { "usize",   "isize"  },
-                [EL_HIR_IWIDTH_EFFICIENT] = { "uint",    "int"    },
-                [EL_HIR_IWIDTH_8]         = { "uint8",   "int8"   },
-                [EL_HIR_IWIDTH_16]        = { "uint16",  "int16"  },
-                [EL_HIR_IWIDTH_32]        = { "uint32",  "int32"  },
-                [EL_HIR_IWIDTH_64]        = { "uint64",  "int64"  },
-                [EL_HIR_IWIDTH_128]       = { "uint128", "int128" },
-            }[type->as.prim.as.integral.width][type->as.prim.as.integral.is_signed], ctx);
+            el_write(out, ((ElStringView[][2]) {
+                [EL_HIR_IWIDTH_NATIVE]    = { EL_SV("usize"),   EL_SV("isize")  },
+                [EL_HIR_IWIDTH_EFFICIENT] = { EL_SV("uint"),    EL_SV("int")    },
+                [EL_HIR_IWIDTH_8]         = { EL_SV("uint8"),   EL_SV("int8")   },
+                [EL_HIR_IWIDTH_16]        = { EL_SV("uint16"),  EL_SV("int16")  },
+                [EL_HIR_IWIDTH_32]        = { EL_SV("uint32"),  EL_SV("int32")  },
+                [EL_HIR_IWIDTH_64]        = { EL_SV("uint64"),  EL_SV("int64")  },
+                [EL_HIR_IWIDTH_128]       = { EL_SV("uint128"), EL_SV("int128") },
+            }[type->as.prim.as.integral.width][type->as.prim.as.integral.is_signed]));
             return;
         case EL_HIR_PRIMTYPE_FLOAT:
-            write((const char* const[]) {
-                [EL_HIR_FPWIDTH_EFFICIENT] = "float",
-                [EL_HIR_FPWIDTH_16]        = "float16",
-                [EL_HIR_FPWIDTH_32]        = "float32",
-                [EL_HIR_FPWIDTH_64]        = "float64",
-                [EL_HIR_FPWIDTH_128]       = "float128",
-            }[type->as.prim.as.fp.width], ctx);
+            el_write(out, ((ElStringView[]) {
+                [EL_HIR_FPWIDTH_EFFICIENT] = EL_SV("float"),
+                [EL_HIR_FPWIDTH_16]        = EL_SV("float16"),
+                [EL_HIR_FPWIDTH_32]        = EL_SV("float32"),
+                [EL_HIR_FPWIDTH_64]        = EL_SV("float64"),
+                [EL_HIR_FPWIDTH_128]       = EL_SV("float128"),
+            }[type->as.prim.as.fp.width]));
             return;
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
     case EL_HIR_TYPE_REF:
-        el_hir_format_type_impl(type->as.ref.base, write, ctx);
-        write("&", ctx);
+        el_hir_dump_type(type->as.ref.base, out);
+        el_write_char(out, '&');
         return;
     case EL_HIR_TYPE_OPT:
-        el_hir_format_type_impl(type->as.opt.base, write, ctx);
-        write("?", ctx);
+        el_hir_dump_type(type->as.opt.base, out);
+        el_write_char(out, '?');
         return;
     case EL_HIR_TYPE_DISTINCT: {
         ElStringView name = type->as.distinct.name;
-        char buf[2] = { '\0', '\0' };
-        for (usize j = 0; j < name.len; j++) {
-            buf[0] = name.data[j];
-            write(buf, ctx);
-        }
+        el_write(out, name);
         return;
     }
     case EL_HIR_TYPE_ARRAY:
-        el_hir_format_type_impl(type->as.array.base, write, ctx);
-        write("[", ctx);
-        writeint(type->as.array.size, write, ctx);
-        write("]", ctx);
+        el_hir_dump_type(type->as.array.base, out);
+        el_write_char(out, '[');
+        el_writef(out, "%zu", type->as.array.size);
+        el_write_char(out, ']');
         return;
     case EL_HIR_TYPE_SLICE:
-        el_hir_format_type_impl(type->as.slice.base, write, ctx);
-        write("[]", ctx);
+        el_hir_dump_type(type->as.slice.base, out);
+        el_swrite(out, "[]");
         return;
     case EL_HIR_TYPE_RWSLICE:
-        el_hir_format_type_impl(type->as.rwslice.base, write, ctx);
-        write("[&]", ctx);
+        el_hir_dump_type(type->as.rwslice.base, out);
+        el_swrite(out, "[&]");
         return;
     case EL_HIR_TYPE_FUNC:
-        el_hir_format_type_impl(type->as.func.ret_type, write, ctx);
-        write("(", ctx);
+        el_hir_dump_type(type->as.func.ret_type, out);
+        el_write_char(out, '(');
         for (usize i = 0; i < type->as.func.param_count; i++) {
-            el_hir_format_type_impl(type->as.func.params[i], write, ctx);
-            if (i + 1 < type->as.func.param_count) write(", ", ctx);
+            el_hir_dump_type(type->as.func.params[i], out);
+            if (i + 1 < type->as.func.param_count) el_swrite(out, ", ");
         }
-        write(")", ctx);
+        el_write_char(out, ')');
         return;
     case EL_HIR_TYPE_STRUCT:
-        write("struct {", ctx);
+        el_swrite(out, "struct {");
         for (usize i = 0; i < type->as.struct_.count; i++) {
-            // TODO: this SUCKS. write probably should accept a string view.
             ElStringView name = type->as.struct_.fields[i].name;
-            char buf[2] = { '\0', '\0' };
-            for (usize j = 0; j < name.len; j++) {
-                buf[0] = name.data[j];
-                write(buf, ctx);
-            }
-            write(": ", ctx);
-            el_hir_format_type_impl(type->as.struct_.fields[i].type, write, ctx);
-            if (i + 1 < type->as.struct_.count) write(", ", ctx);
+            el_write(out, name);
+            el_swrite(out, ": ");
+            el_hir_dump_type(type->as.struct_.fields[i].type, out);
+            if (i + 1 < type->as.struct_.count) el_swrite(out, ", ");
         }
-        write("}", ctx);
+        el_write_char(out, '}');
         return;
     case EL_HIR_TYPE_TUPLE:
-        write("struct(", ctx);
+        el_swrite(out, "struct(");
         for (usize i = 0; i < type->as.tuple.count; i++) {
-            el_hir_format_type_impl(type->as.tuple.elements[i], write, ctx);
-            if (i + 1 < type->as.tuple.count) write(", ", ctx);
+            el_hir_dump_type(type->as.tuple.elements[i], out);
+            if (i + 1 < type->as.tuple.count) el_swrite(out, ", ");
         }
-        write(")", ctx);
+        el_write_char(out, ')');
         return;
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirTypeKind, type->kind);

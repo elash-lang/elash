@@ -38,5 +38,8 @@ void el_write(ElWriter* writer, ElStringView content);
 void el_write_cstr(ElWriter* writer, const char* content);
 void el_write_char(ElWriter* writer, char content);
 
+#define el_swrite(writer, content) \
+    el_write(writer, EL_SV(content))
+
 ElWriter el_file_writer(FILE* file);
 ElWriter el_sb_writer(ElStringBuf* sb);

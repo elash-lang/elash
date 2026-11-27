@@ -2,16 +2,17 @@
 #include <elash/util/assert.h>
 
 static void _el_diag_render_meta_value(const ElDiagMetaEntry* entry, ElStringBuf* out) {
+    ElWriter writer = el_sb_writer(out);
+
     switch (entry->type) {
-    case EL_DIAG_META_INT: {
+    case EL_DIAG_META_INT:
         return el_strbuf_appendf(out, "%i", entry->as.integer);
-    }
     case EL_DIAG_META_CHAR:
         return el_strbuf_append_char(out, entry->as.character);
     case EL_DIAG_META_STR:
         return el_strbuf_append(out, entry->as.string);
     case EL_DIAG_META_TYPE:
-        return el_hir_format_type(entry->as.type, out);
+        return el_hir_dump_type(entry->as.type, &writer);
     case EL_DIAG_META_TOK:
         return el_strbuf_append(out,
                 el_token_type_format(entry->as.token.type));

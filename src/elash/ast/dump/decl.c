@@ -7,37 +7,37 @@
 #include <elash/ast/dump/init.h>
 #include <elash/util/assert.h>
 
-static void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, FILE* out, const char* node_name) {
+static void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, ElWriter* out, const char* node_name) {
     el_ast_dump_print_indent(indent, out);
-    fprintf(out, "%s(\""EL_SV_FMT"\"):\n", node_name, EL_SV_FARG(sig->name->name));
+    el_writef(out, "%s(\""EL_SV_FMT"\"):\n", node_name, EL_SV_FARG(sig->name->name));
 
     el_ast_dump_print_indent(indent + 1, out);
-    fprintf(out, "ret_type:\n");
+    el_swrite(out, "ret_type:\n");
     el_ast_dump_type(sig->ret_type, indent + 2, out);
 
     el_ast_dump_print_indent(indent + 1, out);
-    fprintf(out, "params:\n");
+    el_swrite(out, "params:\n");
     for (ElAstFuncParam* param = sig->params.head; param; param = param->next) {
         el_ast_dump_print_indent(indent + 2, out);
-        fprintf(out, "Param(\""EL_SV_FMT"\"):\n", EL_SV_FARG(param->name->name));
+        el_writef(out, "Param(\""EL_SV_FMT"\"):\n", EL_SV_FARG(param->name->name));
         el_ast_dump_print_indent(indent + 3, out);
-        fprintf(out, "type:\n");
+        el_swrite(out, "type:\n");
         el_ast_dump_type(param->type, indent + 4, out);
     }
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): ok.
-void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
+void el_ast_dump_decl(ElAstDecl* node, usize indent, ElWriter* out) {
     switch (node->type) {
     case EL_AST_DECL_TYPEDEF:
         el_ast_dump_print_indent(indent, out);
-        fprintf(out, "Typedef:\n");
+        el_swrite(out, "Typedef:\n");
         for (ElAstTypedefElem* elem = node->as.typedef_.elements; elem != NULL; elem = elem->next) {
             el_ast_dump_print_indent(indent + 1, out);
-            fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(elem->name));
+            el_writef(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(elem->name));
             if (elem->target != NULL) {
                 el_ast_dump_print_indent(indent + 1, out);
-                fprintf(out, "target:\n");
+                el_swrite(out, "target:\n");
                 el_ast_dump_type(elem->target, indent + 2, out);
             }
         }
@@ -45,16 +45,16 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
 
     case EL_AST_DECL_VAR_DEF:
         el_ast_dump_print_indent(indent, out);
-        fprintf(out, "VarDef(is-static=%s):\n", node->as.var_def.is_static ? "true" : "false");
+        el_writef(out, "VarDef(is-static=%s):\n", node->as.var_def.is_static ? "true" : "false");
         el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "type:\n");
+        el_swrite(out, "type:\n");
         el_ast_dump_type(node->as.var_def.type, indent + 2, out);
         for (ElAstDeclarator* d = node->as.var_def.declarators; d != NULL; d = d->next) {
             el_ast_dump_print_indent(indent + 1, out);
-            fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(d->name->name));
+            el_writef(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(d->name->name));
             if (d->init != NULL) {
                 el_ast_dump_print_indent(indent + 1, out);
-                fprintf(out, "init:\n");
+                el_swrite(out, "init:\n");
                 el_ast_dump_init(d->init, indent + 2, out);
             }
         }
@@ -62,22 +62,22 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
 
     case EL_AST_DECL_VAR_DECL:
         el_ast_dump_print_indent(indent, out);
-        fprintf(out, "VarDecl:\n");
+        el_swrite(out, "VarDecl:\n");
         el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "type:\n");
+        el_swrite(out, "type:\n");
         el_ast_dump_type(node->as.var_decl.type, indent + 2, out);
         for (ElAstDeclarator* d = node->as.var_decl.declarators; d != NULL; d = d->next) {
             el_ast_dump_print_indent(indent + 1, out);
-            fputs("Declarator:", out);
+            el_swrite(out, "Declarator:");
             el_ast_dump_print_indent(indent + 2, out);
-            fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(d->name->name));
+            el_writef(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(d->name->name));
         }
         return;
 
     case EL_AST_DECL_FUNC_DEF:
         el_ast_dump_func_sig(&node->as.func_def.sig, indent, out, "FuncDef");
         el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "body:\n");
+        el_swrite(out, "body:\n");
         if (node->as.func_def.block) {
             for (ElAstStmt* stmt = node->as.func_def.block->stmts; stmt; stmt = stmt->next) {
                 el_ast_dump_stmt(stmt, indent + 2, out);
@@ -91,12 +91,12 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
 
     case EL_AST_DECL_ALIAS:
         el_ast_dump_print_indent(indent, out);
-        fprintf(out, "Alias:\n");
+        el_swrite(out, "Alias:\n");
         for (ElAstAliasElem* elem = node->as.alias.elements; elem != NULL; elem = elem->next) {
             el_ast_dump_print_indent(indent + 1, out);
-            fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(elem->name));
+            el_writef(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(elem->name));
             el_ast_dump_print_indent(indent + 1, out);
-            fprintf(out, "target:\n");
+            el_swrite(out, "target:\n");
             el_ast_dump_type_or_expr(elem->target, indent + 2, out);
         }
         return;
@@ -104,4 +104,3 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
 
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, node->type);
 }
-

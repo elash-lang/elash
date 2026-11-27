@@ -4,98 +4,98 @@
 #include <elash/sema/bin-op.h>
 #include <elash/defs/sv.h>
 
-void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
+void el_mir_dump_instr(const ElMirInstr* instr, usize indent, ElWriter* out) {
     if (instr == NULL) return;
 
-    for (usize i = 0; i < indent; ++i) fputs(" ", out);
+    for (usize i = 0; i < indent; ++i) el_write_char(out, ' ');
 
     if (instr->result != NULL) {
         el_mir_dump_value(instr->result, out);
-        fputs(" = ", out);
+        el_swrite(out, " = ");
     }
 
     switch (instr->kind) {
     case EL_MIR_INSTR_BIN: {
         ElStringView op = el_bin_op_to_string(instr->as.bin.op);
-        fprintf(out, ""EL_SV_FMT" ", EL_SV_FARG(op));
+        el_writef(out, ""EL_SV_FMT" ", EL_SV_FARG(op));
         el_mir_dump_value(instr->as.bin.lhs, out);
-        fputs(", ", out);
+        el_swrite(out, ", ");
         el_mir_dump_value(instr->as.bin.rhs, out);
         break;
     }
     case EL_MIR_INSTR_UNARY: {
         ElStringView op = el_unary_op_to_string(instr->as.unary.op);
-        fprintf(out, ""EL_SV_FMT" ", EL_SV_FARG(op));
+        el_writef(out, ""EL_SV_FMT" ", EL_SV_FARG(op));
         el_mir_dump_value(instr->as.unary.operand, out);
         break;
     }
     case EL_MIR_INSTR_RET:
-        fputs("ret ", out);
+        el_swrite(out, "ret ");
         if (instr->as.return_.value != NULL) {
             el_mir_dump_value(instr->as.return_.value, out);
         } else {
-            fputs("void", out);
+            el_swrite(out, "void");
         }
         break;
     case EL_MIR_INSTR_CALL:
-        fputs("call ", out);
+        el_swrite(out, "call ");
         el_mir_dump_value(instr->as.call.callee, out);
-        fputs("(", out);
+        el_write_char(out, '(');
         for (uint32_t i = 0; i < instr->as.call.arg_count; ++i) {
-            if (i > 0) fputs(", ", out);
+            if (i > 0) el_swrite(out, ", ");
             el_mir_dump_value(instr->as.call.args[i], out);
         }
-        fputs(")", out);
+        el_write_char(out, ')');
         break;
     case EL_MIR_INSTR_ALLOCA:
-        fputs("alloca ", out);
+        el_swrite(out, "alloca ");
         el_mir_dump_type(instr->as.alloca.type, out);
         break;
     case EL_MIR_INSTR_LOAD:
-        fputs("load ", out);
+        el_swrite(out, "load ");
         el_mir_dump_value(instr->as.load.ptr, out);
         break;
     case EL_MIR_INSTR_STORE:
-        fputs("store ", out);
+        el_swrite(out, "store ");
         el_mir_dump_value(instr->as.store.value, out);
-        fputs(", ", out);
+        el_swrite(out, ", ");
         el_mir_dump_value(instr->as.store.ptr, out);
         break;
     case EL_MIR_INSTR_JMP:
-        fprintf(out, "jmp @%u", instr->as.jmp.target_id);
+        el_writef(out, "jmp @%u", instr->as.jmp.target_id);
         break;
     case EL_MIR_INSTR_JMPIF:
-        fputs("jmpif ", out);
+        el_swrite(out, "jmpif ");
         el_mir_dump_value(instr->as.jmpif.cond, out);
-        fprintf(out, ", @%u, @%u", instr->as.jmpif.then_id, instr->as.jmpif.else_id);
+        el_writef(out, ", @%u, @%u", instr->as.jmpif.then_id, instr->as.jmpif.else_id);
         break;
     case EL_MIR_INSTR_INTCAST:
-        fputs("intcast ", out);
+        el_swrite(out, "intcast ");
         el_mir_dump_value(instr->as.intcast.operand, out);
         break;
     case EL_MIR_INSTR_FPCAST:
-        fputs("fpcast ", out);
+        el_swrite(out, "fpcast ");
         el_mir_dump_value(instr->as.fpcast.operand, out);
         break;
     case EL_MIR_INSTR_BITCAST:
-        fputs("bitcast ", out);
+        el_swrite(out, "bitcast ");
         el_mir_dump_value(instr->as.intcast.operand, out);
         break;
     case EL_MIR_INSTR_GEP:
-        fputs("gep ", out);
+        el_swrite(out, "gep ");
         el_mir_dump_value(instr->as.gep.ptr, out);
-        fputs(", ", out);
+        el_swrite(out, ", ");
         el_mir_dump_value(instr->as.gep.index, out);
         break;
     case EL_MIR_INSTR_GFP:
-        fputs("gfp ", out);
+        el_swrite(out, "gfp ");
         el_mir_dump_value(instr->as.gfp.ptr, out);
-        fprintf(out, ", %zu", instr->as.gfp.index);
+        el_writef(out, ", %zu", instr->as.gfp.index);
         break;
     case EL_MIR_INSTR_UNREACHABLE:
-        fputs("unreachable", out);
+        el_swrite(out, "unreachable");
         break;
     }
 
-    fputs("\n", out);
+    el_write_char(out, '\n');
 }

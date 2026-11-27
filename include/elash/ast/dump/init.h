@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/defs/int-types.h>
-#include <stdio.h>
+#include <elash/util/writer.h>
 
 typedef struct ElAstInit ElAstInit;
-void el_ast_dump_init(ElAstInit* init, usize indent, FILE* out);
+void el_ast_dump_init(ElAstInit* init, usize indent, ElWriter* out);

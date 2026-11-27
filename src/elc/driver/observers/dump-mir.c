@@ -1,5 +1,6 @@
 #include <elc/driver/observers/dump-mir.h>
 #include <elash/mir/dump/module.h>
+#include <elash/util/writer.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -22,7 +23,8 @@ void elc_dump_mir_observer_exec(
         if (out == NULL) return;
     }
 
-    el_mir_dump_module(artifact->as.mir, out);
+    ElWriter writer = el_file_writer(out);
+    el_mir_dump_module(artifact->as.mir, &writer);
 
     if (out != stdout) fclose(out);
 }
