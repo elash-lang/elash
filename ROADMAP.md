@@ -6,7 +6,7 @@
 - [x] Add `for (init; cond; post)` loop
 - [x] Initializers as `return` values
 - [x] Warn when the result or an expression without side effects is ignored
-- [ ] Support `if case` and `while case` for optionals
+- [ ] Support `if case`, `while case` and `for case` for optionals
 
 ### Declarations
 - [x] Support unnamed function params in declarations
