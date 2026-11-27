@@ -1,4 +1,5 @@
 #include "binder-internals.h"
+#include "elash/defs/sv.h"
 
 #include <elash/diag/engine.h>
 #include <elash/util/assert.h>
@@ -57,11 +58,14 @@ static bool _el_binder_create_param_symbols(
     usize i = 0;
 
     for (ElAstFuncParam* param = params->head; param != NULL; param = param->next) {
-        for (usize j = 0; j < i; j++) {
-            if (el_sv_eql(param_syms[j]->name, param->name->name)) {
-                REPORT_PARAM_REDECLARATION(binder, param);
-                has_error = true;
-                break;
+        if (!el_sv_is_null(param->name->name)) {
+            for (usize j = 0; j < i; j++) {
+                if (el_sv_is_null(param_syms[j]->name)) continue;
+                if (el_sv_eql(param_syms[j]->name, param->name->name)) {
+                    REPORT_PARAM_REDECLARATION(binder, param);
+                    has_error = true;
+                    break;
+                }
             }
         }
 
@@ -213,12 +217,17 @@ static ElHirDecl* bind_func_def(ElBinder* binder, ElAstDecl* in, ElAstFuncDef* d
     }
     sym->as.func.is_defined = true;
 
+    if (!_el_binder_create_param_symbols(binder, &def->sig.params, sym->as.func.type->as.func.params, &sym->as.func.params))
+        return NULL;
+
     ElHirSymbol* prev_func = binder->current_func;
     binder->current_func = sym;
 
     _el_binder_push_scope(binder);
     for (usize i = 0; i < sym->as.func.param_count; ++i) {
-        (void) el_hir_scope_insert(binder->current_scope, sym->as.func.params[i]);
+        if (!el_sv_is_null(sym->as.func.params[i]->name)) {
+            (void) el_hir_scope_insert(binder->current_scope, sym->as.func.params[i]);
+        }
     }
 
     ElHirBlockStmt block = _el_bind_block(binder, def->block);

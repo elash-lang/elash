@@ -8,22 +8,30 @@ static ElAstFuncParamList parse_func_params(ElParser* parser) {
     ElAstFuncParamList params = el_ast_make_func_param_list();
 
     while (parser->current.type != EL_TT_RPAREN && parser->current.type != EL_TT_EOF) {
-        ElAstType* p_type = _el_parse_type(parser);
-        if (p_type == NULL) {
+        ElAstType* ptype = _el_parse_type(parser);
+        if (ptype == NULL) {
             el_parser_skip_to(parser, EL_TT_RPAREN);
             return params;
         }
 
-        ElAstIdent* p_name = _el_parse_ident(parser);
-        if (p_name == NULL) {
+        ElAstIdent* pname = el_ast_new_ident_raw(
+            parser->aarena, EL_SRCSPAN_NULL, EL_SV_NULL
+        );
+
+        if (el_parser_check(parser, EL_TT_COMMA) || el_parser_check(parser, EL_TT_RPAREN))
+            goto rest;
+
+        pname = _el_parse_ident(parser);
+        if (pname == NULL) {
             el_parser_skip_to(parser, EL_TT_RPAREN);
             return params;
         }
 
+    rest:
         el_ast_func_param_list_append(&params, el_ast_new_func_param(
             parser->aarena,
-            el_srcspan_merge(p_type->span, p_name->span),
-            p_type, p_name
+            el_srcspan_merge(ptype->span, pname->span),
+            ptype, pname
         ));
 
         if (el_parser_match(parser, EL_TT_COMMA)) {

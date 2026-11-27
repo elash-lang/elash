@@ -1,0 +1,13 @@
+int add(int, int, int);
+
+int main() {
+    return add(2, -2, 0);
+}
+
+// unnamed parameters in definitions are allowed, but you can't access their values, thought sometimes
+// that's just what you want, and it's cleaner than dummy names like `int _` or `int _name`
+int add(int a, int b, int) {
+    return a + b;
+}
+
+int add(int x, int, int z);
